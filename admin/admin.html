@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Uni Pass • Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <script src="/assets/js/route-guard.js"></script>
+</head> 
+
+<body class="admin-page">
+
+  <nav class="top-nav">
+    <span class="brand">Uni Pass</span>
+    <div class="nav-links">
+      <a class="active">Admin</a>
+    </div>
+  </nav>
+
+  <main class="admin-container">
+
+    <section class="admin-card">
+      <h2>Bulk User Provisioning</h2>
+      <input type="file" id="file" accept=".csv,.xls,.xlsx" />
+      <button id="upload">Upload</button>
+    </section>
+
+    <section class="admin-card">
+      <h2>System Overview</h2>
+      <div id="stats"></div>
+    </section>
+
+  </main>
+
+  <script type="module">
+    import "/assets/js/admin-bulk-upload.js";
+    import { db } from "/assets/js/firebase-init.js";
+    import {
+      doc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+    const stats = document.getElementById("stats");
+
+    async function loadStats() {
+      const ref = await getDoc(doc(db, "system", "meta"));
+      if (!ref.exists()) return;
+      const d = ref.data();
+      stats.textContent = `Total Permissions: ${d.totalPermissions || 0}`;
+    }
+
+    loadStats();
+  </script>
+
+</body>
+</html>
