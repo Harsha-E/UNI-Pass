@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Uni Pass • Secure Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Global Styles -->
+  <link rel="stylesheet" href="/assets/css/main.css" />
+</head>
+
+<body class="auth-page">
+
+  <main class="auth-container">
+    <section class="auth-card">
+
+      <header class="auth-header">
+        <h1>Uni Pass</h1>
+        <p>Secure institutional access</p>
+      </header>
+
+      <form id="loginForm" class="auth-form" novalidate>
+
+        <div class="form-field">
+          <input
+            id="email"
+            name="email"
+            type="email"
+            required
+            autocomplete="username"
+          />
+          <label for="email">Email / College ID</label>
+        </div>
+
+        <div class="form-field">
+          <input
+            id="password"
+            name="password"
+            type="password"
+            required
+            autocomplete="current-password"
+          />
+          <label for="password">Password</label>
+        </div>
+
+        <button
+          id="loginBtn"
+          type="submit"
+          disabled
+          aria-disabled="true"
+        >
+          Authenticate
+        </button>
+
+        <div id="adminFlag" class="admin-indicator" hidden>
+          Admin interface enabled
+        </div>
+
+        <div
+          id="err"
+          class="form-error"
+          role="alert"
+          aria-live="assertive"
+          hidden
+        ></div>
+
+      </form>
+
+      <footer class="auth-footer">
+        <p>
+          Verifying a permission?
+          <a href="checker.html">Use Checker</a>
+        </p>
+      </footer>
+
+    </section>
+  </main>
+
+  <!-- Login Logic (Identity Only) -->
+  <script>
+    /*
+      SCALE-10 LOGIN CONTRACT
+      ----------------------
+      • This page authenticates IDENTITY only
+      • No role decisions
+      • No privilege assignment
+      • No email-based guessing
+      • Final access is decided by policy engine
+    */
+
+    const emailInput = document.getElementById("email");
+    const passInput  = document.getElementById("password");
+    const submitBtn  = document.getElementById("loginBtn");
+    const errorBox   = document.getElementById("err");
+    const adminFlag  = document.getElementById("adminFlag");
+
+    let adminUIUnlocked = false;
+    let keySequence = "";
+
+    function validateForm() {
+      const valid =
+        emailInput.value.trim().length > 0 &&
+        passInput.value.length >= 6;
+
+      submitBtn.disabled = !valid;
+      submitBtn.setAttribute("aria-disabled", String(!valid));
+    }
+
+    emailInput.addEventListener("input", validateForm);
+    passInput.addEventListener("input", validateForm);
+
+    /* Admin UI unlock — VISUAL ONLY */
+    document.addEventListener("keydown", e => {
+      keySequence += e.key;
+      if (keySequence.includes("Admin@UniPass")) {
+        adminUIUnlocked = true;
+        adminFlag.hidden = false;
+        keySequence = "";
+      }
+      if (keySequence.length > 20) keySequence = "";
+    });
+
+    document.getElementById("loginForm").addEventListener("submit", e => {
+      e.preventDefault();
+      errorBox.hidden = true;
+
+      const identity = emailInput.value.trim().toLowerCase();
+
+      /* Checker NEVER authenticates */
+      if (identity.includes("checker")) {
+        window.location.replace("checker.html");
+        return;
+      }
+
+      /*
+        REAL FLOW (scale-10):
+        --------------------
+        1. Firebase Auth (email + password)
+        2. Fetch user context from Firestore
+        3. Apply policy:
+           - approved?
+           - disabled?
+           - firstLogin?
+           - role?
+        4. Redirect via policy router
+      */
+
+      try {
+        sessionStorage.clear();
+        sessionStorage.setItem("loggedIn", "true");
+        sessionStorage.setItem("identity", emailInput.value);
+        sessionStorage.setItem("password", passInput.value);
+        location.replace("/assets/redirect.html");
+
+
+      } catch (err) {
+        errorBox.hidden = false;
+        errorBox.textContent =
+          "Authentication failed. Access denied.";
+      }
+    });
+  </script>
+
+</body>
+</html>
