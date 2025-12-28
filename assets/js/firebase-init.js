@@ -2,13 +2,14 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import {
   getAuth,
   signInWithEmailAndPassword,
-  sendPasswordResetEmail
+  sendPasswordResetEmail,
+  fetchSignInMethodsForEmail
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import {
   getFirestore,
   doc,
   getDoc,
-  setDoc,
+  setDoc, 
   updateDoc,
   increment,
   serverTimestamp
@@ -56,6 +57,22 @@ export async function markFirstLoginComplete(uid) {
 
 export async function resetPassword(email) {
   await sendPasswordResetEmail(auth, email);
+}
+
+export async function checkUserExists(email) {
+  try {
+    console.log('Checking if user exists:', email);
+    // Use fetchSignInMethodsForEmail to check if user exists without password
+    const methods = await fetchSignInMethodsForEmail(auth, email);
+    console.log('Sign-in methods for', email, ':', methods);
+    const exists = methods.length > 0;
+    console.log('User exists:', exists);
+    return exists;
+  } catch (error) {
+    console.log('Error checking user existence:', error.code, error.message);
+    // If there's an error, assume user doesn't exist for safety
+    return false;
+  }
 }
 
 export async function incrementPermissionCount() {

@@ -2,11 +2,7 @@
 const key = "unipass-theme";
 
 function apply(theme) {
-  if (theme === "dark") {
-    root.setAttribute("data-theme", "dark");
-  } else {
-    root.removeAttribute("data-theme");
-  }
+  root.setAttribute("data-theme", theme);
   localStorage.setItem(key, theme);
 }
 

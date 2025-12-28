@@ -4,28 +4,42 @@ import {
  getDocs, query, where, serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-/* ===== HASH GENERATOR ===== */
-export function generateHash(){
- return "UP-" + Math.random().toString(36).substring(2,10).toUpperCase();
+/* ===== CRYPTOGRAPHIC HASH GENERATOR ===== */
+export async function generateHash(payload = {}){
+  const seed = JSON.stringify(payload) + '::' + Date.now();
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(seed));
+  const hex = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  return hex; // full hex (64 chars)
 }
 
 /* ===== STUDENT: CREATE REQUEST ===== */
 export async function createRequest(toUid, reason){
- const uid = sessionStorage.getItem("uid");
- const hash = generateHash();
+  const uid = sessionStorage.getItem("uid");
+  if (!uid) throw new Error("User not authenticated");
+  
+  if (!toUid || !reason) throw new Error("Missing required fields");
+  
+  const payload = { fromUid: uid, toUid, roleFrom: 'student', roleTo: 'teacher', reason };
+  const fullHex = await generateHash(payload);
+  const shortId = 'UP-' + fullHex.substring(0,16).toUpperCase();
 
- await setDoc(doc(db,"permissionRequests",hash),{
-   fromUid: uid,
-   toUid,
-   roleFrom: "student",
-   roleTo: "teacher",
-   reason,
-   status: "pending",
-   hash,
-   createdAt: serverTimestamp()
- });
-
- return hash;
+  try {
+    await setDoc(doc(db,"permissionRequests",shortId),{
+      fromUid: uid,
+      toUid,
+      roleFrom: "student",
+      roleTo: "teacher",
+      reason,
+      status: "pending",
+      hash: shortId,
+      permissionHashFull: fullHex,
+      createdAt: serverTimestamp()
+    });
+    return shortId;
+  } catch (error) {
+    console.error("Failed to create permission request:", error);
+    throw new Error("Failed to submit permission request");
+  }
 }
 
 /* ===== TEACHER / HOD: UPDATE STATUS ===== */

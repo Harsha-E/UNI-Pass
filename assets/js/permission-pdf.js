@@ -41,18 +41,16 @@ export async function generatePermissionPDF(data) {
   row("Authorized At", data.authorizedAt);
 
   const qrData = await QRCode.toDataURL(
-    `${data.verifyUrl}?pid=${data.permissionId}`
+    `${data.verifyUrl}?pid=${data.permissionId}&hash=${data.permissionHashFull || ''}`
   );
 
   pdf.addImage(qrData, "PNG", 70, y + 10, 70, 70);
 
   pdf.setFontSize(9);
-  pdf.text(
-    "Scan QR to verify permission status in real-time",
-    105,
-    y + 90,
-    { align: "center" }
-  );
+  pdf.text("Scan QR to verify permission status in real-time", 105, y + 90, { align: "center" });
+
+  pdf.setFontSize(8);
+  pdf.text(`Permission Hash: ${data.permissionHashFull || data.permissionId}`, 105, y + 100, { align: 'center' });
 
   pdf.setDrawColor(180);
   pdf.line(20, 265, 190, 265);

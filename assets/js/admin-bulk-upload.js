@@ -15,6 +15,7 @@ import {
 ================================ */
 
 const fileInput = document.querySelector('input[type="file"]');
+const uploadBtn = document.getElementById('upload');
 
 fileInput.addEventListener("change", async e => {
  const file = e.target.files[0];
@@ -23,32 +24,45 @@ fileInput.addEventListener("change", async e => {
  const ext = file.name.split(".").pop().toLowerCase();
  let rows = [];
 
- if (ext === "csv") {
-   rows = await parseCSV(file);
- } else {
-   rows = await parseXLS(file);
- }
+ try {
+   if (ext === "csv") {
+     rows = await parseCSV(file);
+   } else if (ext === "xls" || ext === "xlsx") {
+     rows = await parseXLS(file);
+   } else {
+     alert("Unsupported file format. Please use CSV, XLS, or XLSX.");
+     return;
+   }
 
- await processRows(rows);
- alert("Upload completed");
+   if (rows.length === 0) {
+     alert("No data found in file.");
+     return;
+   }
+
+   await processRows(rows);
+   alert("Upload completed");
+ } catch (error) {
+   console.error("Upload failed:", error);
+   alert("Upload failed: " + error.message);
+ }
 });
 
 /* ====== PROCESS ROWS ====== */
 async function processRows(rows){
  for(const r of rows){
    if(!r.email || !r.role) continue;
+    const fakeUid = btoa(r.email).replace(/=/g,""); // temp UID until Auth creation
+    const autoApprove = document.getElementById('autoApprove')?.checked === true;
 
-   const fakeUid = btoa(r.email).replace(/=/g,""); // temp UID until Auth creation
-
-   await setDoc(doc(db,"users",fakeUid),{
-     email: r.email.trim(),
-     role: r.role.trim().toLowerCase(),
-     department: r.department || null,
-     approved: true,
-     firstLogin: true,
-     disabled: false,
-     createdAt: serverTimestamp()
-   });
+    await setDoc(doc(db,"users",fakeUid),{
+      email: r.email.trim(),
+      role: r.role.trim().toLowerCase(),
+      department: r.department || null,
+      approved: !!autoApprove,
+      firstLogin: true,
+      disabled: false,
+      createdAt: serverTimestamp()
+    });
  }
 }
 
