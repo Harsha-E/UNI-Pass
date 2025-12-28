@@ -2,78 +2,138 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Uni Pass • Checker</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="/assets/css/main.css" />
+  <title>UNIPASS Checker</title>
+  <link rel="stylesheet" href="../assets/css/main.css" />
+  <link rel="stylesheet" href="../../assets/css/style.css">
+<script src="../../assets/js/ui.js" defer></script>
 </head>
+<body>
 
-<body class="checker-page">
+  <main class="checker">
+    <h2>Permission Verification</h2>
 
-  <main class="checker-container">
-    <section class="checker-card">
+    <input
+      id="hashInput"
+      type="text"
+      placeholder="Enter Permission Hash"
+      autocomplete="off"
+    />
+    <button id="checkBtn">Verify</button>
 
-      <header class="checker-header">
-        <h1>Permission Verification</h1>
-        <p>Enter Permission ID to verify validity</p>
-      </header>
-
-      <div class="checker-form">
-        <input
-          id="pid"
-          type="text"
-          placeholder="Permission ID"
-          autocomplete="off"
-        />
-        <button id="verifyBtn">Verify</button>
-      </div>
-
-      <div id="result" class="checker-result" hidden></div>
-
-    </section>
+    <section id="result"></section>
   </main>
 
   <script type="module">
-    import { db } from "/assets/js/firebase-init.js";
     import {
-      doc,
-      getDoc
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+      fetchApprovedPermissionByHash
+    } from "../assets/js/permission-events.js";
 
-    const btn = document.getElementById("verifyBtn");
-    const pid = document.getElementById("pid");
-    const res = document.getElementById("result");
+    const btn = document.getElementById("checkBtn");
+    const input = document.getElementById("hashInput");
+    const result = document.getElementById("result");
 
     btn.onclick = async () => {
-      res.hidden = true;
-      const id = pid.value.trim();
-      if (!id) return;
+      const hash = input.value.trim().toUpperCase();
+      if (!hash) return;
 
-      try {
-        const ref = await getDoc(doc(db, "permissions", id));
-        if (!ref.exists()) {
-          res.textContent = "Invalid Permission";
-          res.hidden = false;
-          return;
-        }
+      result.innerHTML = "Checking...";
 
-        const p = ref.data();
-        const now = Date.now();
-        const valid =
-          p.sealed &&
-          new Date(p.validFrom).getTime() <= now &&
-          new Date(p.validTill).getTime() >= now;
-
-        res.textContent = valid
-          ? "Permission is valid"
-          : "Permission is not valid";
-        res.hidden = false;
-
-      } catch {
-        res.textContent = "Unable to verify";
-        res.hidden = false;
+      const data = await fetchApprovedPermissionByHash(hash);
+      if (!data) {
+        result.innerHTML = "Invalid or unapproved permission";
+        return;
       }
+
+      const teacher = data.approvals.teacher;
+      const hod = data.approvals.hod;
+
+      result.innerHTML = `
+        <p><strong>Permission ID:</strong> ${data.id}</p>
+        <p><strong>Student:</strong> ${data.student.name} (${data.student.email})</p>
+        <p><strong>Reason:</strong> ${data.reason.label}</p>
+        ${data.reason.customText ? `<p><strong>Details:</strong> ${data.reason.customText}</p>` : ""}
+        <p><strong>Approved At:</strong>
+          ${hod?.approvedAt?.toDate?.() || teacher?.approvedAt?.toDate?.()}
+        </p>
+        <p><strong>Approved By:</strong></p>
+        <ul>
+          <li>Teacher: ${teacher?.name || "-"}</li>
+          ${hod ? `<li>HOD: ${hod.name}</li>` : ""}
+        </ul>
+        ${
+          data.validity?.from
+            ? `<p><strong>Valid:</strong> ${data.validity.from} → ${data.validity.till}</p>`
+            : ""
+        }
+      `;
     };
   </script>
+<script type="module">
+    import { db } from '../assets/js/firebase-init.js'; // Adjust path as needed
 
+    const checkBtn = document.getElementById('verify-btn');
+    const inputField = document.getElementById('permission-id-input');
+    const resultDisplay = document.getElementById('verification-result');
+
+    checkBtn.addEventListener('click', async () => {
+        const permId = inputField.value.trim();
+        if (!permId) return;
+
+        resultDisplay.innerHTML = '<span class="loading">Verifying cryptographic signature...</span>';
+
+        try {
+            // 1. Fetch the document
+            const docRef = await db.collection('permissions').doc(permId).get();
+            
+            if (!docRef.exists) {
+                showResult('invalid', 'Permission ID not found in institutional registry.');
+                return;
+            }
+
+            const data = docRef.data();
+
+            // 2. Re-construct the data string (MUST match the generation logic exactly)
+            // Order: studentID -> reason -> timestamp -> status
+            const dataString = `${data.studentID}-${data.reason}-${data.timestamp}-${data.status}`;
+            
+            // 3. Re-hash it locally
+            const encoder = new TextEncoder();
+            const encoded = encoder.encode(dataString);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            const calculatedHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+            // 4. Compare with the stored signature
+            if (calculatedHash === data.digitalSignature) {
+                showResult('valid', data);
+            } else {
+                showResult('tampered', 'Hash Mismatch: Data integrity compromised.');
+            }
+
+        } catch (error) {
+            console.error(error);
+            showResult('error', 'System Error: Unable to verify.');
+        }
+    });
+
+    function showResult(status, payload) {
+        if (status === 'valid') {
+            resultDisplay.className = 'status-box success';
+            resultDisplay.innerHTML = `
+                <h3>✅ Verified Authentic</h3>
+                <p><strong>Issued To:</strong> ${payload.studentID}</p>
+                <p><strong>Status:</strong> ${payload.status.toUpperCase()}</p>
+                <p><strong>Date:</strong> ${new Date(payload.timestamp).toLocaleDateString()}</p>
+                <small>Signature: ${payload.digitalSignature.substring(0, 16)}...</small>
+            `;
+        } else if (status === 'tampered') {
+            resultDisplay.className = 'status-box danger';
+            resultDisplay.innerHTML = `<h3>❌ TAMPER DETECTED</h3><p>${payload}</p>`;
+        } else {
+            resultDisplay.className = 'status-box warning';
+            resultDisplay.innerHTML = `<h3>⚠️ Invalid</h3><p>${payload}</p>`;
+        }
+    }
+</script>
 </body>
 </html>

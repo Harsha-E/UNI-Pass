@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register | UNI-PASS System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="module" src="../assets/js/firebase-init.js"></script>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+<script src="../../assets/js/ui.js" defer></script>
+</head>
+<body class="bg-gray-50 flex items-center justify-center min-h-screen font-sans">
+
+    <div class="max-w-md w-full bg-white rounded-xl shadow-2xl overflow-hidden">
+        <div class="bg-blue-900 p-6 text-center">
+            <h2 class="text-2xl font-bold text-white">Create Account</h2>
+            <p class="text-blue-200 text-sm mt-1">Institutional Access Portal</p>
+        </div>
+
+        <form id="signup-form" class="p-8 space-y-5">
+            
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Full Name</label>
+                <div class="relative">
+                    <i class="fas fa-user absolute left-3 top-3 text-gray-400"></i>
+                    <input type="text" id="reg-name" required class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Arjun Reddy">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">College Email</label>
+                <div class="relative">
+                    <i class="fas fa-envelope absolute left-3 top-3 text-gray-400"></i>
+                    <input type="email" id="reg-email" required class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="id@mvgrce.edu.in">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Password</label>
+                <div class="relative">
+                    <i class="fas fa-lock absolute left-3 top-3 text-gray-400"></i>
+                    <input type="password" id="reg-pass" required class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="••••••••">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">I am a...</label>
+                <div class="flex gap-4">
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="role" value="student" checked class="peer sr-only" onchange="window.toggleRollField(true)">
+                        <div class="text-center py-2 border rounded-lg peer-checked:bg-blue-600 peer-checked:text-white transition">Student</div>
+                    </label>
+                    <label class="flex-1 cursor-pointer">
+                        <input type="radio" name="role" value="teacher" class="peer sr-only" onchange="window.toggleRollField(false)">
+                        <div class="text-center py-2 border rounded-lg peer-checked:bg-blue-600 peer-checked:text-white transition">Faculty</div>
+                    </label>
+                </div>
+            </div>
+
+            <div id="roll-container">
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Roll Number</label>
+                <div class="relative">
+                    <i class="fas fa-id-card absolute left-3 top-3 text-gray-400"></i>
+                    <input type="text" id="reg-roll" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. 24331A4201">
+                </div>
+                <p class="text-xs text-gray-400 mt-1">Section and Counselor will be assigned automatically based on this ID.</p>
+            </div>
+
+            <button type="submit" id="btn-signup" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-lg transform hover:-translate-y-0.5">
+                Register
+            </button>
+
+            <p class="text-center text-sm text-gray-500 mt-4">
+                Already have an account? <a href="login.html" class="text-blue-600 font-bold hover:underline">Login</a>
+            </p>
+        </form>
+    </div>
+
+    <script type="module">
+        import { db, auth } from '../assets/js/firebase-init.js';
+
+        // Helper to toggle visibility
+        window.toggleRollField = (isStudent) => {
+            const el = document.getElementById('roll-container');
+            if(isStudent) el.classList.remove('hidden');
+            else el.classList.add('hidden');
+        };
+
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btn-signup');
+            
+            // Add status message element
+            let statusMsg = document.getElementById('status-msg');
+            if(!statusMsg) {
+                statusMsg = document.createElement('p');
+                statusMsg.id = 'status-msg';
+                statusMsg.className = "text-center text-xs text-blue-600 mt-2 animate-pulse";
+                btn.parentNode.appendChild(statusMsg);
+            }
+
+            btn.disabled = true;
+            btn.innerText = "Processing...";
+
+            const email = document.getElementById('reg-email').value;
+            const pass = document.getElementById('reg-pass').value;
+            const name = document.getElementById('reg-name').value;
+            const role = document.querySelector('input[name="role"]:checked').value;
+            const roll = document.getElementById('reg-roll').value;
+
+            try {
+                // 1. Create User in Auth System
+                statusMsg.innerText = "Creating secure credentials...";
+                const userCredential = await auth.createUserWithEmailAndPassword(email, pass);
+                const user = userCredential.user;
+
+                // 2. Send Verification Email
+                statusMsg.innerText = "Sending verification email...";
+                await user.sendEmailVerification();
+
+                // 3. Determine Auto-Assignment Logic (Realistic)
+                let section = 'N/A';
+                let department = 'General';
+                
+                if (role === 'student' && roll) {
+                    // Dept Code extraction (e.g. 42 = CSE)
+                    if (roll.includes('42')) department = 'Computer Science';
+                    else if (roll.includes('01')) department = 'Civil';
+                    else if (roll.includes('03')) department = 'Mechanical';
+                    else if (roll.includes('04')) department = 'ECE';
+                    
+                    // Section Logic (Last 2 digits)
+                    const lastTwo = parseInt(roll.slice(-2));
+                    if (!isNaN(lastTwo)) {
+                        section = (lastTwo <= 66) ? 'A' : 'B';
+                    }
+                }
+
+                // 4. Save Extended Profile to Database
+                statusMsg.innerText = "Finalizing profile...";
+                await db.collection('users').doc(user.uid).set({
+                    displayName: name,
+                    email: email,
+                    role: role,
+                    rollNumber: role === 'student' ? roll.toUpperCase() : null,
+                    department: department,
+                    section: section,
+                    attendance: 75, // Default safe attendance
+                    isBlocked: false, // Default allowed
+                    createdAt: new Date().toISOString()
+                });
+
+                // 5. Success
+                alert(`Account Created Successfully!\n\nIMPORTANT: We have sent a verification link to ${email}.\n\nYou MUST verify your email before logging in.`);
+                
+                // Force logout so they verify first
+                await auth.signOut();
+                window.location.href = 'login.html';
+
+            } catch (err) {
+                console.error(err);
+                alert("Error: " + err.message);
+                btn.disabled = false;
+                btn.innerText = "Register";
+                statusMsg.innerText = "";
+            }
+        });
+    </script>
+</body>
+</html>
