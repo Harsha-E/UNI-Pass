@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Uni Pass • Redirecting</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+</head>
+
+<body class="redirect-page">
+
+  <main class="redirect-container">
+    <section class="auth-card">
+      <h2>Verifying access</h2>
+      <p>Please wait</p>
+    </section>
+  </main>
+
+  <script type="module">
+    import { authenticate } from "/assets/js/firebase-init.js";
+
+    const email = sessionStorage.getItem("identity");
+    const password = sessionStorage.getItem("password");
+
+    if (!email || !password) {
+      location.replace("/public/login.html");
+      throw "";
+    }
+
+    try {
+      const user = await authenticate(email, password);
+
+      if (user.firstLogin) {
+        location.replace("/public/reset-password.html");
+      } else if (user.role === "student") {
+        location.replace("/portals/student/portalA.html");
+      } else if (user.role === "teacher") {
+        location.replace("/portals/teacher/portalA.html");
+      } else if (user.role === "hod") {
+        location.replace("/portals/hod/portalA.html");
+      } else if (user.role === "admin") {
+        location.replace("/admin/admin.html");
+      } else {
+        location.replace("/public/error-404.html");
+      }
+
+    } catch {
+      location.replace("/public/error-404.html");
+    }
+  </script>
+
+</body>
+</html>
