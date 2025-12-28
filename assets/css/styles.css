@@ -1,0 +1,69 @@
+/* assets/css/style.css */
+
+/* --- 1. CUSTOM CURSOR --- */
+@media (pointer: fine) {
+    /* Only hide default cursor on computers (mouse users), not phones */
+    body, a, button, input, select, textarea {
+        cursor: none !important;
+    }
+}
+
+.cursor-dot,
+.cursor-outline {
+    position: fixed;
+    top: 0;
+    left: 0;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    z-index: 9999;
+    pointer-events: none; /* Allows clicking through them */
+}
+
+.cursor-dot {
+    width: 8px;
+    height: 8px;
+    background-color: #2563eb; /* Brand Blue */
+}
+
+.cursor-outline {
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgba(37, 99, 235, 0.5);
+    transition: width 0.2s, height 0.2s, background-color 0.2s;
+}
+
+/* Hover Effect: Grow when hovering clickable items */
+body.hovering .cursor-outline {
+    width: 60px;
+    height: 60px;
+    background-color: rgba(37, 99, 235, 0.1);
+    border-color: transparent;
+}
+
+/* --- 2. MOBILE RESPONSIVE TWEAKS --- */
+
+/* Sidebar Mobile Transition */
+.sidebar-mobile {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease-in-out;
+}
+
+.sidebar-mobile.open {
+    transform: translateX(0);
+}
+
+/* Fix Table Overflow on Mobile */
+table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+}
+
+/* Hide Scrollbar for cleaner look */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
