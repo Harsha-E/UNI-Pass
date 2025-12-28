@@ -2,7 +2,7 @@
 
 document.addEventListener("DOMContentLoaded", () => {
     
-    // --- 1. INJECT CURSOR HTML ---
+    // --- 1. CUSTOM CURSOR LOGIC ---
     // Only on desktops (devices with fine pointers)
     if (window.matchMedia("(pointer: fine)").matches) {
         const dot = document.createElement("div");
@@ -12,6 +12,9 @@ document.addEventListener("DOMContentLoaded", () => {
         
         document.body.appendChild(dot);
         document.body.appendChild(outline);
+
+        // Activate the CSS hide logic
+        document.body.classList.add('custom-cursor-active');
 
         // Movement Logic
         window.addEventListener("mousemove", (e) => {
@@ -29,7 +32,7 @@ document.addEventListener("DOMContentLoaded", () => {
             }, { duration: 500, fill: "forwards" });
         });
 
-        // Hover Effect
+        // Hover Effect on Clickables
         const clickables = document.querySelectorAll("a, button, input, select, textarea, .cursor-pointer");
         clickables.forEach(el => {
             el.addEventListener("mouseenter", () => document.body.classList.add("hovering"));
@@ -41,27 +44,33 @@ document.addEventListener("DOMContentLoaded", () => {
     // Finds the hamburger button and the sidebar
     const toggleBtn = document.getElementById('sidebar-toggle');
     const sidebar = document.querySelector('aside');
-    const overlay = document.getElementById('mobile-overlay');
+    
+    // Create overlay if it doesn't exist
+    let overlay = document.getElementById('mobile-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'mobile-overlay';
+        overlay.className = "fixed inset-0 bg-black/50 z-30 hidden md:hidden glass-overlay";
+        document.body.appendChild(overlay);
+    }
 
     if (toggleBtn && sidebar) {
-        // Add mobile class helper if not present
+        // Ensure sidebar has mobile classes
         if(window.innerWidth < 768) {
             sidebar.classList.add('fixed', 'inset-y-0', 'left-0', 'z-40', 'sidebar-mobile');
-            // Remove 'hidden' if it was set by Tailwind's md:flex
-            sidebar.classList.remove('hidden');
+            sidebar.classList.remove('hidden'); // Remove Tailwind's hidden class if present
         }
 
-        toggleBtn.addEventListener('click', () => {
+        toggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent immediate close
             sidebar.classList.toggle('open');
-            if(overlay) overlay.classList.toggle('hidden');
+            overlay.classList.toggle('hidden');
         });
 
         // Close when clicking overlay
-        if(overlay) {
-            overlay.addEventListener('click', () => {
-                sidebar.classList.remove('open');
-                overlay.classList.add('hidden');
-            });
-        }
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.add('hidden');
+        });
     }
 });

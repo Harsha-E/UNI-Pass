@@ -1,36 +1,56 @@
 import { auth, db } from './firebase-init.js';
 
-// List of protected folders and who can access them
 const PROTECTED_PATHS = {
     '/portals/teacher/': 'teacher',
     '/portals/hod/': 'hod',
+    '/portals/student/': 'student',
     '/admin/': 'admin'
 };
 
+function checkAccess(role) {
+    const currentPath = window.location.pathname;
+    const matchedPath = Object.keys(PROTECTED_PATHS).find(path => currentPath.includes(path));
+
+    if (matchedPath) {
+        const requiredRole = PROTECTED_PATHS[matchedPath];
+        
+        if (role !== requiredRole) {
+            console.warn(`Role Mismatch: User is ${role}, Path needs ${requiredRole}`);
+            
+            // AUTOMATIC FIX: Clear session and boot to login
+            alert(`Access Denied.\n\nYou are logged in as a ${role.toUpperCase()}.\nThis area is for ${requiredRole.toUpperCase()}s.`);
+            
+            sessionStorage.clear();
+            auth.signOut().then(() => {
+                window.location.href = '/public/login.html';
+            });
+            return false;
+        }
+    }
+    return true;
+}
+
 auth.onAuthStateChanged(async (user) => {
     const currentPath = window.location.pathname;
+    const isPublic = currentPath.includes('login.html') || currentPath.includes('signup.html') || currentPath.includes('checker.html');
 
-    // 1. If not logged in, kick to login page
-    if (!user && !currentPath.includes('login.html') && !currentPath.includes('checker.html')) {
+    if (!user && !isPublic) {
         window.location.href = '/public/login.html';
         return;
     }
 
-    // 2. If logged in, check if they are allowed in this folder
-    if (user) {
-        // Find which folder we are in
-        const matchedPath = Object.keys(PROTECTED_PATHS).find(path => currentPath.includes(path));
-        
-        if (matchedPath) {
-            const requiredRole = PROTECTED_PATHS[matchedPath];
-            
-            // Check DB for real role
-            const userDoc = await db.collection('users').doc(user.uid).get();
-            const realRole = userDoc.data().role;
-
-            if (realRole !== requiredRole) {
-                alert(`SECURITY ALERT: Access Denied.\nYou are a ${realRole}, but this page is for ${requiredRole}s.`);
-                window.location.href = '/public/login.html'; // Kick them out
+    if (user && !isPublic) {
+        // 1. Check Session Storage First (Faster)
+        const cachedRole = sessionStorage.getItem('uni_pass_role');
+        if (cachedRole) {
+            checkAccess(cachedRole);
+        } else {
+            // 2. Fallback to DB (Slower but reliable)
+            const doc = await db.collection('users').doc(user.uid).get();
+            if (doc.exists) {
+                const role = doc.data().role;
+                sessionStorage.setItem('uni_pass_role', role); // Cache it
+                checkAccess(role);
             }
         }
     }

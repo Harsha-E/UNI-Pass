@@ -75,11 +75,13 @@ window.generateOfficialPDF = async function(docId, data) {
     const splitText = doc.splitTextToSize(data.reason || "N/A", width - 50);
     doc.text(splitText, 25, y+12);
 
-    // Footer
+// Footer
     const footerY = 250;
-    const checkUrl = `https://uni-pass-project.web.app/public/checker.html?id=${docId}`;
-    doc.addImage("https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(checkUrl), "PNG", 20, footerY-10, 25, 25);
     
+    // --- UPDATED LINK FOR GITHUB PAGES ---
+    const checkUrl = `https://harsha-e.github.io/UNI-Pass/public/checker.html?id=${docId}`;
+    
+    doc.addImage("https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(checkUrl), "PNG", 20, footerY-10, 25, 25);
     doc.setFont("courier", "normal"); doc.setFontSize(8); doc.setTextColor(80);
     doc.text("DIGITAL HASH:", 50, footerY);
     doc.text(signature.substring(0, 60), 50, footerY+5);
