@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <title>Lab Resources • UniPass</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons/css/all/all.css">
+</head>
+
+<body class="min-h-screen bg-gray-50 dark:bg-gray-900">
+  <!-- Navigation -->
+  <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between h-16">
+        <div class="flex items-center">
+          <div class="flex-shrink-0 flex items-center">
+            <i class="fi fi-rr-computer text-blue-600 dark:text-blue-400 text-xl mr-2"></i>
+            <span class="text-xl font-bold text-gray-900 dark:text-white">UniPass</span>
+          </div>
+          <div class="ml-10">
+            <span class="text-gray-600 dark:text-gray-300">Lab Resource Center</span>
+          </div>
+        </div>
+        <div class="flex items-center space-x-4">
+          <a href="/portals/student/portalA.html" class="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 text-sm font-medium">
+            ← Back to Portal
+          </a>
+          <button id="themeToggle" class="w-10 h-10 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-all duration-200 flex items-center justify-center focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+            <i class="fi fi-rr-moon text-gray-600 dark:text-gray-300"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+    <!-- Header -->
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Lab Resource Center</h1>
+      <p class="text-gray-600 dark:text-gray-300 mt-1">Find and book laboratory resources for your projects</p>
+    </div>
+
+    <!-- Filters -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Lab Type</label>
+          <select id="labTypeFilter" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
+            <option value="all">All Labs</option>
+            <option value="computer">Computer Lab</option>
+            <option value="electronics">Electronics Lab</option>
+            <option value="physics">Physics Lab</option>
+            <option value="chemistry">Chemistry Lab</option>
+            <option value="biology">Biology Lab</option>
+            <option value="mechanical">Mechanical Workshop</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Availability</label>
+          <select id="availabilityFilter" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
+            <option value="all">Any Time</option>
+            <option value="now">Available Now</option>
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Capacity</label>
+          <select id="capacityFilter" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm">
+            <option value="all">Any Size</option>
+            <option value="small">1-10 seats</option>
+            <option value="medium">11-30 seats</option>
+            <option value="large">31+ seats</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Equipment</label>
+          <input
+            id="equipmentSearch"
+            type="text"
+            placeholder="Search equipment..."
+            class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+          />
+        </div>
+      </div>
+      <div class="flex justify-between items-center mt-3">
+        <div class="flex items-center">
+          <input type="checkbox" id="showBooked" class="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500">
+          <span class="ml-2 text-sm text-gray-700 dark:text-gray-300">Show booked</span>
+        </div>
+        <button id="clearFilters" class="px-3 py-1 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors text-sm">
+          Clear Filters
+        </button>
+      </div>
+    </div>
+
+    <!-- Lab Resources Grid -->
+    <div id="resourcesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <!-- Resources will be populated here -->
+    </div>
+
+    <!-- Loading State -->
+    <div id="loadingState" class="text-center py-8">
+      <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-3"></div>
+      <p class="text-gray-600 dark:text-gray-400 text-sm">Loading lab resources...</p>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="hidden text-center py-8">
+      <i class="fi fi-rr-search text-gray-400 text-3xl mb-3"></i>
+      <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">No resources found</h3>
+      <p class="text-gray-600 dark:text-gray-400 text-sm">Try adjusting your filters.</p>
+    </div>
+  </main>
+
+  <!-- Resource Modal -->
+  <div id="resourceModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div class="p-6">
+        <div class="flex justify-between items-start mb-4">
+          <div>
+            <h3 id="modalTitle" class="text-lg font-semibold text-gray-900 dark:text-white"></h3>
+            <p id="modalSubtitle" class="text-gray-600 dark:text-gray-300"></p>
+          </div>
+          <button id="closeModal" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+            <i class="fi fi-rr-cross text-xl"></i>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          <div>
+            <h4 class="font-medium text-gray-900 dark:text-white mb-2">Equipment Available</h4>
+            <ul id="equipmentList" class="space-y-1 text-sm text-gray-600 dark:text-gray-300">
+              <!-- Equipment will be populated here -->
+            </ul>
+          </div>
+          <div>
+            <h4 class="font-medium text-gray-900 dark:text-white mb-2">Booking Information</h4>
+            <div class="space-y-2 text-sm">
+              <p><span class="font-medium">Capacity:</span> <span id="modalCapacity"></span></p>
+              <p><span class="font-medium">Location:</span> <span id="modalLocation"></span></p>
+              <p><span class="font-medium">Supervisor:</span> <span id="modalSupervisor"></span></p>
+              <p><span class="font-medium">Contact:</span> <span id="modalContact"></span></p>
+            </div>
+          </div>
+        </div>
+
+        <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
+          <h4 class="font-medium text-gray-900 dark:text-white mb-4">Book This Resource</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Date</label>
+              <input id="bookingDate" type="date" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Time Slot</label>
+              <select id="bookingTime" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                <option value="">Select time</option>
+                <option value="9-11">9:00 AM - 11:00 AM</option>
+                <option value="11-1">11:00 AM - 1:00 PM</option>
+                <option value="2-4">2:00 PM - 4:00 PM</option>
+                <option value="4-6">4:00 PM - 6:00 PM</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-4">
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Purpose</label>
+            <textarea id="bookingPurpose" rows="3" placeholder="Describe your project or experiment..." class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none"></textarea>
+          </div>
+          <div class="flex justify-end space-x-3">
+            <button id="cancelBooking" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+              Cancel
+            </button>
+            <button id="confirmBooking" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+              Book Resource
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initTheme, toggleTheme } from '/assets/js/theme.js';
+
+    // Initialize theme
+    initTheme();
+
+    // Theme toggle
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      toggleTheme();
+      const icon = document.querySelector('#themeToggle i');
+      icon.className = document.documentElement.getAttribute('data-theme') === 'dark' ? 'fi fi-rr-sun text-yellow-400' : 'fi fi-rr-moon text-gray-600 dark:text-gray-300';
+    });
+
+    // Mock lab resources data
+    const labResources = [
+      {
+        id: 1,
+        name: "Computer Lab A1",
+        type: "computer",
+        capacity: 25,
+        location: "Block A, Ground Floor",
+        supervisor: "Dr. Sarah Chen",
+        contact: "sarah.chen@university.edu",
+        equipment: ["25 Desktop PCs", "Projector", "Printer", "Whiteboard"],
+        availability: "available",
+        image: "🖥️"
+      },
+      {
+        id: 2,
+        name: "Electronics Lab B2",
+        type: "electronics",
+        capacity: 15,
+        location: "Block B, Second Floor",
+        supervisor: "Prof. Michael Davis",
+        contact: "michael.davis@university.edu",
+        equipment: ["Oscilloscopes", "Multimeters", "Soldering Stations", "Power Supplies"],
+        availability: "available",
+        image: "⚡"
+      },
+      {
+        id: 3,
+        name: "Physics Lab C1",
+        type: "physics",
+        capacity: 20,
+        location: "Block C, First Floor",
+        supervisor: "Dr. Emily Rodriguez",
+        contact: "emily.rodriguez@university.edu",
+        equipment: ["Spectrometers", "Pendulum Apparatus", "Vernier Calipers", "Microscopes"],
+        availability: "booked",
+        image: "🔬"
+      },
+      {
+        id: 4,
+        name: "Chemistry Lab D3",
+        type: "chemistry",
+        capacity: 12,
+        location: "Block D, Third Floor",
+        supervisor: "Prof. James Wilson",
+        contact: "james.wilson@university.edu",
+        equipment: ["Bunsen Burners", "Test Tubes", "pH Meters", "Centrifuge"],
+        availability: "available",
+        image: "🧪"
+      },
+      {
+        id: 5,
+        name: "Biology Lab E2",
+        type: "biology",
+        capacity: 18,
+        location: "Block E, Second Floor",
+        supervisor: "Dr. Lisa Park",
+        contact: "lisa.park@university.edu",
+        equipment: ["Microscopes", "Incubators", "Centrifuges", "PCR Machine"],
+        availability: "available",
+        image: "🧬"
+      },
+      {
+        id: 6,
+        name: "Mechanical Workshop F1",
+        type: "mechanical",
+        capacity: 8,
+        location: "Block F, Ground Floor",
+        supervisor: "Prof. Robert Johnson",
+        contact: "robert.johnson@university.edu",
+        equipment: ["Lathe Machines", "Drill Press", "Welding Station", "Grinding Tools"],
+        availability: "booked",
+        image: "🔧"
+      }
+    ];
+
+    function renderResources(resources = labResources) {
+      const grid = document.getElementById('resourcesGrid');
+      const loadingState = document.getElementById('loadingState');
+      const emptyState = document.getElementById('emptyState');
+
+      loadingState.classList.add('hidden');
+
+      if (resources.length === 0) {
+        grid.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      grid.innerHTML = resources.map(resource => `
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden hover:shadow-md transition-shadow">
+          <div class="p-6">
+            <div class="flex items-start justify-between mb-4">
+              <div class="flex items-center">
+                <div class="text-3xl mr-3">${resource.image}</div>
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white">${resource.name}</h3>
+                  <p class="text-sm text-gray-600 dark:text-gray-300">${resource.location}</p>
+                </div>
+              </div>
+              <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getAvailabilityBadge(resource.availability)}">
+                ${resource.availability === 'available' ? 'Available' : 'Booked'}
+              </span>
+            </div>
+
+            <div class="space-y-2 mb-4">
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600 dark:text-gray-300">Capacity:</span>
+                <span class="font-medium text-gray-900 dark:text-white">${resource.capacity} seats</span>
+              </div>
+              <div class="flex justify-between text-sm">
+                <span class="text-gray-600 dark:text-gray-300">Supervisor:</span>
+                <span class="font-medium text-gray-900 dark:text-white">${resource.supervisor}</span>
+              </div>
+            </div>
+
+            <div class="mb-4">
+              <p class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Key Equipment:</p>
+              <div class="flex flex-wrap gap-1">
+                ${resource.equipment.slice(0, 3).map(eq => `<span class="inline-block bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs px-2 py-1 rounded">${eq}</span>`).join('')}
+                ${resource.equipment.length > 3 ? `<span class="inline-block bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs px-2 py-1 rounded">+${resource.equipment.length - 3} more</span>` : ''}
+              </div>
+            </div>
+
+            <button class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 transition-colors focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 resource-btn" data-id="${resource.id}">
+              View Details & Book
+            </button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function getAvailabilityBadge(availability) {
+      return availability === 'available'
+        ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300'
+        : 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300';
+    }
+
+    function filterResources() {
+      const labType = document.getElementById('labTypeFilter').value;
+      const availability = document.getElementById('availabilityFilter').value;
+      const capacity = document.getElementById('capacityFilter').value;
+      const equipment = document.getElementById('equipmentSearch').value.toLowerCase();
+      const showBooked = document.getElementById('showBooked').checked;
+
+      let filtered = labResources.filter(resource => {
+        if (labType !== 'all' && resource.type !== labType) return false;
+        if (availability !== 'all') {
+          if (availability === 'now' && resource.availability !== 'available') return false;
+        }
+        if (!showBooked && resource.availability === 'booked') return false;
+
+        if (capacity !== 'all') {
+          const capRange = { small: [1, 10], medium: [11, 30], large: [31, Infinity] }[capacity];
+          if (resource.capacity < capRange[0] || resource.capacity > capRange[1]) return false;
+        }
+
+        if (equipment) {
+          const hasEquipment = resource.equipment.some(eq => eq.toLowerCase().includes(equipment));
+          if (!hasEquipment) return false;
+        }
+
+        return true;
+      });
+
+      renderResources(filtered);
+    }
+
+    function showResourceModal(resourceId) {
+      const resource = labResources.find(r => r.id === resourceId);
+      if (!resource) return;
+
+      document.getElementById('modalTitle').textContent = resource.name;
+      document.getElementById('modalSubtitle').textContent = `${resource.type.charAt(0).toUpperCase() + resource.type.slice(1)} Lab`;
+
+      document.getElementById('equipmentList').innerHTML = resource.equipment.map(eq => `<li>• ${eq}</li>`).join('');
+      document.getElementById('modalCapacity').textContent = `${resource.capacity} students`;
+      document.getElementById('modalLocation').textContent = resource.location;
+      document.getElementById('modalSupervisor').textContent = resource.supervisor;
+      document.getElementById('modalContact').textContent = resource.contact;
+
+      document.getElementById('resourceModal').classList.remove('hidden');
+    }
+
+    // Event listeners
+    document.getElementById('labTypeFilter').addEventListener('change', filterResources);
+    document.getElementById('availabilityFilter').addEventListener('change', filterResources);
+    document.getElementById('capacityFilter').addEventListener('change', filterResources);
+    document.getElementById('equipmentSearch').addEventListener('input', filterResources);
+    document.getElementById('showBooked').addEventListener('change', filterResources);
+
+    document.getElementById('clearFilters').addEventListener('click', () => {
+      document.getElementById('labTypeFilter').value = 'all';
+      document.getElementById('availabilityFilter').value = 'all';
+      document.getElementById('capacityFilter').value = 'all';
+      document.getElementById('equipmentSearch').value = '';
+      document.getElementById('showBooked').checked = false;
+      filterResources();
+    });
+
+    document.addEventListener('click', (e) => {
+      if (e.target.classList.contains('resource-btn') || e.target.closest('.resource-btn')) {
+        const btn = e.target.classList.contains('resource-btn') ? e.target : e.target.closest('.resource-btn');
+        const resourceId = parseInt(btn.dataset.id);
+        showResourceModal(resourceId);
+      }
+    });
+
+    document.getElementById('closeModal').addEventListener('click', () => {
+      document.getElementById('resourceModal').classList.add('hidden');
+    });
+
+    document.getElementById('cancelBooking').addEventListener('click', () => {
+      document.getElementById('resourceModal').classList.add('hidden');
+    });
+
+    document.getElementById('confirmBooking').addEventListener('click', () => {
+      const date = document.getElementById('bookingDate').value;
+      const time = document.getElementById('bookingTime').value;
+      const purpose = document.getElementById('bookingPurpose').value;
+
+      if (!date || !time || !purpose) {
+        alert('Please fill in all booking details');
+        return;
+      }
+
+      // Here you would implement the actual booking logic
+      alert('Booking request submitted! You will receive a confirmation email shortly.');
+      document.getElementById('resourceModal').classList.add('hidden');
+    });
+
+    // Initialize
+    setTimeout(() => {
+      renderResources();
+    }, 1000); // Simulate loading delay
+  </script>
+</body>
+</html>

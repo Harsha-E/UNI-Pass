@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+  <meta charset="UTF-8" />
+  <title>Alumni Chatbot • UniPass</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons/css/all/all.css">
+</head>
+
+<body class="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center p-4">
+  <div class="w-full max-w-4xl bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+    <!-- Header -->
+    <div class="bg-blue-600 dark:bg-blue-700 p-4 text-center">
+      <div class="flex justify-center mb-3">
+        <div class="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
+          <i class="fi fi-rr-graduation-cap text-white text-xl"></i>
+        </div>
+      </div>
+      <h1 class="text-xl font-bold text-white mb-1">Alumni Assistant</h1>
+      <p class="text-blue-100 text-sm">Get career advice and connect with alumni</p>
+    </div>
+
+    <!-- Chat Interface -->
+    <div class="p-4">
+      <div class="bg-gray-50 dark:bg-gray-700 rounded p-3 mb-3 h-80 overflow-y-auto" id="chatContainer">
+        <!-- Messages will appear here -->
+        <div class="flex items-start space-x-3 mb-4">
+          <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+            <i class="fi fi-rr-robot text-blue-600 dark:text-blue-400 text-sm"></i>
+          </div>
+          <div class="bg-white dark:bg-gray-600 rounded-lg p-3 max-w-xs lg:max-w-md">
+            <p class="text-gray-800 dark:text-gray-200 text-sm">
+              Hi! I'm your alumni assistant. I can help you with career advice, connect you with alumni in your field, or answer questions about job opportunities. What would you like to know?
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-2 mb-3">
+        <button class="quick-query-btn bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-700 dark:text-blue-300 p-2 rounded text-sm font-medium transition-colors">
+          <i class="fi fi-rr-briefcase mr-1"></i>Career
+        </button>
+        <button class="quick-query-btn bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-700 dark:text-green-300 p-2 rounded text-sm font-medium transition-colors">
+          <i class="fi fi-rr-users mr-1"></i>Network
+        </button>
+        <button class="quick-query-btn bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 text-purple-700 dark:text-purple-300 p-2 rounded text-sm font-medium transition-colors">
+          <i class="fi fi-rr-search mr-1"></i>Jobs
+        </button>
+        <button class="quick-query-btn bg-orange-50 dark:bg-orange-900/20 hover:bg-orange-100 dark:hover:bg-orange-900/30 text-orange-700 dark:text-orange-300 p-2 rounded text-sm font-medium transition-colors">
+          <i class="fi fi-rr-graduation-cap mr-1"></i>Mentor
+        </button>
+      </div>
+
+      <!-- Input Area -->
+      <div class="flex space-x-2">
+        <input
+          id="messageInput"
+          type="text"
+          placeholder="Ask about careers, alumni connections, or job opportunities..."
+          class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+        />
+        <button id="sendBtn" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors">
+          <i class="fi fi-rr-paper-plane"></i>
+        </button>
+      </div>
+
+      <!-- Typing Indicator -->
+      <div id="typingIndicator" class="hidden flex items-center space-x-2 mt-3">
+        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s"></div>
+        <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+        <span class="text-gray-500 dark:text-gray-400 text-sm">Alumni Assistant is typing...</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Theme Toggle -->
+  <button
+    id="themeToggle"
+    class="fixed top-6 right-6 w-10 h-10 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 z-50"
+    aria-label="Toggle theme"
+  >
+    <i class="fi fi-rr-moon text-gray-600 dark:text-gray-300"></i>
+  </button>
+
+  <script type="module">
+    import { initTheme, toggleTheme } from '/assets/js/theme.js';
+
+    // Initialize theme
+    initTheme();
+
+    // Theme toggle
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      toggleTheme();
+      const icon = document.querySelector('#themeToggle i');
+      icon.className = document.documentElement.getAttribute('data-theme') === 'dark' ? 'fi fi-rr-sun text-yellow-400' : 'fi fi-rr-moon text-gray-600 dark:text-gray-300';
+    });
+
+    const chatContainer = document.getElementById('chatContainer');
+    const messageInput = document.getElementById('messageInput');
+    const sendBtn = document.getElementById('sendBtn');
+    const typingIndicator = document.getElementById('typingIndicator');
+
+    // Mock alumni database
+    const alumniResponses = {
+      career: [
+        "Based on your Computer Science background, consider roles in software development, data science, or product management. Many alumni have successfully transitioned into tech leadership positions.",
+        "The job market is competitive, but your university degree gives you a strong foundation. Focus on building a portfolio of projects and gaining practical experience through internships.",
+        "Networking is key! Attend industry events and connect with alumni on LinkedIn. I've helped connect 50+ students with mentors in their field this year."
+      ],
+      networking: [
+        "I can connect you with alumni in your field! Tell me your specialization (e.g., AI, web development, cybersecurity) and I'll suggest relevant contacts.",
+        "Our alumni network spans 25+ countries with professionals in tech, finance, healthcare, and more. What's your career interest?",
+        "Many alumni are happy to mentor current students. Would you like me to arrange an introductory call with someone in your desired field?"
+      ],
+      jobs: [
+        "Current trending job openings for graduates include: Software Engineer at Google, Data Analyst at Amazon, and Product Manager roles at various startups.",
+        "Entry-level positions often require 1-2 years of experience. Consider freelance projects or contribute to open-source to build your resume.",
+        "The average starting salary for computer science graduates in our network is $85,000, with top performers earning $120,000+ within 2 years."
+      ],
+      mentorship: [
+        "We have 200+ alumni mentors available! They offer resume reviews, interview preparation, and career guidance.",
+        "Popular mentorship topics include: technical interview prep, career transitions, startup advice, and work-life balance.",
+        "Mentorship sessions are typically 30-45 minutes. Most mentors are willing to do 1-2 sessions per month."
+      ],
+      default: [
+        "That's an interesting question! Let me connect you with an alumni who specializes in that area. What's your specific field of interest?",
+        "I don't have specific information about that, but I can put you in touch with alumni who might help. What department or specialization are you in?",
+        "Great question! Many alumni have faced similar challenges. I'd recommend reaching out to our career services or connecting with alumni in your field."
+      ]
+    };
+
+    function addMessage(content, isUser = false) {
+      const messageDiv = document.createElement('div');
+      messageDiv.className = `flex items-start space-x-3 mb-4 ${isUser ? 'justify-end' : ''}`;
+
+      if (isUser) {
+        messageDiv.innerHTML = `
+          <div class="bg-blue-600 text-white rounded-lg p-3 max-w-xs lg:max-w-md">
+            <p class="text-sm">${content}</p>
+          </div>
+          <div class="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+            <i class="fi fi-rr-user text-white text-sm"></i>
+          </div>
+        `;
+      } else {
+        messageDiv.innerHTML = `
+          <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center">
+            <i class="fi fi-rr-robot text-blue-600 dark:text-blue-400 text-sm"></i>
+          </div>
+          <div class="bg-white dark:bg-gray-600 rounded-lg p-3 max-w-xs lg:max-w-md">
+            <p class="text-gray-800 dark:text-gray-200 text-sm">${content}</p>
+          </div>
+        `;
+      }
+
+      chatContainer.appendChild(messageDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    async function getBotResponse(message) {
+      typingIndicator.classList.remove('hidden');
+
+      // Simulate typing delay
+      await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000));
+
+      typingIndicator.classList.add('hidden');
+
+      const lowerMessage = message.toLowerCase();
+
+      let responseType = 'default';
+      if (lowerMessage.includes('career') || lowerMessage.includes('job') || lowerMessage.includes('salary')) {
+        responseType = 'career';
+      } else if (lowerMessage.includes('network') || lowerMessage.includes('connect') || lowerMessage.includes('meet')) {
+        responseType = 'networking';
+      } else if (lowerMessage.includes('job') || lowerMessage.includes('hiring') || lowerMessage.includes('opening')) {
+        responseType = 'jobs';
+      } else if (lowerMessage.includes('mentor') || lowerMessage.includes('guide') || lowerMessage.includes('help')) {
+        responseType = 'mentorship';
+      }
+
+      const responses = alumniResponses[responseType];
+      const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+
+      addMessage(randomResponse);
+    }
+
+    function sendMessage() {
+      const message = messageInput.value.trim();
+      if (!message) return;
+
+      addMessage(message, true);
+      messageInput.value = '';
+
+      getBotResponse(message);
+    }
+
+    sendBtn.addEventListener('click', sendMessage);
+    messageInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        sendMessage();
+      }
+    });
+
+    // Quick query buttons
+    document.querySelectorAll('.quick-query-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const queryType = btn.textContent.toLowerCase().replace(/\s+/g, '_');
+        let query = '';
+
+        switch (queryType) {
+          case 'career_advice':
+            query = 'Can you give me career advice for computer science graduates?';
+            break;
+          case 'networking':
+            query = 'How can I network with alumni in my field?';
+            break;
+          case 'job_search':
+            query = 'What job opportunities are available for recent graduates?';
+            break;
+          case 'mentorship':
+            query = 'How can I find a mentor from the alumni network?';
+            break;
+        }
+
+        messageInput.value = query;
+        sendMessage();
+      });
+    });
+  </script>
+</body>
+</html>

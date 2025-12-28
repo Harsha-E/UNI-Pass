@@ -1,164 +1,1720 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full" data-theme="light">
 <head>
   <meta charset="UTF-8" />
   <title>Uni Pass • Secure Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons/css/all/all.css">
+  <style>
+    /* Advanced CSS Architecture with Design Tokens */
+    :root {
+      /* Color System with HSL for Advanced Manipulation */
+      --hue-primary: 220;
+      --hue-secondary: 280;
+      --hue-accent: 160;
+      --hue-success: 142;
+      --hue-error: 0;
+      --hue-warning: 38;
 
-  <!-- Global Styles -->
-  <link rel="stylesheet" href="../assets/css/main.css" />
+      /* Advanced Spacing Scale (Perfect Fourth) */
+      --space-3xs: clamp(0.125rem, 0.25vw, 0.25rem);
+      --space-2xs: clamp(0.25rem, 0.5vw, 0.375rem);
+      --space-xs: clamp(0.375rem, 0.75vw, 0.5rem);
+      --space-sm: clamp(0.5rem, 1vw, 0.75rem);
+      --space-md: clamp(0.75rem, 1.5vw, 1rem);
+      --space-lg: clamp(1rem, 2vw, 1.5rem);
+      --space-xl: clamp(1.5rem, 3vw, 2rem);
+      --space-2xl: clamp(2rem, 4vw, 2.5rem);
+      --space-3xl: clamp(2.5rem, 5vw, 3rem);
+      --space-4xl: clamp(3rem, 6vw, 4rem);
+
+      /* Advanced Typography Scale (Major Third) */
+      --text-2xs: clamp(0.625rem, 1.25vw, 0.75rem);
+      --text-xs: clamp(0.75rem, 1.5vw, 0.875rem);
+      --text-sm: clamp(0.875rem, 1.75vw, 1rem);
+      --text-base: clamp(1rem, 2vw, 1.125rem);
+      --text-lg: clamp(1.125rem, 2.25vw, 1.25rem);
+      --text-xl: clamp(1.25rem, 2.5vw, 1.5rem);
+      --text-2xl: clamp(1.5rem, 3vw, 1.875rem);
+      --text-3xl: clamp(1.875rem, 3.75vw, 2.25rem);
+      --text-4xl: clamp(2.25rem, 4.5vw, 3rem);
+
+      /* Advanced Border Radius Scale */
+      --radius-none: 0;
+      --radius-2xs: 0.125rem;
+      --radius-xs: 0.25rem;
+      --radius-sm: 0.375rem;
+      --radius-md: 0.5rem;
+      --radius-lg: 0.75rem;
+      --radius-xl: 1rem;
+      --radius-2xl: 1.5rem;
+      --radius-3xl: 2rem;
+      --radius-full: 9999px;
+
+      /* Advanced Shadow System */
+      --shadow-2xs: 0 1px 2px 0 rgb(0 0 0 / 0.03);
+      --shadow-xs: 0 1px 3px 0 rgb(0 0 0 / 0.05), 0 1px 2px -1px rgb(0 0 0 / 0.05);
+      --shadow-sm: 0 4px 6px -1px rgb(0 0 0 / 0.07), 0 2px 4px -2px rgb(0 0 0 / 0.07);
+      --shadow-md: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+      --shadow-lg: 0 20px 25px -5px rgb(0 0 0 / 0.15), 0 8px 10px -6px rgb(0 0 0 / 0.15);
+      --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+      --shadow-glow: 0 0 30px rgb(59 130 246 / 0.4);
+      --shadow-glow-lg: 0 0 60px rgb(59 130 246 / 0.3);
+
+      /* Advanced Animation Timing */
+      --easing-in: cubic-bezier(0.4, 0, 1, 1);
+      --easing-out: cubic-bezier(0, 0, 0.2, 1);
+      --easing-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+      --easing-bounce: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+
+      --duration-75: 75ms;
+      --duration-100: 100ms;
+      --duration-150: 150ms;
+      --duration-200: 200ms;
+      --duration-300: 300ms;
+      --duration-500: 500ms;
+      --duration-700: 700ms;
+      --duration-1000: 1000ms;
+    }
+
+    /* Light Theme with Advanced Color Manipulation */
+    [data-theme="light"] {
+      --color-bg-primary: hsl(248, 250%, 98%);
+      --color-bg-secondary: hsl(0, 0%, 100%);
+      --color-bg-tertiary: hsl(220, 14%, 96%);
+      --color-bg-accent: hsl(220, 14%, 94%);
+      --color-bg-overlay: hsl(220, 14%, 92% / 0.8);
+
+      --color-text-primary: hsl(222, 84%, 5%);
+      --color-text-secondary: hsl(215, 16%, 47%);
+      --color-text-tertiary: hsl(215, 16%, 65%);
+      --color-text-muted: hsl(215, 16%, 75%);
+      --color-text-inverse: hsl(210, 40%, 98%);
+
+      --color-border-primary: hsl(214, 32%, 91%);
+      --color-border-secondary: hsl(214, 32%, 85%);
+      --color-border-accent: hsl(214, 32%, 79%);
+
+      --color-primary: hsl(var(--hue-primary), 89%, 56%);
+      --color-primary-hover: hsl(var(--hue-primary), 89%, 46%);
+      --color-primary-active: hsl(var(--hue-primary), 89%, 36%);
+      --color-secondary: hsl(var(--hue-secondary), 89%, 56%);
+      --color-accent: hsl(var(--hue-accent), 89%, 46%);
+      --color-success: hsl(var(--hue-success), 89%, 46%);
+      --color-error: hsl(var(--hue-error), 89%, 56%);
+      --color-warning: hsl(var(--hue-warning), 89%, 56%);
+
+      /* Enhanced borders for light theme */
+      .auth-card {
+        border-width: 2px;
+      }
+
+      .btn-primary {
+        border: 2px solid var(--color-primary);
+      }
+
+      .btn-secondary {
+        border: 2px solid var(--color-border-primary);
+      }
+    }
+
+    /* Dark Theme with Advanced Color Manipulation */
+    [data-theme="dark"] {
+      --color-bg-primary: hsl(222, 84%, 5%);
+      --color-bg-secondary: hsl(217, 33%, 9%);
+      --color-bg-tertiary: hsl(217, 33%, 12%);
+      --color-bg-accent: hsl(217, 33%, 15%);
+      --color-bg-overlay: hsl(217, 33%, 17% / 0.8);
+
+      --color-text-primary: hsl(210, 40%, 98%);
+      --color-text-secondary: hsl(215, 20%, 75%);
+      --color-text-tertiary: hsl(215, 20%, 55%);
+      --color-text-muted: hsl(215, 20%, 45%);
+      --color-text-inverse: hsl(222, 84%, 5%);
+
+      --color-border-primary: hsl(217, 33%, 18%);
+      --color-border-secondary: hsl(217, 33%, 22%);
+      --color-border-accent: hsl(217, 33%, 26%);
+
+      --color-primary: hsl(var(--hue-primary), 89%, 66%);
+      --color-primary-hover: hsl(var(--hue-primary), 89%, 76%);
+      --color-primary-active: hsl(var(--hue-primary), 89%, 86%);
+      --color-secondary: hsl(var(--hue-secondary), 89%, 66%);
+      --color-accent: hsl(var(--hue-accent), 89%, 56%);
+      --color-success: hsl(var(--hue-success), 89%, 56%);
+      --color-error: hsl(var(--hue-error), 89%, 66%);
+      --color-warning: hsl(var(--hue-warning), 89%, 66%);
+    }
+
+    /* Advanced CSS Grid Layout System */
+    .auth-container {
+      display: grid;
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 1fr auto;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 20% 80%, hsl(var(--hue-primary), 100%, 50%, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 20%, hsl(var(--hue-secondary), 100%, 50%, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 50% 50%, hsl(var(--hue-accent), 100%, 50%, 0.05) 0%, transparent 70%),
+        linear-gradient(135deg, var(--color-bg-primary) 0%, var(--color-bg-tertiary) 100%);
+      contain: layout style paint;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    .auth-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background:
+        radial-gradient(circle at 30% 70%, hsl(var(--hue-primary), 100%, 50%, 0.03) 0%, transparent 40%),
+        radial-gradient(circle at 70% 30%, hsl(var(--hue-secondary), 100%, 50%, 0.03) 0%, transparent 40%);
+      pointer-events: none;
+    }
+
+    .auth-header {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      padding: var(--space-lg) var(--space-xl);
+      position: relative;
+      z-index: 10;
+      backdrop-filter: blur(10px);
+      background: var(--color-bg-overlay);
+      border-bottom: 1px solid var(--color-border-primary);
+    }
+
+    .auth-main {
+      display: grid;
+      place-items: center;
+      padding: var(--space-2xl) var(--space-xl);
+      position: relative;
+      z-index: 5;
+    }
+
+    /* Advanced Card Design with CSS Grid */
+    .auth-card {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      width: 100%;
+      max-width: 32rem;
+      background: var(--color-bg-secondary);
+      border: 1px solid var(--color-border-primary);
+      border-radius: var(--radius-3xl);
+      box-shadow: var(--shadow-xl);
+      overflow: hidden;
+      position: relative;
+      backdrop-filter: blur(20px);
+      contain: layout style;
+      transform: translateZ(0); /* Force hardware acceleration */
+    }
+
+    .auth-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg,
+        var(--color-primary),
+        var(--color-secondary),
+        var(--color-accent),
+        var(--color-primary)
+      );
+      border-radius: var(--radius-3xl) var(--radius-3xl) 0 0;
+    }
+
+    .card-header {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: var(--space-xl);
+      padding: var(--space-3xl) var(--space-2xl) var(--space-xl);
+      text-align: center;
+      position: relative;
+      background: linear-gradient(135deg,
+        var(--color-bg-secondary) 0%,
+        var(--color-bg-accent) 100%
+      );
+    }
+
+    .logo-container {
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+
+    .logo {
+      width: 6rem;
+      height: 6rem;
+      background:
+        conic-gradient(from 0deg,
+          var(--color-primary),
+          var(--color-secondary),
+          var(--color-accent),
+          var(--color-success),
+          var(--color-primary)
+        ),
+        linear-gradient(135deg,
+          var(--color-primary),
+          var(--color-secondary)
+        );
+      border-radius: var(--radius-2xl);
+      display: grid;
+      place-items: center;
+      box-shadow: var(--shadow-lg);
+      position: relative;
+      overflow: hidden;
+      transform: rotate(-5deg);
+    }
+
+    .logo::before {
+      content: '';
+      position: absolute;
+      inset: 3px;
+      background: var(--color-bg-secondary);
+      border-radius: calc(var(--radius-2xl) - 3px);
+    }
+
+    .logo i {
+      position: relative;
+      z-index: 1;
+      font-size: var(--text-4xl);
+      color: var(--color-primary);
+      transform: rotate(5deg);
+    }
+
+    .card-content {
+      padding: 0 var(--space-2xl);
+    }
+
+    .form-grid {
+      display: grid;
+      gap: var(--space-lg);
+    }
+
+    .form-group {
+      display: grid;
+      gap: var(--space-xs);
+    }
+
+    .form-label {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-text-primary);
+      display: flex;
+      align-items: center;
+      gap: var(--space-xs);
+    }
+
+    .form-input {
+      width: 100%;
+      padding: var(--space-md) var(--space-lg);
+      border: 2px solid var(--color-border-primary);
+      border-radius: var(--radius-xl);
+      background: var(--color-bg-secondary);
+      color: var(--color-text-primary);
+      font-size: var(--text-base);
+      transition: all var(--duration-200) var(--easing-out);
+      position: relative;
+      outline: none;
+    }
+
+    .form-input:focus {
+      border-color: var(--color-primary);
+      box-shadow:
+        0 0 0 3px hsl(var(--hue-primary), 89%, 56%, 0.1),
+        var(--shadow-md);
+      transform: translateY(-1px);
+    }
+
+    .form-input::placeholder {
+      color: var(--color-text-muted);
+      opacity: 0.7;
+    }
+
+    .form-input:hover:not(:focus) {
+      border-color: var(--color-border-accent);
+    }
+
+    .button-grid {
+      display: grid;
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: var(--space-md) var(--space-lg);
+      background: linear-gradient(135deg,
+        var(--color-primary) 0%,
+        var(--color-primary-hover) 100%
+      );
+      color: var(--color-text-inverse);
+      border: none;
+      border-radius: var(--radius-xl);
+      font-size: var(--text-base);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--duration-200) var(--easing-out);
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-md);
+      transform: translateZ(0);
+    }
+
+    .btn-primary::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.2),
+        transparent
+      );
+      transition: left var(--duration-500) var(--easing-out);
+    }
+
+    .btn-primary:hover:not(:disabled)::before {
+      left: 100%;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .btn-primary:active:not(:disabled) {
+      transform: translateY(0);
+      transition-duration: var(--duration-75);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      width: 100%;
+      padding: var(--space-md) var(--space-lg);
+      background: var(--color-bg-tertiary);
+      color: var(--color-text-primary);
+      border: 2px solid var(--color-border-primary);
+      border-radius: var(--radius-xl);
+      font-size: var(--text-base);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--duration-200) var(--easing-out);
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+    }
+
+    .btn-secondary:hover {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+      color: var(--color-text-inverse);
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .divider {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: var(--space-md);
+      margin: var(--space-lg) 0;
+      position: relative;
+    }
+
+    .divider::before,
+    .divider::after {
+      content: '';
+      height: 1px;
+      background: linear-gradient(90deg,
+        transparent,
+        var(--color-border-primary),
+        transparent
+      );
+    }
+
+    .divider span {
+      font-size: var(--text-sm);
+      color: var(--color-text-muted);
+      background: var(--color-bg-secondary);
+      padding: 0 var(--space-sm);
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Advanced Status Messages */
+    .status-message {
+      padding: var(--space-md) var(--space-lg);
+      border-radius: var(--radius-xl);
+      font-size: var(--text-sm);
+      font-weight: 500;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      align-items: center;
+      gap: var(--space-sm);
+      margin-top: var(--space-md);
+      border: 1px solid;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .status-message::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 4px;
+    }
+
+    .status-success {
+      background: hsl(var(--hue-success), 89%, 46%, 0.08);
+      border-color: hsl(var(--hue-success), 89%, 46%, 0.2);
+      color: hsl(var(--hue-success), 89%, 36%);
+    }
+
+    .status-success::before {
+      background: var(--color-success);
+    }
+
+    .status-info {
+      background: hsl(var(--hue-primary), 89%, 56%, 0.08);
+      border-color: hsl(var(--hue-primary), 89%, 56%, 0.2);
+      color: hsl(var(--hue-primary), 89%, 46%);
+    }
+
+    .status-info::before {
+      background: var(--color-primary);
+    }
+
+    .status-error {
+      background: hsl(var(--hue-error), 89%, 56%, 0.08);
+      border-color: hsl(var(--hue-error), 89%, 56%, 0.2);
+      color: hsl(var(--hue-error), 89%, 46%);
+    }
+
+    .status-error::before {
+      background: var(--color-error);
+    }
+
+    .status-warning {
+      background: hsl(var(--hue-warning), 89%, 56%, 0.08);
+      border-color: hsl(var(--hue-warning), 89%, 56%, 0.2);
+      color: hsl(var(--hue-warning), 89%, 46%);
+    }
+
+    .status-warning::before {
+      background: var(--color-warning);
+    }
+
+    .card-footer {
+      padding: var(--space-2xl);
+      border-top: 1px solid var(--color-border-primary);
+      text-align: center;
+      background: var(--color-bg-accent);
+    }
+
+    .footer-link {
+      color: var(--color-text-secondary);
+      text-decoration: none;
+      font-size: var(--text-sm);
+      transition: all var(--duration-200) var(--easing-out);
+      position: relative;
+    }
+
+    .footer-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px;
+      left: 0;
+      width: 0;
+      height: 2px;
+      background: var(--color-primary);
+      transition: width var(--duration-200) var(--easing-out);
+    }
+
+    .footer-link:hover {
+      color: var(--color-primary);
+    }
+
+    .footer-link:hover::after {
+      width: 100%;
+    }
+
+    /* Advanced Animations */
+    @keyframes float {
+      0%, 100% {
+        transform: translateY(0px) rotate(-5deg);
+      }
+      50% {
+        transform: translateY(-10px) rotate(-5deg);
+      }
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% {
+        box-shadow: var(--shadow-md);
+      }
+      50% {
+        box-shadow: var(--shadow-glow);
+      }
+    }
+
+    @keyframes slide-in-up {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fade-in-scale {
+      from {
+        opacity: 0;
+        transform: scale(0.95);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+
+    @keyframes shimmer {
+      0% {
+        background-position: -200% 0;
+      }
+      100% {
+        background-position: 200% 0;
+      }
+    }
+
+    .animate-float {
+      animation: float 8s ease-in-out infinite;
+    }
+
+    .animate-pulse-glow {
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+
+    .animate-slide-in-up {
+      animation: slide-in-up var(--duration-500) var(--easing-out);
+    }
+
+    .animate-fade-in-scale {
+      animation: fade-in-scale var(--duration-300) var(--easing-out);
+    }
+
+    .animate-shimmer {
+      background: linear-gradient(90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.1) 50%,
+        transparent 100%
+      );
+      background-size: 200% 100%;
+      animation: shimmer 2s infinite;
+    }
+
+    /* Advanced Theme Toggle */
+    .theme-toggle {
+      width: 3rem;
+      height: 3rem;
+      background: var(--color-bg-secondary);
+      border: 2px solid var(--color-border-primary);
+      border-radius: var(--radius-full);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all var(--duration-300) var(--easing-out);
+      position: relative;
+      z-index: 50;
+      box-shadow: var(--shadow-md);
+      overflow: hidden;
+    }
+
+    .theme-toggle::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg,
+        var(--color-primary),
+        var(--color-secondary)
+      );
+      opacity: 0;
+      transition: opacity var(--duration-200) var(--easing-out);
+    }
+
+    .theme-toggle:hover {
+      border-color: var(--color-primary);
+      transform: scale(1.05) rotate(5deg);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .theme-toggle:hover::before {
+      opacity: 0.1;
+    }
+
+    .theme-toggle:active {
+      transform: scale(0.95) rotate(5deg);
+      transition-duration: var(--duration-75);
+    }
+
+    /* Advanced Responsive Design with Container Queries */
+    @container (max-width: 640px) {
+      .auth-card {
+        margin: var(--space-lg);
+        max-width: none;
+      }
+
+      .card-header {
+        padding: var(--space-2xl) var(--space-lg) var(--space-lg);
+      }
+
+      .card-content {
+        padding: 0 var(--space-lg);
+      }
+
+      .card-footer {
+        padding: var(--space-lg);
+      }
+
+      .logo {
+        width: 5rem;
+        height: 5rem;
+      }
+
+      .logo i {
+        font-size: var(--text-3xl);
+      }
+    }
+
+    @container (max-width: 480px) {
+      .auth-header {
+        padding: var(--space-md) var(--space-lg);
+      }
+
+      .auth-main {
+        padding: var(--space-lg) var(--space-md);
+      }
+
+      .card-header {
+        padding: var(--space-xl) var(--space-md) var(--space-md);
+        gap: var(--space-lg);
+      }
+
+      .card-content {
+        padding: 0 var(--space-md);
+      }
+
+      .card-footer {
+        padding: var(--space-md);
+      }
+    }
+
+    /* Performance Optimizations */
+    .auth-container,
+    .auth-card,
+    .form-input,
+    .btn-primary,
+    .btn-secondary,
+    .theme-toggle {
+      contain: layout style;
+      will-change: transform;
+    }
+
+    /* Advanced Focus States */
+    .form-input:focus-visible,
+    .btn-primary:focus-visible,
+    .btn-secondary:focus-visible,
+    .theme-toggle:focus-visible {
+      outline: none;
+    }
+
+    /* Print Styles */
+    @media print {
+      .theme-toggle,
+      .auth-container::before {
+        display: none !important;
+      }
+
+      .auth-card {
+        box-shadow: none;
+        border: 1px solid #000;
+      }
+    }
+
+    /* Reduced Motion Support */
+    @media (prefers-reduced-motion: reduce) {
+      *,
+      *::before,
+      *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+
+    /* High Contrast Mode Support */
+    @media (prefers-contrast: high) {
+      .auth-card {
+        border-width: 3px;
+      }
+
+      .form-input {
+        border-width: 3px;
+      }
+
+      .btn-primary,
+      .btn-secondary {
+        border-width: 3px;
+      }
+    }
+
+    /* Two-Step Authentication Styles */
+    .auth-step {
+      display: none;
+      animation: slide-in-up var(--duration-300) var(--easing-out);
+    }
+
+    .auth-step.active {
+      display: block;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      margin-bottom: var(--space-xl);
+      padding: var(--space-md);
+      background: var(--color-bg-accent);
+      border-radius: var(--radius-xl);
+      border: 1px solid var(--color-border-primary);
+    }
+
+    .back-button {
+      width: 2.5rem;
+      height: 2.5rem;
+      background: var(--color-bg-secondary);
+      border: 2px solid var(--color-border-primary);
+      border-radius: var(--radius-xl);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all var(--duration-200) var(--easing-out);
+      color: var(--color-text-primary);
+    }
+
+    .back-button:hover {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+      color: var(--color-text-inverse);
+      transform: translateX(-2px);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+      flex: 1;
+    }
+
+    .user-info i {
+      color: var(--color-primary);
+    }
+
+    .auth-options {
+      display: grid;
+      gap: var(--space-lg);
+    }
+
+    .option-buttons {
+      display: grid;
+      gap: var(--space-md);
+    }
+
+    .option-btn {
+      display: flex;
+      align-items: center;
+      gap: var(--space-lg);
+      padding: var(--space-lg);
+      background: var(--color-bg-secondary);
+      border: 2px solid var(--color-border-primary);
+      border-radius: var(--radius-xl);
+      cursor: pointer;
+      transition: all var(--duration-200) var(--easing-out);
+      text-align: left;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .option-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg,
+        transparent,
+        rgba(255, 255, 255, 0.1),
+        transparent
+      );
+      transition: left var(--duration-500) var(--easing-out);
+    }
+
+    .option-btn:hover::before {
+      left: 100%;
+    }
+
+    .option-btn:hover {
+      border-color: var(--color-primary);
+      transform: translateX(4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .option-icon {
+      width: 3rem;
+      height: 3rem;
+      background: var(--color-primary);
+      border-radius: var(--radius-xl);
+      display: grid;
+      place-items: center;
+      color: var(--color-text-inverse);
+      font-size: var(--text-lg);
+      flex-shrink: 0;
+    }
+
+    .whitelist-option .option-icon {
+      background: var(--color-success);
+    }
+
+    .option-content h4 {
+      margin: 0 0 var(--space-xs) 0;
+      font-size: var(--text-base);
+      font-weight: 600;
+      color: var(--color-text-primary);
+    }
+
+    .option-content p {
+      margin: 0;
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+    }
+
+    .option-arrow {
+      color: var(--color-text-muted);
+      font-size: var(--text-lg);
+      margin-left: auto;
+      transition: transform var(--duration-200) var(--easing-out);
+    }
+
+    .option-btn:hover .option-arrow {
+      transform: translateX(4px);
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      animation: fade-in-scale var(--duration-300) var(--easing-out);
+    }
+
+    .modal-container {
+      background: var(--color-bg-primary);
+      border-radius: var(--radius-2xl);
+      box-shadow: var(--shadow-2xl);
+      max-width: 500px;
+      width: 90%;
+      max-height: 90vh;
+      overflow: hidden;
+      animation: slide-in-up var(--duration-300) var(--easing-out);
+      border: 1px solid var(--color-border-primary);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: var(--space-xl);
+      border-bottom: 1px solid var(--color-border-primary);
+      background: var(--color-bg-secondary);
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--color-text-primary);
+    }
+
+    .modal-close {
+      width: 2.5rem;
+      height: 2.5rem;
+      background: var(--color-bg-tertiary);
+      border: 2px solid var(--color-border-primary);
+      border-radius: var(--radius-xl);
+      cursor: pointer;
+      display: grid;
+      place-items: center;
+      transition: all var(--duration-200) var(--easing-out);
+      color: var(--color-text-primary);
+    }
+
+    .modal-close:hover {
+      border-color: var(--color-error);
+      background: var(--color-error);
+      color: var(--color-text-inverse);
+    }
+
+    /* Stepper Styles */
+    .stepper {
+      padding: var(--space-xl);
+    }
+
+    .stepper-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-2xl);
+      position: relative;
+    }
+
+    .step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-xs);
+      flex: 1;
+      position: relative;
+      z-index: 1;
+    }
+
+    .step-number {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: var(--radius-full);
+      background: var(--color-bg-tertiary);
+      border: 2px solid var(--color-border-primary);
+      display: grid;
+      place-items: center;
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-text-muted);
+      transition: all var(--duration-300) var(--easing-out);
+    }
+
+    .step.active .step-number {
+      background: var(--color-primary);
+      border-color: var(--color-primary);
+      color: var(--color-text-inverse);
+      box-shadow: var(--shadow-md);
+    }
+
+    .step.completed .step-number {
+      background: var(--color-success);
+      border-color: var(--color-success);
+      color: var(--color-text-inverse);
+    }
+
+    .step-label {
+      font-size: var(--text-xs);
+      font-weight: 500;
+      color: var(--color-text-muted);
+      text-align: center;
+      max-width: 80px;
+    }
+
+    .step.active .step-label {
+      color: var(--color-primary);
+      font-weight: 600;
+    }
+
+    .step.completed .step-label {
+      color: var(--color-success);
+    }
+
+    .step-connector {
+      height: 2px;
+      background: var(--color-border-primary);
+      flex: 1;
+      margin: 0 var(--space-sm);
+      position: relative;
+    }
+
+    .step.completed + .step-connector {
+      background: var(--color-success);
+    }
+
+    .stepper-content {
+      min-height: 300px;
+    }
+
+    .step-content {
+      display: none;
+      text-align: center;
+      animation: fade-in-scale var(--duration-300) var(--easing-out);
+    }
+
+    .step-content.active {
+      display: block;
+    }
+
+    .step-icon {
+      width: 4rem;
+      height: 4rem;
+      background: var(--color-primary);
+      border-radius: var(--radius-xl);
+      display: grid;
+      place-items: center;
+      color: var(--color-text-inverse);
+      font-size: var(--text-xl);
+      margin: 0 auto var(--space-lg);
+      box-shadow: var(--shadow-md);
+    }
+
+    .step-content[data-step="2"] .step-icon {
+      background: var(--color-warning);
+    }
+
+    .step-content[data-step="3"] .step-icon {
+      background: var(--color-success);
+    }
+
+    .step-content h3 {
+      font-size: var(--text-lg);
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin: 0 0 var(--space-md) 0;
+    }
+
+    .step-content p {
+      color: var(--color-text-secondary);
+      font-size: var(--text-sm);
+      line-height: 1.5;
+      margin: 0 0 var(--space-lg) 0;
+    }
+
+    .request-details,
+    .approval-details {
+      background: var(--color-bg-accent);
+      border-radius: var(--radius-xl);
+      padding: var(--space-lg);
+      margin: var(--space-lg) 0;
+      border: 1px solid var(--color-border-primary);
+    }
+
+    .detail-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-sm) 0;
+      border-bottom: 1px solid var(--color-border-primary);
+    }
+
+    .detail-item:last-child {
+      border-bottom: none;
+    }
+
+    .detail-label {
+      font-weight: 600;
+      color: var(--color-text-primary);
+      font-size: var(--text-sm);
+    }
+
+    .detail-value {
+      color: var(--color-text-secondary);
+      font-size: var(--text-sm);
+    }
+
+    .waiting-status {
+      margin: var(--space-xl) 0;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: var(--space-md);
+      margin-top: var(--space-lg);
+    }
+
+    .success-icon {
+      width: 3rem;
+      height: 3rem;
+      background: var(--color-success);
+      border-radius: var(--radius-full);
+      display: grid;
+      place-items: center;
+      color: var(--color-text-inverse);
+      font-size: var(--text-lg);
+      margin: 0 auto;
+      box-shadow: var(--shadow-md);
+    }
+
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 12px;
+      height: 12px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--color-bg-secondary);
+      border-radius: var(--radius-lg);
+      border: 2px solid var(--color-bg-primary);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(135deg,
+        var(--color-primary) 0%,
+        var(--color-secondary) 50%,
+        var(--color-accent) 100%
+      );
+      border-radius: var(--radius-lg);
+      border: 2px solid var(--color-bg-primary);
+      transition: all var(--duration-200) var(--easing-out);
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(135deg,
+        var(--color-primary-hover) 0%,
+        hsl(var(--hue-secondary), 89%, 56%) 50%,
+        hsl(var(--hue-accent), 89%, 46%) 100%
+      );
+      transform: scale(1.1);
+      box-shadow: var(--shadow-md);
+    }
+
+    ::-webkit-scrollbar-thumb:active {
+      background: linear-gradient(135deg,
+        var(--color-primary) 0%,
+        var(--color-secondary) 100%
+      );
+      transform: scale(0.95);
+    }
+
+    ::-webkit-scrollbar-corner {
+      background: var(--color-bg-secondary);
+      border-radius: var(--radius-lg);
+    }
+
+    /* Firefox scrollbar styling */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: var(--color-primary) var(--color-bg-secondary);
+    }
+
+    /* Text selection cursor */
+    ::selection {
+      background: hsl(var(--hue-primary), 89%, 56%, 0.2);
+      color: var(--color-text-primary);
+    }
+
+    ::-moz-selection {
+      background: hsl(var(--hue-primary), 89%, 56%, 0.2);
+      color: var(--color-text-primary);
+    }
+
+    /* Focus visible cursor enhancement */
+    *:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+      position: relative;
+    }
+
+    *:focus-visible ~ body::after {
+      transform: translate(-50%, -50%) scale(2);
+      background: conic-gradient(
+        from 0deg,
+        var(--color-accent),
+        var(--color-success),
+        var(--color-warning),
+        var(--color-primary),
+        var(--color-accent)
+      );
+    }
+  </style>
 </head>
 
-<body class="auth-page">
+<body class="auth-container">
+  <!-- Advanced Header -->
+  <header class="auth-header">
+    <div class="brand">
+      <i class="fi fi-rr-graduation-cap" style="font-size: var(--text-xl); color: var(--color-primary); margin-right: var(--space-sm);"></i>
+      <span style="font-size: var(--text-lg); font-weight: 700; color: var(--color-text-primary);">UniPass</span>
+    </div>
+    <button class="theme-toggle animate-fade-in-scale" id="themeToggle" aria-label="Toggle theme">
+      <i class="fi fi-rr-moon" style="font-size: var(--text-lg); color: var(--color-text-primary);"></i>
+    </button>
+  </header>
 
-  <main class="auth-container">
-    <section class="auth-card">
-
-      <header class="auth-header">
-        <h1>Uni Pass</h1>
-        <p>Secure institutional access</p>
+  <!-- Main Content with Advanced Layout -->
+  <main class="auth-main">
+    <div class="auth-card animate-slide-in-up">
+      <!-- Card Header -->
+      <header class="card-header">
+        <div class="logo-container">
+          <div class="logo animate-float">
+            <i class="fi fi-rr-graduation-cap"></i>
+          </div>
+        </div>
       </header>
 
-      <form id="loginForm" class="auth-form" novalidate>
+      <!-- Card Content -->
+      <div class="card-content">
+        <!-- Step 1: Email Input -->
+        <div id="step1" class="auth-step active">
+          <form id="emailForm" class="form-grid">
+            <div class="form-group">
+              <label for="email" class="form-label">
+                <i class="fi fi-rr-envelope" style="font-size: var(--text-sm); color: var(--color-text-tertiary);"></i>
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                autocomplete="username"
+                class="form-input"
+                placeholder="Welcome back! Enter your email"
+              />
+            </div>
 
-        <div class="form-field">
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            autocomplete="username"
-          />
-          <label for="email">Email / College ID</label>
+            <div class="button-grid">
+              <button id="continueBtn" type="submit" disabled class="btn-primary">
+                <i class="fi fi-rr-arrow-right" style="margin-right: var(--space-sm);"></i>
+                Continue
+              </button>
+            </div>
+          </form>
         </div>
 
-        <div class="form-field">
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            autocomplete="current-password"
-          />
-          <label for="password">Password</label>
+        <!-- Password Login Form -->
+        <div id="step3" class="auth-step">
+          <div class="step-header">
+            <button id="backBtn" class="back-button" aria-label="Go back">
+              <i class="fi fi-rr-arrow-left"></i>
+            </button>
+            <div class="user-info">
+              <i class="fi fi-rr-user"></i>
+              <span id="userEmail"></span>
+            </div>
+          </div>
+          <form id="passwordForm" class="form-grid">
+            <div class="form-group">
+              <label for="password" class="form-label">
+                <i class="fi fi-rr-lock" style="font-size: var(--text-sm); color: var(--color-text-tertiary);"></i>
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                autocomplete="current-password"
+                class="form-input"
+                placeholder="Enter password"
+              />
+            </div>
+
+            <div class="button-grid">
+              <button id="loginBtn" type="submit" disabled class="btn-primary">
+                <i class="fi fi-rr-sign-in-alt" style="margin-right: var(--space-sm);"></i>
+                Sign in
+              </button>
+            </div>
+          </form>
         </div>
 
-        <button
-          id="loginBtn"
-          type="submit"
-          disabled
-          aria-disabled="true"
-        >
-          Authenticate
-        </button>
-
-        <div id="adminFlag" class="admin-indicator" hidden>
-          Admin interface enabled
+        <!-- Status Messages -->
+        <div id="adminFlag" class="status-message status-success animate-fade-in-scale" style="display: none;">
+          <i class="fi fi-rr-shield-check"></i>
+          <span>Admin interface enabled</span>
         </div>
 
-        <div
-          id="err"
-          class="form-error"
-          role="alert"
-          aria-live="assertive"
-          hidden
-        ></div>
+        <div id="waitingBox" class="status-message status-info animate-fade-in-scale" style="display: none;">
+          <div class="animate-shimmer" style="border-radius: var(--radius-full); width: 1.5rem; height: 1.5rem; margin-right: var(--space-sm); display: flex; align-items: center; justify-content: center;">
+            <i class="fi fi-rr-spinner" style="font-size: var(--text-sm); animation: spin 1s linear infinite;"></i>
+          </div>
+          <div>
+            <div style="font-weight: 600;">Waiting for approval...</div>
+            <div style="font-size: var(--text-xs); opacity: 0.8;">Please check your email</div>
+          </div>
+        </div>
 
-      </form>
+        <div id="err" class="status-message status-error animate-fade-in-scale" style="display: none;">
+          <i class="fi fi-rr-exclamation-triangle"></i>
+          <span></span>
+        </div>
+      </div>
 
-      <footer class="auth-footer">
-        <p>
-          Verifying a permission?
-          <a href="checker.html">Use Checker</a>
+      <!-- Card Footer -->
+      <footer class="card-footer">
+        <p style="margin: 0;">
+          <span style="color: var(--color-text-secondary);">Need help verifying a permission? </span>
+          <a href="checker.html" class="footer-link">Use Checker →</a>
         </p>
       </footer>
-
-    </section>
+    </div>
   </main>
 
-  <!-- Login Logic (Identity Only) -->
-  <script>
-    /*
-      SCALE-10 LOGIN CONTRACT
-      ----------------------
-      • This page authenticates IDENTITY only
-      • No role decisions
-      • No privilege assignment
-      • No email-based guessing
-      • Final access is decided by policy engine
-    */
+  <!-- Whitelisting Stepper Modal -->
+  <div id="whitelistModal" class="modal-overlay" style="display: none;">
+    <div class="modal-container">
+      <div class="modal-header">
+        <h2>Request Access</h2>
+        <button id="closeModal" class="modal-close" aria-label="Close modal">
+          <i class="fi fi-rr-cross"></i>
+        </button>
+      </div>
 
+      <div class="stepper">
+        <div class="stepper-header">
+          <div class="step active" data-step="1">
+            <div class="step-number">1</div>
+            <div class="step-label">Submit Request</div>
+          </div>
+          <div class="step-connector"></div>
+          <div class="step" data-step="2">
+            <div class="step-number">2</div>
+            <div class="step-label">Wait for Approval</div>
+          </div>
+          <div class="step-connector"></div>
+          <div class="step" data-step="3">
+            <div class="step-number">3</div>
+            <div class="step-label">Email Login</div>
+          </div>
+        </div>
+
+        <div class="stepper-content">
+          <!-- Step 1: Submit Request -->
+          <div class="step-content active" data-step="1">
+            <div class="step-icon">
+              <i class="fi fi-rr-document"></i>
+            </div>
+            <h3>Submit Access Request</h3>
+            <p>Your request will be sent to administrators for approval. You'll receive an email notification once approved.</p>
+
+            <div class="request-details">
+              <div class="detail-item">
+                <span class="detail-label">Email:</span>
+                <span id="requestEmail" class="detail-value"></span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Request Time:</span>
+                <span id="requestTime" class="detail-value"></span>
+              </div>
+            </div>
+
+            <button id="submitRequestBtn" class="btn-primary" style="width: 100%; margin-top: var(--space-lg);">
+              <i class="fi fi-rr-paper-plane" style="margin-right: var(--space-sm);"></i>
+              Submit Request
+            </button>
+          </div>
+
+          <!-- Step 2: Waiting for Approval -->
+          <div class="step-content" data-step="2">
+            <div class="step-icon">
+              <i class="fi fi-rr-time-forward"></i>
+            </div>
+            <h3>Waiting for Approval</h3>
+            <p>Your access request has been submitted. Please wait for administrator approval.</p>
+
+            <div class="waiting-status">
+              <div class="status-indicator">
+                <div class="animate-pulse-glow" style="width: 3rem; height: 3rem; border-radius: var(--radius-full); background: var(--color-primary); display: grid; place-items: center; margin: 0 auto var(--space-md);">
+                  <i class="fi fi-rr-hourglass-end" style="color: var(--color-text-inverse); font-size: var(--text-lg);"></i>
+                </div>
+                <p style="text-align: center; color: var(--color-text-secondary); font-size: var(--text-sm);">
+                  Check your email for approval notifications
+                </p>
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              <button id="checkStatusBtn" class="btn-secondary" style="flex: 1;">
+                <i class="fi fi-rr-refresh" style="margin-right: var(--space-sm);"></i>
+                Check Status
+              </button>
+              <button id="cancelRequestBtn" class="btn-secondary" style="flex: 1;">
+                <i class="fi fi-rr-cross" style="margin-right: var(--space-sm);"></i>
+                Cancel
+              </button>
+            </div>
+          </div>
+
+          <!-- Step 3: Email Login -->
+          <div class="step-content" data-step="3">
+            <div class="step-icon">
+              <i class="fi fi-rr-envelope"></i>
+            </div>
+            <h3>Access Approved!</h3>
+            <p>Your access request has been approved. You can now sign in using the email link.</p>
+
+            <div class="approval-details">
+              <div class="success-icon">
+                <i class="fi fi-rr-check"></i>
+              </div>
+              <p style="text-align: center; color: var(--color-success); font-weight: 600; margin: var(--space-md) 0;">
+                Approved on <span id="approvalTime"></span>
+              </p>
+            </div>
+
+            <button id="sendLoginLinkBtn" class="btn-primary" style="width: 100%; margin-top: var(--space-lg);">
+              <i class="fi fi-rr-envelope" style="margin-right: var(--space-sm);"></i>
+              Send Login Link
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Login Logic -->
+  <script type="module">
+    import { sendOTP, completeOTPSignIn } from '/assets/js/auth-otp.js';
+    import { initTheme, toggleTheme } from '/assets/js/theme.js';
+    import { checkUserExists } from '/assets/js/firebase-init.js?v=10';
+
+    // Initialize theme
+    initTheme();
+
+    // Initialize theme toggle icon
+    const initThemeIcon = () => {
+      const icon = document.querySelector('#themeToggle i');
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      icon.className = currentTheme === 'dark' ? 'fi fi-rr-sun' : 'fi fi-rr-moon';
+      icon.style.fontSize = 'var(--text-lg)';
+      icon.style.color = 'var(--color-text-primary)';
+    };
+    initThemeIcon();
+
+    // Theme toggle
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      toggleTheme();
+      initThemeIcon();
+    });
+
+    // DOM Elements
     const emailInput = document.getElementById("email");
-    const passInput  = document.getElementById("password");
-    const submitBtn  = document.getElementById("loginBtn");
-    const errorBox   = document.getElementById("err");
-    const adminFlag  = document.getElementById("adminFlag");
+    const passwordInput = document.getElementById("password");
+    const continueBtn = document.getElementById("continueBtn");
+    const loginBtn = document.getElementById("loginBtn");
+    const backBtn = document.getElementById("backBtn");
+    const passwordBtn = document.getElementById("passwordBtn");
+    const whitelistBtn = document.getElementById("whitelistBtn");
+    const errorBox = document.getElementById("err");
+    const adminFlag = document.getElementById("adminFlag");
+    const waitingBox = document.getElementById("waitingBox");
+    const userEmail = document.getElementById("userEmail");
+
+    // Modal Elements
+    const whitelistModal = document.getElementById("whitelistModal");
+    const closeModal = document.getElementById("closeModal");
+    const submitRequestBtn = document.getElementById("submitRequestBtn");
+    const checkStatusBtn = document.getElementById("checkStatusBtn");
+    const cancelRequestBtn = document.getElementById("cancelRequestBtn");
+    const sendLoginLinkBtn = document.getElementById("sendLoginLinkBtn");
+    const requestEmail = document.getElementById("requestEmail");
+    const requestTime = document.getElementById("requestTime");
+    const approvalTime = document.getElementById("approvalTime");
 
     let adminUIUnlocked = false;
     let keySequence = "";
+    let currentEmail = "";
+    let currentStep = 1;
 
-    function validateForm() {
-      const valid =
-        emailInput.value.trim().length > 0 &&
-        passInput.value.length >= 6;
-
-      submitBtn.disabled = !valid;
-      submitBtn.setAttribute("aria-disabled", String(!valid));
+    // Step Management
+    function showStep(stepNumber) {
+      document.querySelectorAll('.auth-step').forEach(step => {
+        step.classList.remove('active');
+      });
+      const targetStep = document.getElementById(`step${stepNumber}`);
+      if (targetStep) {
+        targetStep.classList.add('active');
+        currentStep = stepNumber;
+      }
     }
 
-    emailInput.addEventListener("input", validateForm);
-    passInput.addEventListener("input", validateForm);
+    function showModalStep(stepNumber) {
+      document.querySelectorAll('.step-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      document.querySelectorAll('.step').forEach(step => {
+        step.classList.remove('active', 'completed');
+      });
 
-    /* Admin UI unlock — VISUAL ONLY */
+      // Update stepper visual state
+      for (let i = 1; i <= stepNumber; i++) {
+        const stepElement = document.querySelector(`.step[data-step="${i}"]`);
+        if (i < stepNumber) {
+          stepElement.classList.add('completed');
+        } else {
+          stepElement.classList.add('active');
+        }
+      }
+
+      document.querySelector(`.step-content[data-step="${stepNumber}"]`).classList.add('active');
+    }
+
+    // Form Validation
+    function validateEmailForm() {
+      const valid = emailInput.value.trim().length > 0 && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value.trim());
+      continueBtn.disabled = !valid;
+      continueBtn.setAttribute("aria-disabled", String(!valid));
+    }
+
+    function validatePasswordForm() {
+      const valid = passwordInput.value.length >= 6;
+      loginBtn.disabled = !valid;
+      loginBtn.setAttribute("aria-disabled", String(!valid));
+    }
+
+    // Event Listeners
+    emailInput.addEventListener("input", validateEmailForm);
+    passwordInput.addEventListener("input", validatePasswordForm);
+
+    // Email Form Submission
+    document.getElementById("emailForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      errorBox.style.display = 'none';
+
+      currentEmail = emailInput.value.trim().toLowerCase();
+      userEmail.textContent = currentEmail;
+
+      if (currentEmail.includes("checker")) {
+        window.location.replace("checker.html");
+        return;
+      }
+
+      // Skip user existence check - go directly to password
+      showStep(3);
+    });
+
+    // Back Button
+    backBtn.addEventListener("click", () => {
+      showStep(1);
+      passwordInput.value = "";
+      validatePasswordForm();
+    });
+
+    // Password Form Submission
+    document.getElementById("passwordForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      errorBox.style.display = 'none';
+
+      try {
+        sessionStorage.clear();
+        sessionStorage.setItem("identity", currentEmail);
+        sessionStorage.setItem("password", passwordInput.value);
+        location.replace("/assets/redirect.html");
+      } catch (err) {
+        errorBox.style.display = 'flex';
+        errorBox.querySelector('span').textContent = "Authentication failed. Access denied.";
+      }
+    });
+
+    // Modal Event Listeners
+    closeModal.addEventListener("click", () => {
+      whitelistModal.style.display = 'none';
+    });
+
+    whitelistModal.addEventListener("click", e => {
+      if (e.target === whitelistModal) {
+        whitelistModal.style.display = 'none';
+      }
+    });
+
+    submitRequestBtn.addEventListener("click", () => {
+      // Simulate request submission
+      showModalStep(2);
+      waitingBox.style.display = 'flex';
+    });
+
+    checkStatusBtn.addEventListener("click", () => {
+      // Simulate status check - in real app, this would check server
+      const approved = Math.random() > 0.7; // 30% chance of approval for demo
+      if (approved) {
+        approvalTime.textContent = new Date().toLocaleString();
+        showModalStep(3);
+        waitingBox.style.display = 'none';
+      } else {
+        // Still waiting
+        errorBox.style.display = 'flex';
+        errorBox.querySelector('span').textContent = "Still waiting for approval. Please check back later.";
+        setTimeout(() => errorBox.style.display = 'none', 3000);
+      }
+    });
+
+    cancelRequestBtn.addEventListener("click", () => {
+      whitelistModal.style.display = 'none';
+      waitingBox.style.display = 'none';
+    });
+
+    sendLoginLinkBtn.addEventListener("click", async () => {
+      try {
+        await sendOTP(currentEmail);
+        sessionStorage.setItem('pendingEmail', currentEmail);
+        whitelistModal.style.display = 'none';
+        errorBox.style.display = 'flex';
+        errorBox.className = 'status-message status-success animate-fade-in-scale';
+        errorBox.querySelector('i').className = 'fi fi-rr-check';
+        errorBox.querySelector('span').textContent = 'Login link sent! Check your email and click the link to continue.';
+      } catch (err) {
+        errorBox.style.display = 'flex';
+        errorBox.className = 'status-message status-error animate-fade-in-scale';
+        errorBox.querySelector('i').className = 'fi fi-rr-exclamation-triangle';
+        errorBox.querySelector('span').textContent = 'Failed to send login link. Try again later.';
+      }
+    });
+
+    /* Admin UI unlock */
     document.addEventListener("keydown", e => {
       keySequence += e.key;
       if (keySequence.includes("Admin@UniPass")) {
         adminUIUnlocked = true;
-        adminFlag.hidden = false;
+        adminFlag.style.display = 'flex';
         keySequence = "";
       }
       if (keySequence.length > 20) keySequence = "";
     });
 
-    document.getElementById("loginForm").addEventListener("submit", e => {
-      e.preventDefault();
-      errorBox.hidden = true;
-
-      const identity = emailInput.value.trim().toLowerCase();
-
-      /* Checker NEVER authenticates */
-      if (identity.includes("checker")) {
-        window.location.replace("checker.html");
-        return;
-      }
-
-      /*
-        REAL FLOW (scale-10):
-        --------------------
-        1. Firebase Auth (email + password)
-        2. Fetch user context from Firestore
-        3. Apply policy:
-           - approved?
-           - disabled?
-           - firstLogin?
-           - role?
-        4. Redirect via policy router
-      */
-
+    (async function handleIncomingLink() {
       try {
-        sessionStorage.clear();
-        sessionStorage.setItem("loggedIn", "true");
-        sessionStorage.setItem("identity", emailInput.value);
-        sessionStorage.setItem("password", passInput.value);
-        location.replace("/assets/redirect.html");
-
-
+        await completeOTPSignIn();
       } catch (err) {
-        errorBox.hidden = false;
-        errorBox.textContent =
-          "Authentication failed. Access denied.";
+        // ignore
       }
-    });
+    })();
+
+    // Initialize validation
+    validateEmailForm();
   </script>
 
 </body>
