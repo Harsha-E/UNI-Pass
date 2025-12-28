@@ -1,69 +1,364 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Uni Pass • Analytics</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="/assets/css/main.css" />
-  <script src="/assets/js/route-guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Intelligence | UNI-PASS Admin</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: { 800: '#1f2937', 900: '#111827' },
+                        brand: { 500: '#8b5cf6', 600: '#7c3aed' } // Violet Theme
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* --- CUSTOM PROFESSIONAL CURSOR --- */
+        body {
+            cursor: default; /* Fallback */
+        }
+        
+        /* The outer circle */
+        .cursor-dot-outline {
+            width: 32px;
+            height: 32px;
+            border: 2px solid rgba(139, 92, 246, 0.5); /* Brand Color */
+            border-radius: 50%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 9999;
+            transition: width 0.2s, height 0.2s, background-color 0.2s;
+        }
+
+        /* The inner dot */
+        .cursor-dot {
+            width: 8px;
+            height: 8px;
+            background-color: #7c3aed;
+            border-radius: 50%;
+            position: fixed;
+            top: 0;
+            left: 0;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            z-index: 9999;
+        }
+
+        /* Hover effect for links/buttons */
+        body.hovering .cursor-dot-outline {
+            width: 50px;
+            height: 50px;
+            background-color: rgba(139, 92, 246, 0.1);
+            border-color: transparent;
+        }
+    /* 1. HIDE DEFAULT CURSOR */
+    body, a, button, input {
+        cursor: none !important; /* Forces custom cursor everywhere */
+    }
+    
+    /* 2. CUSTOM CURSOR STYLES */
+    .cursor-dot-outline {
+        width: 32px;
+        height: 32px;
+        border: 2px solid rgba(139, 92, 246, 0.5);
+        border-radius: 50%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        transform: translate(-50%, -50%);
+        pointer-events: none; /* Allows clicking through */
+        z-index: 9999;
+        transition: width 0.2s, height 0.2s, background-color 0.2s;
+    }
+
+    .cursor-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #7c3aed;
+        border-radius: 50%;
+        position: fixed;
+        top: 0;
+        left: 0;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+        z-index: 9999;
+    }
+
+    /* Hover State */
+    body.hovering .cursor-dot-outline {
+        width: 50px;
+        height: 50px;
+        background-color: rgba(139, 92, 246, 0.1);
+        border-color: transparent;
+    }
+    </style>
 </head>
+<body class="bg-gray-100 font-sans text-gray-800 flex h-screen overflow-hidden">
 
-<body class="admin-page">
+    <div class="cursor-dot-outline"></div>
+    <div class="cursor-dot"></div>
 
-  <nav class="top-nav">
-    <span class="brand">Uni Pass</span>
-    <div class="nav-links">
-      <a href="/admin/admin.html">Admin</a>
-      <a class="active">Analytics</a>
-    </div>
-  </nav>
+    <aside class="w-64 bg-dark-900 text-gray-300 flex flex-col flex-shrink-0 transition-all duration-300 z-20 shadow-2xl">
+        <div class="h-16 flex items-center px-6 bg-dark-800 border-b border-gray-700">
+            <i class="fas fa-shield-alt text-brand-500 text-xl mr-3"></i>
+            <span class="font-bold text-lg text-white tracking-wider">ADMIN<span class="text-brand-500">_CONSOLE</span></span>
+        </div>
 
-  <main class="admin-container">
+        <nav class="flex-1 px-2 py-4 space-y-2 overflow-y-auto">
+            <a href="admin.html" class="flex items-center px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition group">
+                <i class="fas fa-arrow-left w-6 group-hover:-translate-x-1 transition-transform"></i> Back to Dashboard
+            </a>
+            <div class="pt-4 border-t border-gray-700 mt-2">
+                <p class="px-4 text-xs font-bold text-gray-500 uppercase mb-2">Reports</p>
+                <a href="#" class="flex items-center px-4 py-3 bg-gray-800 text-white rounded-lg transition shadow-inner">
+                    <i class="fas fa-chart-pie w-6 text-brand-500"></i> Permission Analytics
+                </a>
+                <a href="#" class="flex items-center px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
+                    <i class="fas fa-user-clock w-6"></i> Student Attendance
+                </a>
+            </div>
+        </nav>
+    </aside>
 
-    <section class="admin-card">
-      <h2>Permission Metrics</h2>
-      <div id="metrics"></div>
-    </section>
+    <main class="flex-1 flex flex-col overflow-hidden relative">
+        
+        <header class="h-16 bg-white shadow-sm flex items-center justify-between px-8 z-10 border-b border-gray-200">
+            <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                <i class="fas fa-chart-line text-brand-600"></i> Analytics Intelligence
+            </h2>
+            <div class="flex items-center gap-3">
+                <button onclick="loadAnalytics()" class="p-2 text-gray-400 hover:text-brand-600 transition rounded-full hover:bg-gray-100" title="Refresh Data">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <div class="text-xs text-gray-400 font-mono" id="last-updated">Updated: Just now</div>
+            </div>
+        </header>
 
-    <section class="admin-card">
-      <h2>Recent Audit Logs</h2>
-      <div id="logs"></div>
-    </section>
+        <div class="flex-1 overflow-auto p-8 bg-gray-50">
+            
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Total Requests</p>
+                            <h3 class="text-3xl font-extrabold text-gray-900 mt-2" id="count-total">--</h3>
+                        </div>
+                        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg"><i class="fas fa-layer-group"></i></div>
+                    </div>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition border-l-4 border-green-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Approved</p>
+                            <h3 class="text-3xl font-extrabold text-gray-900 mt-2" id="count-approved">--</h3>
+                        </div>
+                        <div class="p-3 bg-green-50 text-green-600 rounded-lg"><i class="fas fa-check-circle"></i></div>
+                    </div>
+                </div>
 
-  </main>
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition border-l-4 border-yellow-500">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Pending Action</p>
+                            <h3 class="text-3xl font-extrabold text-gray-900 mt-2" id="count-pending">--</h3>
+                        </div>
+                        <div class="p-3 bg-yellow-50 text-yellow-600 rounded-lg"><i class="fas fa-hourglass-half"></i></div>
+                    </div>
+                </div>
 
-  <script type="module">
-    import { db } from "/assets/js/firebase-init.js";
-    import {
-      collection,
-      getDocs,
-      query,
-      orderBy
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Rejection Rate</p>
+                            <h3 class="text-3xl font-extrabold text-gray-900 mt-2" id="stat-rate">0%</h3>
+                        </div>
+                        <div class="p-3 bg-red-50 text-red-600 rounded-lg"><i class="fas fa-chart-bar"></i></div>
+                    </div>
+                </div>
+            </div>
 
-    const metrics = document.getElementById("metrics");
-    const logs = document.getElementById("logs");
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-bold text-gray-800 mb-6">Approval Distribution</h3>
+                    <div class="relative h-64 w-full flex justify-center">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
 
-    async function loadMetrics() {
-      const snap = await getDocs(collection(db, "permissions"));
-      metrics.textContent = `Total Permissions: ${snap.size}`;
-    }
+                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                    <h3 class="font-bold text-gray-800 mb-6">Common Reasons</h3>
+                    <div class="relative h-64 w-full">
+                        <canvas id="reasonChart"></canvas>
+                    </div>
+                </div>
 
-    async function loadLogs() {
-      const q = query(collection(db, "auditLogs"), orderBy("at", "desc"));
-      const snap = await getDocs(q);
-      logs.innerHTML = "";
-      snap.docs.slice(0, 10).forEach(d => {
-        const div = document.createElement("div");
-        div.className = "queue-item";
-        div.textContent = `${d.data().actorRole} • ${d.data().action}`;
-        logs.appendChild(div);
-      });
-    }
+            </div>
 
-    loadMetrics();
-    loadLogs();
-  </script>
+        </div>
+    </main>
 
+    <script type="module">
+        import { db, auth } from '../assets/js/firebase-init.js';
+
+        // --- 1. AUTH GUARD ---
+        auth.onAuthStateChanged(async (user) => {
+            if (!user) {
+                window.location.href = '../public/login.html';
+                return;
+            }
+            // Add custom role check here if needed
+            window.loadAnalytics();
+        });
+
+        // --- 2. ANALYTICS LOGIC ---
+        window.loadAnalytics = async () => {
+            document.getElementById('last-updated').innerText = "Updating...";
+            
+            const stats = {
+                total: 0,
+                approved: 0,
+                rejected: 0,
+                pending: 0,
+                reasons: { 'Medical': 0, 'On-Duty': 0, 'Personal': 0 }
+            };
+
+            try {
+                const snapshot = await db.collection('permissions').get();
+                
+                snapshot.forEach(doc => {
+                    const data = doc.data();
+                    stats.total++;
+                    
+                    // Count Status
+                    if (data.status === 'APPROVED') stats.approved++;
+                    else if (data.status === 'REJECTED') stats.rejected++;
+                    else stats.pending++;
+
+                    // Count Reasons (Handle messy data)
+                    const r = data.reasonType || 'Personal';
+                    if (stats.reasons[r] !== undefined) stats.reasons[r]++;
+                    else stats.reasons['Personal']++;
+                });
+
+                // Update DOM
+                document.getElementById('count-total').innerText = stats.total;
+                document.getElementById('count-approved').innerText = stats.approved;
+                document.getElementById('count-pending').innerText = stats.pending;
+                
+                const rate = stats.total > 0 ? Math.round((stats.rejected / stats.total) * 100) : 0;
+                document.getElementById('stat-rate').innerText = `${rate}%`;
+                
+                document.getElementById('last-updated').innerText = `Updated: ${new Date().toLocaleTimeString()}`;
+
+                // Render Charts
+                renderCharts(stats);
+
+            } catch (err) {
+                console.error("Analytics Error:", err);
+                alert("Failed to load data.");
+            }
+        };
+
+        // --- 3. CHART JS RENDERER ---
+        function renderCharts(stats) {
+            // Doughnut Chart (Status)
+            const ctx1 = document.getElementById('statusChart').getContext('2d');
+            if(window.chart1) window.chart1.destroy(); // Prevent overlap
+            
+            window.chart1 = new Chart(ctx1, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Approved', 'Rejected', 'Pending'],
+                    datasets: [{
+                        data: [stats.approved, stats.rejected, stats.pending],
+                        backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    cutout: '75%',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } }
+                    }
+                }
+            });
+
+            // Bar Chart (Reasons)
+            const ctx2 = document.getElementById('reasonChart').getContext('2d');
+            if(window.chart2) window.chart2.destroy();
+
+            window.chart2 = new Chart(ctx2, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(stats.reasons),
+                    datasets: [{
+                        label: 'Requests by Type',
+                        data: Object.values(stats.reasons),
+                        backgroundColor: '#8b5cf6',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, grid: { display: false } },
+                        x: { grid: { display: false } }
+                    },
+                    plugins: {
+                        legend: { display: false }
+                    }
+                }
+            });
+        }
+
+        // --- 4. CUSTOM CURSOR LOGIC ---
+        const cursorOutline = document.querySelector('.cursor-dot-outline');
+        const cursorDot = document.querySelector('.cursor-dot');
+
+        window.addEventListener('mousemove', (e) => {
+            const posX = e.clientX;
+            const posY = e.clientY;
+
+            // Dot follows instantly
+            cursorDot.style.left = `${posX}px`;
+            cursorDot.style.top = `${posY}px`;
+
+            // Outline follows with slight delay (smooth physics)
+            cursorOutline.animate({
+                left: `${posX}px`,
+                top: `${posY}px`
+            }, { duration: 500, fill: "forwards" });
+        });
+
+        // Hover Effect on clickable items
+        const clickables = document.querySelectorAll('a, button');
+        clickables.forEach(el => {
+            el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+            el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+        });
+
+    </script>
 </body>
 </html>
