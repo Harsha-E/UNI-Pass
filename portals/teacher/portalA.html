@@ -1,565 +1,314 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Uni Pass • Teacher Portal</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="/assets/css/main.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons/css/all/all.css">
-  <script src="/assets/js/route-guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Class Teacher Dashboard | UNI-PASS</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/style.css">
+<script src="../../assets/js/ui.js" defer></script>
+    <script type="module" src="../../assets/js/route-guard.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 900: '#0c4a6e' },
+                        warning: { 50: '#fffbeb', 600: '#d97706' }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    </style>
 </head>
+<body class="bg-gray-50 text-gray-800 font-sans antialiased h-screen flex overflow-hidden">
 
-<body class="min-h-screen bg-gray-50 dark:bg-gray-900">
-  <!-- Navigation -->
-  <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
-        <div class="flex items-center">
-          <div class="flex-shrink-0 flex items-center">
-            <i class="fi fi-rr-chalkboard-teacher text-blue-600 dark:text-blue-400 text-xl mr-2"></i>
-            <span class="text-xl font-bold text-gray-900 dark:text-white">UniPass</span>
-          </div>
-          <div class="hidden md:block ml-10">
-            <div class="flex items-baseline space-x-4">
-              <a href="#" class="bg-blue-100 dark:bg-blue-900 text-blue-700 dark:text-blue-300 px-3 py-2 rounded-md text-sm font-medium">Portal A</a>
-              <a href="./portalC.html" class="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white px-3 py-2 rounded-md text-sm font-medium">Portal C</a>
+    <aside class="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col z-10">
+        <div class="h-16 flex items-center px-6 border-b border-gray-200">
+            <i class="fas fa-university text-brand-600 text-2xl mr-3"></i>
+            <span class="font-bold text-xl tracking-tight text-gray-800">UNI-PASS</span>
+        </div>
+
+        <div class="p-6 border-b border-gray-100 bg-brand-50">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-brand-200 text-brand-700 flex items-center justify-center font-bold text-lg">T</div>
+                <div>
+                    <h4 class="text-sm font-bold text-gray-900" id="sidebar-name">Loading...</h4>
+                    <p class="text-xs text-brand-600 font-medium">Class Advisor</p>
+                </div>
             </div>
-          </div>
         </div>
-        <div class="flex items-center space-x-4">
-          <div class="hidden sm:flex items-center text-sm text-gray-600 dark:text-gray-300">
-            <i class="fi fi-rr-chalkboard-teacher mr-2"></i>
-            <span>Teacher Portal</span>
-          </div>
-          <button id="themeToggle" class="w-10 h-10 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-all duration-200 flex items-center justify-center focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-            <i class="fi fi-rr-moon text-gray-600 dark:text-gray-300"></i>
-          </button>
+
+        <nav class="flex-1 p-4 space-y-1 overflow-y-auto custom-scroll">
+            <p class="px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-2">Workflow</p>
+            
+            <a href="#" onclick="switchTab('incoming')" id="tab-incoming" class="flex items-center px-3 py-2.5 bg-brand-50 text-brand-700 rounded-lg group font-medium shadow-sm ring-1 ring-brand-200">
+                <i class="fas fa-inbox w-6 text-brand-500"></i> Incoming Requests
+                <span class="ml-auto bg-brand-600 text-white py-0.5 px-2 rounded-full text-xs font-bold shadow-sm" id="sidebar-badge">0</span>
+            </a>
+
+            <a href="#" onclick="switchTab('escalated')" id="tab-escalated" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg group transition-colors">
+                <i class="fas fa-share w-6 text-gray-400 group-hover:text-gray-500"></i> Escalated (HOD)
+            </a>
+
+            <a href="#" onclick="switchTab('history')" id="tab-history" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg group transition-colors">
+                <i class="fas fa-check-circle w-6 text-gray-400 group-hover:text-gray-500"></i> Approved History
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-200">
+            <button id="logout-btn" class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors">
+                <i class="fas fa-sign-out-alt"></i> Sign Out
+            </button>
         </div>
-      </div>
-    </div>
-  </nav>
+    </aside>
 
-  <!-- Main Content -->
-  <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <!-- Header -->
-    <div class="mb-6">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Permission Requests</h1>
-      <p class="text-gray-600 dark:text-gray-300 mt-1">Review and manage student permission requests</p>
-    </div>
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:hidden z-20">
+            <span class="font-bold text-lg">Teacher Dashboard</span>
+            <button class="text-gray-500"><i class="fas fa-bars text-xl"></i></button>
+        </header>
 
-    <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-      <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center">
-          <div class="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-            <i class="fi fi-rr-time-forward text-blue-600 dark:text-blue-400"></i>
-          </div>
-          <div class="ml-3">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Pending</p>
-            <p id="pendingCount" class="text-xl font-bold text-gray-900 dark:text-white">0</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center">
-          <div class="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
-            <i class="fi fi-rr-check text-green-600 dark:text-green-400"></i>
-          </div>
-          <div class="ml-3">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Approved</p>
-            <p id="approvedCount" class="text-xl font-bold text-gray-900 dark:text-white">0</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center">
-          <div class="p-2 bg-red-100 dark:bg-red-900/20 rounded-lg">
-            <i class="fi fi-rr-cross text-red-600 dark:text-red-400"></i>
-          </div>
-          <div class="ml-3">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Rejected</p>
-            <p id="rejectedCount" class="text-xl font-bold text-gray-900 dark:text-white">0</p>
-          </div>
-        </div>
-      </div>
-    </div>
+        <div class="flex-1 overflow-y-auto custom-scroll p-4 md:p-8">
+            <div class="max-w-5xl mx-auto">
+                <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-gray-900" id="page-title">Incoming Requests</h1>
+                        <p class="text-sm text-gray-500 mt-1">Manage leave applications for your assigned batch.</p>
+                    </div>
+                    <div class="flex gap-3">
+                        <button onclick="loadRequests()" class="p-2 text-gray-400 hover:text-brand-600 transition" title="Refresh">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
 
-    <!-- Filters and Search -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between space-y-3 md:space-y-0">
-        <div class="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-          <div class="relative">
-            <i class="fi fi-rr-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
-            <input
-              id="searchInput"
-              type="text"
-              placeholder="Search students or permissions..."
-              class="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white w-full sm:w-64"
-            />
-          </div>
-          <select id="statusFilter" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-            <option value="all">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
-        </div>
-        <div class="flex space-x-2">
-          <button id="refreshBtn" class="px-3 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm">
-            <i class="fi fi-rr-refresh mr-1"></i>Refresh
-          </button>
-        </div>
-      </div>
-    </div>
+                <div id="requests-feed" class="space-y-4">
+                    </div>
 
-    <!-- Requests Table -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-      <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-          <thead class="bg-gray-50 dark:bg-gray-700">
-            <tr>
-              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                <input type="checkbox" id="selectAll" class="rounded border-gray-300 dark:border-gray-600">
-              </th>
-              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:text-gray-700 dark:hover:text-gray-100" data-sort="student">
-                Student <i class="fi fi-rr-sort ml-1"></i>
-              </th>
-              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:text-gray-700 dark:hover:text-gray-100" data-sort="type">
-                Type <i class="fi fi-rr-sort ml-1"></i>
-              </th>
-              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider cursor-pointer hover:text-gray-700 dark:hover:text-gray-100" data-sort="date">
-                Date <i class="fi fi-rr-sort ml-1"></i>
-              </th>
-              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Duration
-              </th>
-              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Status
-              </th>
-              <th class="px-4 py-2 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody id="requestsTable" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-            <!-- Requests will be populated here -->
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Empty State -->
-      <div id="emptyState" class="hidden text-center py-8">
-        <i class="fi fi-rr-inbox text-gray-400 text-3xl mb-3"></i>
-        <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-1">No requests found</h3>
-        <p class="text-gray-600 dark:text-gray-400 text-sm">No permission requests match your criteria.</p>
-      </div>
-
-      <!-- Loading State -->
-      <div id="loadingState" class="text-center py-8">
-        <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto mb-3"></div>
-        <p class="text-gray-600 dark:text-gray-400 text-sm">Loading requests...</p>
-      </div>
-    </div>
-
-    <!-- Pagination -->
-    <div class="flex items-center justify-between mt-6">
-      <div class="text-sm text-gray-700 dark:text-gray-300">
-        Showing <span id="showingFrom">0</span> to <span id="showingTo">0</span> of <span id="totalRequests">0</span> requests
-      </div>
-      <div class="flex space-x-2">
-        <button id="prevPage" class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed">
-          <i class="fi fi-rr-angle-left"></i>
-        </button>
-        <span id="currentPage" class="px-3 py-1 bg-blue-600 text-white rounded">1</span>
-        <button id="nextPage" class="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed">
-          <i class="fi fi-rr-angle-right"></i>
-        </button>
-      </div>
-    </div>
-  </main>
-
-  <!-- Action Modal -->
-  <div id="actionModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
-      <div class="flex items-center mb-4">
-        <i id="modalIcon" class="fi fi-rr-info text-blue-600 dark:text-blue-400 text-2xl mr-3"></i>
-        <h3 id="modalTitle" class="text-lg font-semibold text-gray-900 dark:text-white">Action Required</h3>
-      </div>
-      <div id="modalContent" class="mb-6">
-        <!-- Modal content will be populated here -->
-      </div>
-      <div class="flex justify-end space-x-3">
-        <button id="cancelAction" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
-          Cancel
-        </button>
-        <button id="confirmAction" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-          Confirm
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <script type="module">
-    import { initTheme, toggleTheme } from '/assets/js/theme.js';
-    import { getPendingForRole, recommendPermission, rejectPermission } from "/assets/js/permission-events.js";
-
-    // Initialize theme
-    initTheme();
-
-    // Theme toggle
-    document.getElementById('themeToggle').addEventListener('click', () => {
-      toggleTheme();
-      const icon = document.querySelector('#themeToggle i');
-      icon.className = document.documentElement.getAttribute('data-theme') === 'dark' ? 'fi fi-rr-sun text-yellow-400' : 'fi fi-rr-moon text-gray-600 dark:text-gray-300';
-    });
-
-    const uid = sessionStorage.getItem("uid");
-    let requests = [];
-    let filteredRequests = [];
-    let currentPage = 1;
-    const itemsPerPage = 10;
-    let sortField = 'date';
-    let sortDirection = 'desc';
-
-    // Mock data for demonstration (replace with actual API calls)
-    function generateMockRequests() {
-      const types = ['lab', 'library', 'sports', 'event', 'transport'];
-      const statuses = ['pending', 'approved', 'rejected', 'delayed'];
-      const students = ['Alice Johnson', 'Bob Smith', 'Charlie Brown', 'Diana Prince', 'Eve Wilson'];
-
-      return Array.from({ length: 25 }, (_, i) => ({
-        id: `req_${i + 1}`,
-        student: students[Math.floor(Math.random() * students.length)],
-        type: types[Math.floor(Math.random() * types.length)],
-        date: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000),
-        duration: `${Math.floor(Math.random() * 7) + 1} days`,
-        status: statuses[Math.floor(Math.random() * statuses.length)],
-        reason: 'Mock permission request for testing purposes'
-      }));
-    }
-
-    function renderTable() {
-      const table = document.getElementById('requestsTable');
-      const emptyState = document.getElementById('emptyState');
-      const loadingState = document.getElementById('loadingState');
-
-      loadingState.classList.add('hidden');
-
-      if (filteredRequests.length === 0) {
-        table.innerHTML = '';
-        emptyState.classList.remove('hidden');
-        return;
-      }
-
-      emptyState.classList.add('hidden');
-
-      const startIndex = (currentPage - 1) * itemsPerPage;
-      const endIndex = startIndex + itemsPerPage;
-      const pageRequests = filteredRequests.slice(startIndex, endIndex);
-
-      table.innerHTML = pageRequests.map(request => `
-        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-          <td class="px-6 py-4 whitespace-nowrap">
-            <input type="checkbox" class="rounded border-gray-300 dark:border-gray-600 request-checkbox" data-id="${request.id}">
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            <div class="flex items-center">
-              <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mr-3">
-                <i class="fi fi-rr-user text-blue-600 dark:text-blue-400 text-sm"></i>
-              </div>
-              <div>
-                <div class="text-sm font-medium text-gray-900 dark:text-white">${request.student}</div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">ID: ${request.id}</div>
-              </div>
+                <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-center">
+                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                        <i class="fas fa-clipboard-check text-3xl text-gray-400"></i>
+                    </div>
+                    <h3 class="text-lg font-medium text-gray-900">No records found</h3>
+                </div>
             </div>
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeBadgeClass(request.type)}">
-              <i class="fi fi-rr-${getIconForType(request.type)} mr-1"></i>
-              ${request.type.charAt(0).toUpperCase() + request.type.slice(1)}
-            </span>
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-            ${request.date.toLocaleDateString()}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-            ${request.duration}
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeClass(request.status)}">
-              ${request.status.charAt(0).toUpperCase() + request.status.slice(1)}
-            </span>
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-            <div class="flex space-x-2">
-              ${request.status === 'pending' ? `
-                <button class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 action-btn" data-action="approve" data-id="${request.id}">
-                  <i class="fi fi-rr-check"></i>
-                </button>
-                <button class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 action-btn" data-action="reject" data-id="${request.id}">
-                  <i class="fi fi-rr-cross"></i>
-                </button>
-                <button class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 action-btn" data-action="delay" data-id="${request.id}">
-                  <i class="fi fi-rr-clock"></i>
-                </button>
-                <button class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 action-btn" data-action="modify" data-id="${request.id}">
-                  <i class="fi fi-rr-edit"></i>
-                </button>
-              ` : `
-                <button class="text-gray-400 cursor-not-allowed" disabled>
-                  <i class="fi fi-rr-eye"></i>
-                </button>
-              `}
+        </div>
+    </main>
+
+    <div id="action-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full z-10 p-6">
+                <div class="text-center mb-6">
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4" id="modal-icon-bg">
+                        <i class="fas fa-question text-blue-600 text-xl" id="modal-icon"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-900" id="modal-title">Confirm Action</h3>
+                    <p class="text-sm text-gray-500 mt-2" id="modal-desc">Are you sure?</p>
+                </div>
+                
+                <div id="reject-reason-container" class="hidden mb-4">
+                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Reason</label>
+                    <textarea id="reject-reason" class="w-full border border-gray-300 rounded p-2 text-sm" rows="2"></textarea>
+                </div>
+
+                <div class="flex gap-3 justify-center">
+                    <button onclick="closeModal()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Cancel</button>
+                    <button id="confirm-btn" class="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 font-bold">Confirm</button>
+                </div>
             </div>
-          </td>
-        </tr>
-      `).join('');
+        </div>
+    </div>
+    <script type="module">
+        import { db, auth } from '../../assets/js/firebase-init.js';
+        import { processApproval } from '../../assets/js/permission-flow.js';
 
-      updatePagination();
-      updateStats();
-    }
+        let currentActionId = null;
+        let currentActionType = null;
+        let currentRequestData = null;
+        let currentSubscription = null;
+        let currentTabMode = 'incoming';
 
-    function getTypeBadgeClass(type) {
-      const classes = {
-        lab: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300',
-        library: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300',
-        sports: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300',
-        event: 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300',
-        transport: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300'
-      };
-      return classes[type] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
-    }
+        // --- AUTH ---
+        auth.onAuthStateChanged(user => {
+            if (!user) window.location.href = '../../public/login.html';
+            document.getElementById('sidebar-name').innerText = user.displayName || 'Teacher';
+            loadRequests('incoming');
+        });
 
-    function getStatusBadgeClass(status) {
-      const classes = {
-        pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300',
-        approved: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300',
-        rejected: 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300',
-        delayed: 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300'
-      };
-      return classes[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
-    }
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            auth.signOut().then(() => window.location.href = '../../public/login.html');
+        });
 
-    function getIconForType(type) {
-      const icons = {
-        lab: 'computer',
-        library: 'books',
-        sports: 'basketball',
-        event: 'calendar',
-        transport: 'bus'
-      };
-      return icons[type] || 'info';
-    }
+        // --- TABS ---
+        window.switchTab = (mode) => {
+            currentTabMode = mode;
+            // Visuals
+            document.querySelectorAll('nav a').forEach(el => {
+                el.className = "flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg group transition-colors";
+            });
+            const activeClass = "flex items-center px-3 py-2.5 bg-brand-50 text-brand-700 rounded-lg group font-medium shadow-sm ring-1 ring-brand-200";
+            document.getElementById(`tab-${mode}`).className = activeClass;
+            
+            // Logic
+            loadRequests(mode);
+        };
 
-    function updatePagination() {
-      const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
-      document.getElementById('currentPage').textContent = currentPage;
-      document.getElementById('showingFrom').textContent = (currentPage - 1) * itemsPerPage + 1;
-      document.getElementById('showingTo').textContent = Math.min(currentPage * itemsPerPage, filteredRequests.length);
-      document.getElementById('totalRequests').textContent = filteredRequests.length;
+        // --- DATA LOADING ---
+        window.loadRequests = (mode = currentTabMode) => {
+            const feed = document.getElementById('requests-feed');
+            const emptyState = document.getElementById('empty-state');
+            const title = document.getElementById('page-title');
 
-      document.getElementById('prevPage').disabled = currentPage === 1;
-      document.getElementById('nextPage').disabled = currentPage === totalPages;
-    }
+            if (currentSubscription) currentSubscription(); // Unsubscribe prev
 
-    function updateStats() {
-      const pending = filteredRequests.filter(r => r.status === 'pending').length;
-      const approved = filteredRequests.filter(r => r.status === 'approved').length;
-      const rejected = filteredRequests.filter(r => r.status === 'rejected').length;
-      const weekly = filteredRequests.filter(r => {
-        const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-        return r.date > weekAgo;
-      }).length;
+            feed.innerHTML = '<div class="p-8 text-center text-gray-400"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div>';
 
-      document.getElementById('pendingCount').textContent = pending;
-      document.getElementById('approvedCount').textContent = approved;
-      document.getElementById('rejectedCount').textContent = rejected;
-      document.getElementById('weeklyCount').textContent = weekly;
-    }
+            let query = db.collection('permissions');
+            
+            if (mode === 'incoming') {
+                title.innerText = "Incoming Requests";
+                query = query.where('status', '==', 'PENDING_TEACHER');
+            } else if (mode === 'escalated') {
+                title.innerText = "Escalated to HOD";
+                query = query.where('status', '==', 'PENDING_HOD');
+            } else if (mode === 'history') {
+                title.innerText = "Approval History";
+                query = query.where('status', 'in', ['APPROVED', 'REJECTED']);
+            }
 
-    function filterRequests() {
-      const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-      const statusFilter = document.getElementById('statusFilter').value;
+            currentSubscription = query.orderBy('timestamp', 'desc').onSnapshot(snapshot => {
+                feed.innerHTML = '';
+                
+                if (mode === 'incoming') document.getElementById('sidebar-badge').innerText = snapshot.size;
 
-      filteredRequests = requests.filter(request => {
-        const matchesSearch = request.student.toLowerCase().includes(searchTerm) ||
-                             request.type.toLowerCase().includes(searchTerm);
-        const matchesStatus = statusFilter === 'all' || request.status === statusFilter;
-        return matchesSearch && matchesStatus;
-      });
+                if (snapshot.empty) {
+                    emptyState.classList.remove('hidden');
+                    return;
+                }
+                
+                emptyState.classList.add('hidden');
+                snapshot.forEach(doc => {
+                    feed.appendChild(createCard(doc.id, doc.data(), mode === 'incoming'));
+                });
+            }, error => {
+                console.error("Query Error:", error);
+                feed.innerHTML = `<div class="p-4 text-red-500 bg-red-50 rounded">Error: ${error.message} <br> (Check Console for Index Link)</div>`;
+            });
+        };
 
-      // Sort
-      filteredRequests.sort((a, b) => {
-        let aVal = a[sortField];
-        let bVal = b[sortField];
-
-        if (sortField === 'date') {
-          aVal = aVal.getTime();
-          bVal = bVal.getTime();
-        } else {
-          aVal = aVal.toLowerCase();
-          bVal = bVal.toLowerCase();
+        function createCard(id, data, isActionable) {
+            const d1 = new Date(data.startDate);
+            const d2 = new Date(data.endDate);
+            const days = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
+            
+            // Escalation Check
+            const isEscalation = (days > 2) || (data.reasonType === 'Medical');
+            
+            const div = document.createElement('div');
+            div.className = "bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col md:flex-row gap-5 relative overflow-hidden";
+            
+            let statusBadge = '';
+            if (data.status === 'PENDING_HOD') statusBadge = `<span class="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-bold ml-2">Waiting for HOD</span>`;
+            if (data.status === 'APPROVED') statusBadge = `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold ml-2">Approved</span>`;
+            
+            div.innerHTML = `
+                <div class="flex-shrink-0 flex flex-col items-center justify-center w-full md:w-16 gap-2">
+                    <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold border border-gray-200">
+                        ${data.studentName.charAt(0)}
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <h3 class="text-lg font-bold text-gray-900">${data.studentName} ${statusBadge}</h3>
+                    <div class="flex items-center gap-2 text-sm text-gray-500 mt-1">
+                        <span class="px-2 py-0.5 rounded bg-gray-100 border border-gray-200 text-xs font-bold">${data.reasonType}</span>
+                        <span>${days} Days (${data.startDate} to ${data.endDate})</span>
+                    </div>
+                    <p class="text-gray-600 text-sm mt-2 italic">"${data.reason}"</p>
+                    
+                    ${(isActionable && isEscalation) ? `
+                        <div class="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-orange-50 text-orange-700 text-xs font-bold rounded-full border border-orange-200">
+                            <i class="fas fa-arrow-up"></i> Will Escalate to HOD
+                        </div>
+                    ` : ''}
+                </div>
+                
+                ${isActionable ? `
+                <div class="flex flex-col gap-2 justify-center border-l border-gray-100 pl-4">
+                    <button onclick='triggerAction("${id}", "approve", ${JSON.stringify(data)})' class="px-4 py-2 bg-green-600 text-white rounded text-sm font-bold shadow hover:bg-green-700">Approve</button>
+                    <button onclick='triggerAction("${id}", "reject", null)' class="px-4 py-2 border border-red-200 text-red-600 rounded text-sm hover:bg-red-50">Reject</button>
+                </div>
+                ` : ''}
+            `;
+            return div;
         }
 
-        if (sortDirection === 'asc') {
-          return aVal > bVal ? 1 : -1;
-        } else {
-          return aVal < bVal ? 1 : -1;
-        }
-      });
+        // --- ACTIONS ---
+        window.triggerAction = (id, type, data) => {
+            currentActionId = id;
+            currentActionType = type;
+            currentRequestData = data;
+            
+            const modal = document.getElementById('action-modal');
+            modal.classList.remove('hidden');
+            
+            const btn = document.getElementById('confirm-btn');
+            const rejectBox = document.getElementById('reject-reason-container');
+            const desc = document.getElementById('modal-desc');
 
-      currentPage = 1;
-      renderTable();
-    }
+            if (type === 'approve') {
+                rejectBox.classList.add('hidden');
+                btn.className = "px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold";
+                
+                // Smart Text
+                const d1 = new Date(data.startDate);
+                const d2 = new Date(data.endDate);
+                const days = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
+                
+                if (days > 2 || data.reasonType === 'Medical') {
+                    desc.innerHTML = `This request will be <b>ESCALATED to HOD</b> because it is ${days} days long or Medical.`;
+                } else {
+                    desc.innerText = "This will generate the permission pass immediately.";
+                }
+            } else {
+                rejectBox.classList.remove('hidden');
+                btn.className = "px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-bold";
+                desc.innerText = "This action cannot be undone.";
+            }
+        };
 
-    // Event listeners
-    document.getElementById('searchInput').addEventListener('input', filterRequests);
-    document.getElementById('statusFilter').addEventListener('change', filterRequests);
+        window.closeModal = () => document.getElementById('action-modal').classList.add('hidden');
 
-    document.getElementById('refreshBtn').addEventListener('click', () => {
-      document.getElementById('loadingState').classList.remove('hidden');
-      setTimeout(() => {
-        loadRequests();
-      }, 1000);
-    });
+        document.getElementById('confirm-btn').addEventListener('click', async () => {
+            const btn = document.getElementById('confirm-btn');
+            btn.innerText = "Processing...";
+            btn.disabled = true;
+            
+            try {
+                if (currentActionType === 'reject') {
+                    const reason = document.getElementById('reject-reason').value;
+                    if (!currentRequestData) currentRequestData = {};
+                    currentRequestData.rejectReason = reason;
+                }
 
-    document.getElementById('prevPage').addEventListener('click', () => {
-      if (currentPage > 1) {
-        currentPage--;
-        renderTable();
-      }
-    });
-
-    document.getElementById('nextPage').addEventListener('click', () => {
-      const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
-      if (currentPage < totalPages) {
-        currentPage++;
-        renderTable();
-      }
-    });
-
-    // Sort functionality
-    document.querySelectorAll('th[data-sort]').forEach(th => {
-      th.addEventListener('click', () => {
-        const field = th.dataset.sort;
-        if (sortField === field) {
-          sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-        } else {
-          sortField = field;
-          sortDirection = 'desc';
-        }
-        filterRequests();
-      });
-    });
-
-    // Action buttons
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('action-btn') || e.target.closest('.action-btn')) {
-        const btn = e.target.classList.contains('action-btn') ? e.target : e.target.closest('.action-btn');
-        const action = btn.dataset.action;
-        const id = btn.dataset.id;
-
-        showActionModal(action, id);
-      }
-    });
-
-    function showActionModal(action, requestId) {
-      const modal = document.getElementById('actionModal');
-      const icon = document.getElementById('modalIcon');
-      const title = document.getElementById('modalTitle');
-      const content = document.getElementById('modalContent');
-
-      const request = requests.find(r => r.id === requestId);
-
-      switch (action) {
-        case 'approve':
-          icon.className = 'fi fi-rr-check text-green-600 dark:text-green-400 text-2xl mr-3';
-          title.textContent = 'Approve Request';
-          content.innerHTML = `
-            <p class="text-gray-600 dark:text-gray-300 mb-4">
-              Are you sure you want to approve this permission request for <strong>${request.student}</strong>?
-            </p>
-            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3">
-              <p class="text-sm text-gray-600 dark:text-gray-300"><strong>Type:</strong> ${request.type}</p>
-              <p class="text-sm text-gray-600 dark:text-gray-300"><strong>Duration:</strong> ${request.duration}</p>
-            </div>
-          `;
-          break;
-        case 'reject':
-          icon.className = 'fi fi-rr-cross text-red-600 dark:text-red-400 text-2xl mr-3';
-          title.textContent = 'Reject Request';
-          content.innerHTML = `
-            <p class="text-gray-600 dark:text-gray-300 mb-4">
-              Are you sure you want to reject this permission request for <strong>${request.student}</strong>?
-            </p>
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason for rejection (optional)</label>
-              <textarea id="rejectReason" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="Provide a reason for rejection..."></textarea>
-            </div>
-          `;
-          break;
-        case 'delay':
-          icon.className = 'fi fi-rr-clock text-yellow-600 dark:text-yellow-400 text-2xl mr-3';
-          title.textContent = 'Delay Request';
-          content.innerHTML = `
-            <p class="text-gray-600 dark:text-gray-300 mb-4">
-              Delay this permission request for <strong>${request.student}</strong>?
-            </p>
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Delay reason</label>
-              <select id="delayReason" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                <option value="awaiting_further_info">Awaiting further information</option>
-                <option value="department_approval">Requires department approval</option>
-                <option value="schedule_conflict">Schedule conflict</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
-          `;
-          break;
-        case 'modify':
-          icon.className = 'fi fi-rr-edit text-blue-600 dark:text-blue-400 text-2xl mr-3';
-          title.textContent = 'Modify Request';
-          content.innerHTML = `
-            <p class="text-gray-600 dark:text-gray-300 mb-4">
-              Modify the details of this permission request for <strong>${request.student}</strong>.
-            </p>
-            <div class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">New Duration</label>
-                <input id="modifyDuration" type="text" value="${request.duration}" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Additional Notes</label>
-                <textarea id="modifyNotes" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="Add modification notes..."></textarea>
-              </div>
-            </div>
-          `;
-          break;
-      }
-
-      modal.classList.remove('hidden');
-    }
-
-    document.getElementById('cancelAction').addEventListener('click', () => {
-      document.getElementById('actionModal').classList.add('hidden');
-    });
-
-    document.getElementById('confirmAction').addEventListener('click', () => {
-      // Here you would implement the actual action logic
-      // For now, just close the modal and refresh
-      document.getElementById('actionModal').classList.add('hidden');
-      loadRequests();
-    });
-
-    async function loadRequests() {
-      // Replace with actual API call
-      requests = generateMockRequests();
-      filteredRequests = [...requests];
-      filterRequests();
-    }
-
-    // Initialize
-    loadRequests();
-  </script>
+                await processApproval(currentActionId, currentActionType, 'teacher', currentRequestData || {});
+                closeModal();
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                btn.innerText = "Confirm";
+                btn.disabled = false;
+            }
+        });
+    </script>
 </body>
 </html>
