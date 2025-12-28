@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>HOD Portal • UNIPASS</title>
+  <link rel="stylesheet" href="../../assets/css/main.css" />
+  <script type="module" src="../../assets/js/route-guard.js"></script>
+  <link rel="stylesheet" href="../../assets/css/style.css">
+<script src="../../assets/js/ui.js" defer></script>
+</head>
+<body>
+
+  <main class="hod-portal">
+    <h2>All Permissions</h2>
+    <ul id="allList"></ul>
+
+    <h2>Pending My Approval</h2>
+    <ul id="pendingList"></ul>
+  </main>
+
+  <script type="module">
+    import { auth } from "../../assets/js/firebase-init.js";
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+    import {
+      fetchHodPermissions
+    } from "../../assets/js/permission-events.js";
+
+    import {
+      approveAsHod,
+      rejectAsHod
+    } from "../../assets/js/permission-flow.js";
+
+    const allList = document.getElementById("allList");
+    const pendingList = document.getElementById("pendingList");
+
+    function renderPermission(p, actions = false) {
+      const li = document.createElement("li");
+
+      li.innerHTML = `
+        <strong>${p.student.name}</strong> — ${p.reason.label}
+        ${p.reason.customText ? `<div>${p.reason.customText}</div>` : ""}
+        <div>Teacher: ${p.status.teacher}</div>
+        <div>HOD: ${p.status.hod}</div>
+        <div>Final: ${p.status.final}</div>
+      `;
+
+      if (actions) {
+        const approve = document.createElement("button");
+        approve.textContent = "Approve";
+        approve.onclick = async () => {
+          const user = auth.currentUser;
+          if (!user) return;
+          await approveAsHod(p.id, {
+            uid: user.uid,
+            name: user.email,
+            email: user.email
+          });
+          load();
+        };
+
+        const reject = document.createElement("button");
+        reject.textContent = "Reject";
+        reject.onclick = async () => {
+          const user = auth.currentUser;
+          if (!user) return;
+          await rejectAsHod(p.id, {
+            uid: user.uid,
+            name: user.email,
+            email: user.email
+          });
+          load();
+        };
+
+        li.appendChild(approve);
+        li.appendChild(reject);
+      }
+
+      return li;
+    }
+
+    async function load() {
+      const list = await fetchHodPermissions();
+      allList.innerHTML = "";
+      pendingList.innerHTML = "";
+
+      list.forEach(p => {
+        allList.appendChild(renderPermission(p));
+
+        if (
+          p.approvalType === "TEACHER_HOD" &&
+          p.status.teacher === "approved" &&
+          p.status.hod === "pending"
+        ) {
+          pendingList.appendChild(renderPermission(p, true));
+        }
+      });
+    }
+
+    onAuthStateChanged(auth, user => {
+      if (!user) return;
+      load();
+    });
+  </script>
+
+</body>
+</html>

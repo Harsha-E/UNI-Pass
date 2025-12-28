@@ -1,622 +1,404 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Uni Pass • HOD Portal</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="/assets/css/main.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons/css/all/all.css">
-  <script src="/assets/js/route-guard.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOD Command Center | UNI-PASS</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+<script src="../../assets/js/ui.js" defer></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 900: '#0c4a6e' },
+                        critical: { 100: '#fee2e2', 600: '#dc2626' },
+                        warning: { 100: '#fef3c7', 600: '#d97706' },
+                        safe: { 100: '#dcfce7', 600: '#16a34a' }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <script type="module" src="../../assets/js/route-guard.js"></script>
 </head>
+<body class="bg-gray-50 text-gray-800 font-sans h-screen flex overflow-hidden">
 
-<body class="min-h-screen bg-gray-50 dark:bg-gray-900">
-  <!-- Navigation -->
-  <nav class="bg-white dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex justify-between h-16">
-        <div class="flex items-center">
-          <div class="flex-shrink-0 flex items-center">
-            <i class="fi fi-rr-crown text-purple-600 dark:text-purple-400 text-xl mr-2"></i>
-            <span class="text-xl font-bold text-gray-900 dark:text-white">UniPass</span>
-          </div>
-          <div class="hidden md:block ml-10">
-            <div class="flex items-baseline space-x-4">
-              <a href="#" class="bg-purple-100 dark:bg-purple-900 text-purple-700 dark:text-purple-300 px-3 py-2 rounded-md text-sm font-medium">Portal A</a>
-            </div>
-          </div>
+    <aside class="w-64 bg-slate-900 text-slate-300 flex flex-col flex-shrink-0 z-20">
+        <div class="h-16 flex items-center px-6 bg-slate-800 border-b border-slate-700">
+            <span class="font-bold text-lg text-white tracking-wider">HOD PORTAL</span>
         </div>
-        <div class="flex items-center space-x-4">
-          <div class="hidden sm:flex items-center text-sm text-gray-600 dark:text-gray-300">
-            <i class="fi fi-rr-crown mr-2"></i>
-            <span>HOD Portal</span>
-          </div>
-          <button id="themeToggle" class="w-10 h-10 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-all duration-200 flex items-center justify-center focus:ring-2 focus:ring-purple-500 focus:ring-offset-2">
-            <i class="fi fi-rr-moon text-gray-600 dark:text-gray-300"></i>
-          </button>
-        </div>
-      </div>
-    </div>
-  </nav>
 
-  <!-- Main Content -->
-  <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-    <!-- Header -->
-    <div class="mb-6">
-      <h1 class="text-3xl font-bold text-gray-900 dark:text-white">Department Dashboard</h1>
-      <p class="text-gray-600 dark:text-gray-300 mt-1">Manage permissions across your department</p>
-    </div>
-
-    <!-- Department Overview Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-      <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center">
-          <div class="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg">
-            <i class="fi fi-rr-users text-blue-600 dark:text-blue-400"></i>
-          </div>
-          <div class="ml-3">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Students</p>
-            <p id="totalStudents" class="text-xl font-bold text-gray-900 dark:text-white">247</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center">
-          <div class="p-2 bg-yellow-100 dark:bg-yellow-900/20 rounded-lg">
-            <i class="fi fi-rr-time-forward text-yellow-600 dark:text-yellow-400"></i>
-          </div>
-          <div class="ml-3">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Pending</p>
-            <p id="pendingReviews" class="text-xl font-bold text-gray-900 dark:text-white">12</p>
-          </div>
-        </div>
-      </div>
-      <div class="bg-white dark:bg-gray-800 p-4 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
-        <div class="flex items-center">
-          <div class="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg">
-            <i class="fi fi-rr-check text-green-600 dark:text-green-400"></i>
-          </div>
-          <div class="ml-3">
-            <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Approved Today</p>
-            <p id="approvedToday" class="text-xl font-bold text-gray-900 dark:text-white">8</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Quick Actions -->
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-4 mb-4">
-      <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Quick Actions</h2>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <button class="quick-action-btn bg-blue-50 dark:bg-blue-900/20 hover:bg-blue-100 dark:hover:bg-blue-900/30 text-blue-700 dark:text-blue-300 p-3 rounded">
-          <i class="fi fi-rr-plus text-lg mb-1"></i>
-          <span class="font-medium text-sm">Bulk Approve</span>
-        </button>
-        <button class="quick-action-btn bg-green-50 dark:bg-green-900/20 hover:bg-green-100 dark:hover:bg-green-900/30 text-green-700 dark:text-green-300 p-3 rounded">
-          <i class="fi fi-rr-calendar text-lg mb-1"></i>
-          <span class="font-medium text-sm">Schedule</span>
-        </button>
-        <button class="quick-action-btn bg-yellow-50 dark:bg-yellow-900/20 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300 p-3 rounded">
-          <i class="fi fi-rr-chart-pie text-lg mb-1"></i>
-          <span class="font-medium text-sm">Reports</span>
-        </button>
-        <button class="quick-action-btn bg-purple-50 dark:bg-purple-900/20 hover:bg-purple-100 dark:hover:bg-purple-900/30 text-purple-700 dark:text-purple-300 p-3 rounded">
-          <i class="fi fi-rr-settings text-lg mb-1"></i>
-          <span class="font-medium text-sm">Settings</span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Tabs for different request types -->
-    <div class="mb-4">
-      <div class="border-b border-gray-200 dark:border-gray-700">
-        <nav class="-mb-px flex space-x-6">
-          <button id="studentTab" class="tab-btn active border-purple-500 text-purple-600 dark:text-purple-400 pb-2 px-1">
-            Student Requests
-          </button>
-          <button id="teacherTab" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 pb-2 px-1">
-            Teacher Requests
-          </button>
-          <button id="departmentTab" class="tab-btn border-transparent text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300 pb-2 px-1">
-            Overview
-          </button>
-        </nav>
-      </div>
-    </div>
-
-    <!-- Student Requests Tab -->
-    <div id="studentRequestsTab" class="tab-content active">
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div class="p-4 border-b border-gray-200 dark:border-gray-700">
-          <div class="flex justify-between items-center">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Student Permission Requests</h3>
-            <div class="flex space-x-2">
-              <select id="studentFilter" class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded text-sm bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                <option value="all">All Types</option>
-                <option value="lab">Lab Access</option>
-                <option value="library">Library</option>
-                <option value="sports">Sports</option>
-                <option value="event">Events</option>
-              </select>
-              <button class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm">
-                <i class="fi fi-rr-check mr-2"></i>Approve All
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-700">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  <input type="checkbox" id="selectAllStudents" class="rounded border-gray-300 dark:border-gray-600">
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Student</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Request Type</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Teacher Status</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="studentRequestsTable" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              <!-- Student requests will be populated here -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <!-- Teacher Requests Tab -->
-    <div id="teacherRequestsTab" class="tab-content">
-      <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-        <div class="p-6 border-b border-gray-200 dark:border-gray-700">
-          <div class="flex justify-between items-center">
-            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Teacher Permission Requests</h3>
-            <button class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm">
-              <i class="fi fi-rr-check mr-2"></i>Approve Selected
+        <nav class="flex-1 px-3 py-4 space-y-2">
+            <p class="px-3 text-xs font-bold text-slate-500 uppercase mb-1">Overview</p>
+            <button onclick="switchView('dashboard')" id="nav-dashboard" class="w-full flex items-center px-3 py-2 bg-brand-600 text-white rounded-lg transition group">
+                <i class="fas fa-chart-pie w-6"></i> Analytics & Health
             </button>
-          </div>
+
+            <p class="px-3 text-xs font-bold text-slate-500 uppercase mb-1 mt-4">Workflow</p>
+            <button onclick="switchView('approvals')" id="nav-approvals" class="w-full flex items-center px-3 py-2 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition group">
+                <i class="fas fa-file-signature w-6"></i> Escalations
+                <span id="badge-count" class="ml-auto bg-brand-500 text-white text-xs font-bold px-2 py-0.5 rounded-full hidden">0</span>
+            </button>
+            
+            <button onclick="switchView('students')" id="nav-students" class="w-full flex items-center px-3 py-2 text-slate-400 hover:bg-slate-800 hover:text-white rounded-lg transition group">
+                <i class="fas fa-users w-6"></i> Student Directory
+            </button>
+        </nav>
+
+        <div class="p-4 border-t border-slate-800">
+            <button id="logout-btn" class="w-full py-2 border border-slate-600 rounded text-sm hover:bg-red-600 hover:text-white hover:border-red-600 transition">
+                <i class="fas fa-sign-out-alt mr-2"></i> Logout
+            </button>
         </div>
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-            <thead class="bg-gray-50 dark:bg-gray-700">
-              <tr>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  <input type="checkbox" id="selectAllTeachers" class="rounded border-gray-300 dark:border-gray-600">
-                </th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Teacher</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Request Type</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Priority</th>
-                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">Actions</th>
-              </tr>
-            </thead>
-            <tbody id="teacherRequestsTable" class="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
-              <!-- Teacher requests will be populated here -->
-            </tbody>
-          </table>
+    </aside>
+
+    <main class="flex-1 flex flex-col overflow-hidden relative">
+        <header class="h-16 bg-white shadow-sm flex items-center justify-between px-8 z-10">
+            <h2 class="text-xl font-bold text-gray-800" id="page-title">Department Dashboard</h2>
+            <div class="flex items-center gap-3">
+                <div class="text-right">
+                    <p class="text-sm font-bold text-gray-900" id="hod-name">Loading...</p>
+                    <p class="text-xs text-brand-600">Head of Department</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-auto p-8 bg-gray-50 relative">
+
+            <div id="view-dashboard" class="space-y-8 animate-fade-in">
+                
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                    <div onclick="filterStudents('all')" class="bg-white p-5 rounded-xl shadow-sm border border-gray-100 hover:shadow-md cursor-pointer transition">
+                        <p class="text-xs font-bold text-gray-400 uppercase">Total Students</p>
+                        <h3 class="text-3xl font-extrabold text-gray-800 mt-1" id="stat-total">--</h3>
+                    </div>
+                    
+                    <div onclick="filterStudents('safe')" class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-green-500 hover:shadow-md cursor-pointer transition">
+                        <p class="text-xs font-bold text-green-600 uppercase">Safe Zone (>75%)</p>
+                        <h3 class="text-3xl font-extrabold text-gray-800 mt-1" id="stat-safe">--</h3>
+                    </div>
+
+                    <div onclick="filterStudents('warning')" class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-yellow-500 hover:shadow-md cursor-pointer transition">
+                        <p class="text-xs font-bold text-yellow-600 uppercase">Warning (60-75%)</p>
+                        <h3 class="text-3xl font-extrabold text-gray-800 mt-1" id="stat-warning">--</h3>
+                    </div>
+
+                    <div onclick="filterStudents('critical')" class="bg-white p-5 rounded-xl shadow-sm border-l-4 border-red-500 hover:shadow-md cursor-pointer transition">
+                        <p class="text-xs font-bold text-red-600 uppercase">Critical (<60%)</p>
+                        <h3 class="text-3xl font-extrabold text-gray-800 mt-1" id="stat-critical">--</h3>
+                        <p class="text-xs text-red-400 mt-1"><i class="fas fa-ban"></i> Auto-Blocked</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h3 class="font-bold text-gray-700 mb-4">Department Attendance Health</h3>
+                        <div class="h-64">
+                            <canvas id="attendanceChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+                        <h3 class="font-bold text-gray-700 mb-4">Permission Request Types</h3>
+                        <div class="h-64">
+                            <canvas id="reasonChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                    <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
+                        <h3 class="font-bold text-gray-800" id="list-title">All Students</h3>
+                        <span class="text-xs text-gray-400 italic">Click cards above to filter</span>
+                    </div>
+                    <table class="w-full text-left">
+                        <thead class="bg-gray-50 text-xs text-gray-500 uppercase">
+                            <tr>
+                                <th class="px-6 py-3">Name</th>
+                                <th class="px-6 py-3">Roll No</th>
+                                <th class="px-6 py-3">Attendance</th>
+                                <th class="px-6 py-3">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="student-quick-list" class="text-sm divide-y divide-gray-100">
+                            <tr><td colspan="4" class="px-6 py-8 text-center text-gray-400">Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div id="view-approvals" class="hidden space-y-6">
+                <div id="escalation-feed" class="space-y-4">
+                    </div>
+                <div id="empty-escalation" class="hidden flex flex-col items-center justify-center py-20 text-center">
+                    <div class="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mb-4 text-2xl">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <h3 class="text-lg font-bold text-gray-800">All Clear!</h3>
+                    <p class="text-gray-500">No pending escalations require your attention.</p>
+                </div>
+            </div>
+            
+            <div id="view-students" class="hidden">
+                 <div class="bg-white p-8 rounded-xl text-center border border-dashed border-gray-300">
+                    <i class="fas fa-info-circle text-gray-400 mb-2"></i>
+                    <p class="text-gray-500">Use the Dashboard Charts to filter and view specific student groups.</p>
+                 </div>
+            </div>
+
         </div>
-      </div>
+    </main>
+
+    <div id="hod-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full z-10 p-6 relative">
+                <h3 class="text-xl font-bold mb-2">HOD Verification</h3>
+                <p class="text-sm text-gray-500 mb-6">You are taking final action on this escalated request.</p>
+                
+                <div class="flex gap-3 justify-end">
+                    <button onclick="document.getElementById('hod-modal').classList.add('hidden')" class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg">Cancel</button>
+                    <button id="modal-confirm-btn" class="px-6 py-2 bg-brand-600 text-white font-bold rounded-lg shadow hover:bg-brand-700">Confirm</button>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- Department Overview Tab -->
-    <div id="departmentOverviewTab" class="tab-content">
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <!-- Recent Activity -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Recent Activity</h3>
-          <div class="space-y-4" id="recentActivity">
-            <!-- Activity items will be populated here -->
-          </div>
-        </div>
+    <script type="module">
+        import { db, auth } from '../../assets/js/firebase-init.js';
+        import { processApproval } from '../../assets/js/permission-flow.js';
 
-        <!-- Department Statistics -->
-        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 p-6">
-          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-4">Department Statistics</h3>
-          <div class="space-y-4">
-            <div class="flex justify-between items-center">
-              <span class="text-gray-600 dark:text-gray-300">Total Permissions This Month</span>
-              <span class="font-semibold text-gray-900 dark:text-white">156</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-gray-600 dark:text-gray-300">Average Approval Time</span>
-              <span class="font-semibold text-gray-900 dark:text-white">2.3 days</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-gray-600 dark:text-gray-300">Rejection Rate</span>
-              <span class="font-semibold text-gray-900 dark:text-white">8.5%</span>
-            </div>
-            <div class="flex justify-between items-center">
-              <span class="text-gray-600 dark:text-gray-300">Most Requested Type</span>
-              <span class="font-semibold text-gray-900 dark:text-white">Lab Access</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </main>
+        let allStudents = []; // Cache for filtering
+        let charts = {}; // Store chart instances
 
-  <!-- Action Modal -->
-  <div id="hodActionModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
-    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
-      <div class="flex items-center mb-4">
-        <i id="hodModalIcon" class="fi fi-rr-info text-purple-600 dark:text-purple-400 text-2xl mr-3"></i>
-        <h3 id="hodModalTitle" class="text-lg font-semibold text-gray-900 dark:text-white">Department Action</h3>
-      </div>
-      <div id="hodModalContent" class="mb-6">
-        <!-- Modal content will be populated here -->
-      </div>
-      <div class="flex justify-end space-x-3">
-        <button id="hodCancelAction" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
-          Cancel
-        </button>
-        <button id="hodConfirmAction" class="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
-          Confirm
-        </button>
-      </div>
-    </div>
-  </div>
+        // --- AUTH & INIT ---
+        auth.onAuthStateChanged(async user => {
+            if (!user) window.location.href = '../../public/login.html';
+            
+            // Set Name
+            const profile = await db.collection('users').doc(user.uid).get();
+            document.getElementById('hod-name').innerText = profile.data().displayName || "HOD";
 
-  <script type="module">
-    import { initTheme, toggleTheme } from '/assets/js/theme.js';
+            loadDashboardData();
+            loadEscalations();
+        });
 
-    // Initialize theme
-    initTheme();
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            auth.signOut().then(() => window.location.href = '../../public/login.html');
+        });
 
-    // Theme toggle
-    document.getElementById('themeToggle').addEventListener('click', () => {
-      toggleTheme();
-      const icon = document.querySelector('#themeToggle i');
-      icon.className = document.documentElement.getAttribute('data-theme') === 'dark' ? 'fi fi-rr-sun text-yellow-400' : 'fi fi-rr-moon text-gray-600 dark:text-gray-300';
-    });
+        // --- NAVIGATION ---
+        window.switchView = (view) => {
+            ['dashboard', 'approvals', 'students'].forEach(v => {
+                document.getElementById(`view-${v}`).classList.add('hidden');
+                document.getElementById(`nav-${v}`).classList.remove('bg-brand-600', 'text-white');
+                document.getElementById(`nav-${v}`).classList.add('text-slate-400');
+            });
+            document.getElementById(`view-${view}`).classList.remove('hidden');
+            const nav = document.getElementById(`nav-${view}`);
+            nav.classList.remove('text-slate-400');
+            nav.classList.add('bg-brand-600', 'text-white');
+        };
 
-    const uid = sessionStorage.getItem("uid");
+        // --- DASHBOARD ANALYTICS ---
+        async function loadDashboardData() {
+            const snap = await db.collection('users').where('role', '==', 'student').get();
+            allStudents = [];
+            
+            let stats = { total: 0, critical: 0, warning: 0, safe: 0 };
+            
+            snap.forEach(doc => {
+                const data = doc.data();
+                const att = data.attendance || 0;
+                data.id = doc.id; // Save ID for actions
+                allStudents.push(data);
 
-    // Tab switching
-    const tabs = ['studentTab', 'teacherTab', 'departmentTab'];
-    const tabContents = ['studentRequestsTab', 'teacherRequestsTab', 'departmentOverviewTab'];
+                stats.total++;
+                if (att < 60) stats.critical++;
+                else if (att < 75) stats.warning++;
+                else stats.safe++;
+            });
 
-    tabs.forEach((tabId, index) => {
-      document.getElementById(tabId).addEventListener('click', () => {
-        tabs.forEach(t => document.getElementById(t).classList.remove('active', 'border-purple-500', 'text-purple-600', 'dark:text-purple-400'));
-        tabContents.forEach(c => document.getElementById(c).classList.remove('active'));
+            // Update DOM Numbers
+            document.getElementById('stat-total').innerText = stats.total;
+            document.getElementById('stat-critical').innerText = stats.critical;
+            document.getElementById('stat-warning').innerText = stats.warning;
+            document.getElementById('stat-safe').innerText = stats.safe;
 
-        document.getElementById(tabId).classList.add('active', 'border-purple-500', 'text-purple-600', 'dark:text-purple-400');
-        document.getElementById(tabContents[index]).classList.add('active');
-      });
-    });
+            renderCharts(stats);
+            renderStudentList(allStudents); // Default: Show all
+        }
 
-    // Mock data for demonstration
-    function generateStudentRequests() {
-      const students = ['Alice Johnson', 'Bob Smith', 'Charlie Brown', 'Diana Prince', 'Eve Wilson', 'Frank Miller'];
-      const types = ['lab', 'library', 'sports', 'event'];
-      const teacherStatuses = ['Approved', 'Pending', 'Recommended'];
+        function renderCharts(stats) {
+            // Chart 1: Attendance Distribution
+            const ctx1 = document.getElementById('attendanceChart').getContext('2d');
+            if(charts.att) charts.att.destroy();
+            charts.att = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['Safe (>75%)', 'Warning (60-75%)', 'Critical (<60%)'],
+                    datasets: [{
+                        label: 'Students',
+                        data: [stats.safe, stats.warning, stats.critical],
+                        backgroundColor: ['#16a34a', '#d97706', '#dc2626'],
+                        borderRadius: 6
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display: false} } }
+            });
 
-      return Array.from({ length: 12 }, (_, i) => ({
-        id: `stu_req_${i + 1}`,
-        student: students[Math.floor(Math.random() * students.length)],
-        type: types[Math.floor(Math.random() * types.length)],
-        teacherStatus: teacherStatuses[Math.floor(Math.random() * teacherStatuses.length)],
-        date: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000)
-      }));
-    }
+            // Chart 2: Permission Reasons (Fetch separately for accuracy)
+            const ctx2 = document.getElementById('reasonChart').getContext('2d');
+            db.collection('permissions').get().then(snap => {
+                let reasons = {};
+                snap.forEach(d => {
+                    const r = d.data().reasonType || 'Other';
+                    reasons[r] = (reasons[r] || 0) + 1;
+                });
+                
+                if(charts.reason) charts.reason.destroy();
+                charts.reason = new Chart(ctx2, {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(reasons),
+                        datasets: [{
+                            data: Object.values(reasons),
+                            backgroundColor: ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981'],
+                            borderWidth: 0
+                        }]
+                    },
+                    options: { cutout: '70%', responsive: true, maintainAspectRatio: false, plugins: { legend: {position: 'right'} } }
+                });
+            });
+        }
 
-    function generateTeacherRequests() {
-      const teachers = ['Dr. Sarah Chen', 'Prof. Michael Davis', 'Dr. Emily Rodriguez', 'Prof. James Wilson'];
-      const types = ['research', 'conference', 'equipment', 'travel'];
-      const priorities = ['High', 'Medium', 'Low'];
+        // --- FILTER LOGIC ---
+        window.filterStudents = (type) => {
+            document.getElementById('list-title').innerText = type === 'all' ? "All Students" : 
+                type === 'critical' ? "Critical Attendance (<60%)" : 
+                type === 'warning' ? "Warning Zone (60-75%)" : "Safe Zone (>75%)";
 
-      return Array.from({ length: 6 }, (_, i) => ({
-        id: `tea_req_${i + 1}`,
-        teacher: teachers[Math.floor(Math.random() * teachers.length)],
-        type: types[Math.floor(Math.random() * types.length)],
-        priority: priorities[Math.floor(Math.random() * priorities.length)],
-        date: new Date(Date.now() - Math.random() * 14 * 24 * 60 * 60 * 1000)
-      }));
-    }
+            const filtered = allStudents.filter(s => {
+                const att = s.attendance || 0;
+                if(type === 'critical') return att < 60;
+                if(type === 'warning') return att >= 60 && att < 75;
+                if(type === 'safe') return att >= 75;
+                return true;
+            });
+            
+            renderStudentList(filtered);
+        };
 
-    function renderStudentRequests() {
-      const requests = generateStudentRequests();
-      const table = document.getElementById('studentRequestsTable');
+        function renderStudentList(list) {
+            const tbody = document.getElementById('student-quick-list');
+            tbody.innerHTML = '';
+            
+            if(list.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-gray-400">No students match this category.</td></tr>';
+                return;
+            }
 
-      table.innerHTML = requests.map(request => `
-        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-          <td class="px-6 py-4 whitespace-nowrap">
-            <input type="checkbox" class="rounded border-gray-300 dark:border-gray-600 student-checkbox" data-id="${request.id}">
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            <div class="flex items-center">
-              <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900/20 rounded-full flex items-center justify-center mr-3">
-                <i class="fi fi-rr-user text-blue-600 dark:text-blue-400 text-sm"></i>
-              </div>
-              <div>
-                <div class="text-sm font-medium text-gray-900 dark:text-white">${request.student}</div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">ID: ${request.id}</div>
-              </div>
-            </div>
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTypeBadgeClass(request.type)}">
-              ${request.type.charAt(0).toUpperCase() + request.type.slice(1)}
-            </span>
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTeacherStatusBadgeClass(request.teacherStatus)}">
-              ${request.teacherStatus}
-            </span>
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-            <div class="flex space-x-2">
-              <button class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 hod-action-btn" data-action="approve" data-type="student" data-id="${request.id}">
-                <i class="fi fi-rr-check"></i>
-              </button>
-              <button class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hod-action-btn" data-action="reject" data-type="student" data-id="${request.id}">
-                <i class="fi fi-rr-cross"></i>
-              </button>
-              <button class="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300 hod-action-btn" data-action="modify" data-type="student" data-id="${request.id}">
-                <i class="fi fi-rr-edit"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-      `).join('');
-    }
+            list.forEach(s => {
+                const att = s.attendance || 0;
+                // Determine Badge
+                let badge = att < 60 ? '<span class="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">BLOCKED</span>' : 
+                            att < 75 ? '<span class="bg-yellow-100 text-yellow-700 px-2 py-1 rounded text-xs font-bold">WARNING</span>' : 
+                            '<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">GOOD</span>';
 
-    function renderTeacherRequests() {
-      const requests = generateTeacherRequests();
-      const table = document.getElementById('teacherRequestsTable');
+                tbody.innerHTML += `
+                    <tr class="hover:bg-gray-50 border-b border-gray-100 transition">
+                        <td class="px-6 py-3 font-medium text-gray-900">${s.displayName}</td>
+                        <td class="px-6 py-3 font-mono text-gray-500 text-xs">${s.rollNumber || 'N/A'}</td>
+                        <td class="px-6 py-3 font-bold ${att < 60 ? 'text-red-600' : 'text-gray-700'}">${att}%</td>
+                        <td class="px-6 py-3">${badge}</td>
+                    </tr>
+                `;
+            });
+        }
 
-      table.innerHTML = requests.map(request => `
-        <tr class="hover:bg-gray-50 dark:hover:bg-gray-700">
-          <td class="px-6 py-4 whitespace-nowrap">
-            <input type="checkbox" class="rounded border-gray-300 dark:border-gray-600 teacher-checkbox" data-id="${request.id}">
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            <div class="flex items-center">
-              <div class="w-8 h-8 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mr-3">
-                <i class="fi fi-rr-chalkboard-teacher text-green-600 dark:text-green-400 text-sm"></i>
-              </div>
-              <div>
-                <div class="text-sm font-medium text-gray-900 dark:text-white">${request.teacher}</div>
-                <div class="text-sm text-gray-500 dark:text-gray-400">ID: ${request.id}</div>
-              </div>
-            </div>
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300">
-              ${request.type.charAt(0).toUpperCase() + request.type.slice(1)}
-            </span>
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap">
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getPriorityBadgeClass(request.priority)}">
-              ${request.priority}
-            </span>
-          </td>
-          <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-            <div class="flex space-x-2">
-              <button class="text-green-600 hover:text-green-900 dark:text-green-400 dark:hover:text-green-300 hod-action-btn" data-action="approve" data-type="teacher" data-id="${request.id}">
-                <i class="fi fi-rr-check"></i>
-              </button>
-              <button class="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300 hod-action-btn" data-action="reject" data-type="teacher" data-id="${request.id}">
-                <i class="fi fi-rr-cross"></i>
-              </button>
-              <button class="text-yellow-600 hover:text-yellow-900 dark:text-yellow-400 dark:hover:text-yellow-300 hod-action-btn" data-action="escalate" data-type="teacher" data-id="${request.id}">
-                <i class="fi fi-rr-arrow-up"></i>
-              </button>
-            </div>
-          </td>
-        </tr>
-      `).join('');
-    }
+        // --- ESCALATIONS (WORKFLOW) ---
+        function loadEscalations() {
+            db.collection('permissions')
+                .where('status', '==', 'PENDING_HOD')
+                .orderBy('timestamp', 'desc')
+                .onSnapshot(snap => {
+                    const feed = document.getElementById('escalation-feed');
+                    const empty = document.getElementById('empty-escalation');
+                    const badge = document.getElementById('badge-count');
+                    
+                    feed.innerHTML = '';
+                    badge.innerText = snap.size;
+                    badge.classList.toggle('hidden', snap.size === 0);
 
-    function renderRecentActivity() {
-      const activities = [
-        { type: 'approved', user: 'Alice Johnson', action: 'Lab Access approved', time: '2 hours ago' },
-        { type: 'rejected', user: 'Bob Smith', action: 'Sports facility request rejected', time: '4 hours ago' },
-        { type: 'approved', user: 'Dr. Sarah Chen', action: 'Research equipment approved', time: '1 day ago' },
-        { type: 'pending', user: 'Charlie Brown', action: 'Library extension requested', time: '2 days ago' }
-      ];
+                    if (snap.empty) {
+                        empty.classList.remove('hidden');
+                        return;
+                    }
+                    empty.classList.add('hidden');
 
-      const activityContainer = document.getElementById('recentActivity');
-      activityContainer.innerHTML = activities.map(activity => `
-        <div class="flex items-center space-x-3">
-          <div class="w-8 h-8 ${getActivityIconClass(activity.type)} rounded-full flex items-center justify-center">
-            <i class="${getActivityIcon(activity.type)} text-sm"></i>
-          </div>
-          <div class="flex-1">
-            <p class="text-sm text-gray-900 dark:text-white">${activity.user} - ${activity.action}</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">${activity.time}</p>
-          </div>
-        </div>
-      `).join('');
-    }
+                    snap.forEach(doc => {
+                        const data = doc.data();
+                        const d1 = new Date(data.startDate);
+                        const d2 = new Date(data.endDate);
+                        const days = Math.ceil(Math.abs(d2 - d1) / (86400000)) + 1;
 
-    function getTypeBadgeClass(type) {
-      const classes = {
-        lab: 'bg-purple-100 text-purple-800 dark:bg-purple-900/20 dark:text-purple-300',
-        library: 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300',
-        sports: 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300',
-        event: 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-300'
-      };
-      return classes[type] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
-    }
+                        const card = document.createElement('div');
+                        card.className = "bg-white p-6 rounded-xl shadow-sm border border-gray-200 border-l-4 border-l-orange-500";
+                        card.innerHTML = `
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h4 class="font-bold text-lg text-gray-900">${data.studentName}</h4>
+                                    <p class="text-xs text-gray-500 font-mono mb-2">${data.rollNumber || 'ID N/A'}</p>
+                                    <span class="px-2 py-1 bg-orange-100 text-orange-700 text-xs font-bold rounded">ESCALATED</span>
+                                    <span class="px-2 py-1 bg-gray-100 text-gray-600 text-xs font-bold rounded ml-2">${data.reasonType}</span>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-2xl font-bold text-gray-800">${days} <span class="text-sm font-normal text-gray-500">Days</span></p>
+                                    <p class="text-xs text-gray-400">${new Date(data.startDate).toLocaleDateString()}</p>
+                                </div>
+                            </div>
+                            <div class="mt-4 bg-gray-50 p-3 rounded text-sm text-gray-600 italic border border-gray-100">
+                                "${data.reason}"
+                            </div>
+                            <div class="mt-4 flex gap-3 justify-end border-t border-gray-100 pt-3">
+                                <button onclick="handleAction('${doc.id}', 'reject')" class="px-4 py-2 border border-red-200 text-red-600 rounded text-sm font-bold hover:bg-red-50">Reject</button>
+                                <button onclick="handleAction('${doc.id}', 'approve')" class="px-4 py-2 bg-brand-600 text-white rounded text-sm font-bold hover:bg-brand-700 shadow">Approve & Sign</button>
+                            </div>
+                        `;
+                        feed.appendChild(card);
+                    });
+                });
+        }
 
-    function getTeacherStatusBadgeClass(status) {
-      const classes = {
-        'Approved': 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300',
-        'Pending': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300',
-        'Recommended': 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-300'
-      };
-      return classes[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
-    }
+        window.handleAction = (id, action) => {
+            const modal = document.getElementById('hod-modal');
+            const btn = document.getElementById('modal-confirm-btn');
+            
+            modal.classList.remove('hidden');
+            
+            if(action === 'approve') {
+                btn.className = "px-6 py-2 bg-brand-600 text-white font-bold rounded-lg shadow hover:bg-brand-700";
+                btn.innerText = "Approve & Generate Pass";
+            } else {
+                btn.className = "px-6 py-2 bg-red-600 text-white font-bold rounded-lg shadow hover:bg-red-700";
+                btn.innerText = "Reject Request";
+            }
 
-    function getPriorityBadgeClass(priority) {
-      const classes = {
-        'High': 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-300',
-        'Medium': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-300',
-        'Low': 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-300'
-      };
-      return classes[priority] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/20 dark:text-gray-300';
-    }
-
-    function getActivityIconClass(type) {
-      const classes = {
-        approved: 'bg-green-100 dark:bg-green-900/20',
-        rejected: 'bg-red-100 dark:bg-red-900/20',
-        pending: 'bg-yellow-100 dark:bg-yellow-900/20'
-      };
-      return classes[type] || 'bg-gray-100 dark:bg-gray-900/20';
-    }
-
-    function getActivityIcon(type) {
-      const icons = {
-        approved: 'fi fi-rr-check text-green-600 dark:text-green-400',
-        rejected: 'fi fi-rr-cross text-red-600 dark:text-red-400',
-        pending: 'fi fi-rr-clock text-yellow-600 dark:text-yellow-400'
-      };
-      return icons[type] || 'fi fi-rr-info text-gray-600 dark:text-gray-400';
-    }
-
-    // Action handlers
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('hod-action-btn') || e.target.closest('.hod-action-btn')) {
-        const btn = e.target.classList.contains('hod-action-btn') ? e.target : e.target.closest('.hod-action-btn');
-        const action = btn.dataset.action;
-        const type = btn.dataset.type;
-        const id = btn.dataset.id;
-
-        showHodActionModal(action, type, id);
-      }
-    });
-
-    function showHodActionModal(action, type, requestId) {
-      const modal = document.getElementById('hodActionModal');
-      const icon = document.getElementById('hodModalIcon');
-      const title = document.getElementById('hodModalTitle');
-      const content = document.getElementById('hodModalContent');
-
-      const isStudent = type === 'student';
-      const userType = isStudent ? 'student' : 'teacher';
-
-      switch (action) {
-        case 'approve':
-          icon.className = 'fi fi-rr-check text-green-600 dark:text-green-400 text-2xl mr-3';
-          title.textContent = `Approve ${userType.charAt(0).toUpperCase() + userType.slice(1)} Request`;
-          content.innerHTML = `
-            <p class="text-gray-600 dark:text-gray-300 mb-4">
-              Are you sure you want to approve this permission request? This will grant final authorization.
-            </p>
-            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3">
-              <p class="text-sm text-green-800 dark:text-green-200">
-                <i class="fi fi-rr-shield-check mr-2"></i>
-                As HOD, your approval carries department authority and cannot be easily reversed.
-              </p>
-            </div>
-          `;
-          break;
-        case 'reject':
-          icon.className = 'fi fi-rr-cross text-red-600 dark:text-red-400 text-2xl mr-3';
-          title.textContent = `Reject ${userType.charAt(0).toUpperCase() + userType.slice(1)} Request`;
-          content.innerHTML = `
-            <p class="text-gray-600 dark:text-gray-300 mb-4">
-              Are you sure you want to reject this permission request?
-            </p>
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Reason for rejection (required)</label>
-              <select id="hodRejectReason" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                <option value="">Select a reason...</option>
-                <option value="policy_violation">Violates department policy</option>
-                <option value="insufficient_reason">Insufficient justification</option>
-                <option value="resource_unavailable">Resources not available</option>
-                <option value="timing_issue">Poor timing/conflict</option>
-                <option value="other">Other (specify below)</option>
-              </select>
-            </div>
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Additional comments</label>
-              <textarea id="hodRejectComments" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="Provide additional context..."></textarea>
-            </div>
-          `;
-          break;
-        case 'modify':
-          icon.className = 'fi fi-rr-edit text-blue-600 dark:text-blue-400 text-2xl mr-3';
-          title.textContent = `Modify ${userType.charAt(0).toUpperCase() + userType.slice(1)} Request`;
-          content.innerHTML = `
-            <p class="text-gray-600 dark:text-gray-300 mb-4">
-              Modify the details of this permission request before approval.
-            </p>
-            <div class="space-y-4">
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Adjust Duration</label>
-                <input id="hodModifyDuration" type="text" placeholder="e.g., extend by 2 days" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-              </div>
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Additional Conditions</label>
-                <textarea id="hodModifyConditions" rows="3" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white" placeholder="Specify any conditions or modifications..."></textarea>
-              </div>
-            </div>
-          `;
-          break;
-        case 'escalate':
-          icon.className = 'fi fi-rr-arrow-up text-yellow-600 dark:text-yellow-400 text-2xl mr-3';
-          title.textContent = 'Escalate Teacher Request';
-          content.innerHTML = `
-            <p class="text-gray-600 dark:text-gray-300 mb-4">
-              Escalate this teacher request to higher administration for review.
-            </p>
-            <div class="mb-4">
-              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Escalation Reason</label>
-              <select id="hodEscalateReason" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
-                <option value="budget_impact">Significant budget impact</option>
-                <option value="policy_precedent">Sets policy precedent</option>
-                <option value="resource_conflict">Major resource conflict</option>
-                <option value="external_approval">Requires external approval</option>
-              </select>
-            </div>
-          `;
-          break;
-      }
-
-      modal.classList.remove('hidden');
-    }
-
-    document.getElementById('hodCancelAction').addEventListener('click', () => {
-      document.getElementById('hodActionModal').classList.add('hidden');
-    });
-
-    document.getElementById('hodConfirmAction').addEventListener('click', () => {
-      // Here you would implement the actual action logic
-      document.getElementById('hodActionModal').classList.add('hidden');
-      // Refresh data
-      renderStudentRequests();
-      renderTeacherRequests();
-    });
-
-    // Initialize
-    renderStudentRequests();
-    renderTeacherRequests();
-    renderRecentActivity();
-  </script>
-
-  <style>
-    .tab-btn {
-      py-2 px-1 border-b-2 font-medium text-sm transition-colors;
-    }
-    .tab-btn.active {
-      border-purple-500 text-purple-600 dark:text-purple-400;
-    }
-    .tab-content {
-      display: none;
-    }
-    .tab-content.active {
-      display: block;
-    }
-    .quick-action-btn {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 20px;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-      cursor: pointer;
-    }
-  </style>
+            btn.onclick = async () => {
+                btn.innerText = "Processing...";
+                btn.disabled = true;
+                try {
+                    await processApproval(id, action, 'hod', {});
+                    modal.classList.add('hidden');
+                } catch(e) { alert("Error: " + e.message); }
+                finally { btn.disabled = false; }
+            };
+        };
+    </script>
 </body>
 </html>
