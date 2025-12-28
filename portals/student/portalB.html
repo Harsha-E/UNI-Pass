@@ -140,10 +140,16 @@
         listenToRequests(user.uid);
     });
 
-    document.getElementById('logout-btn').addEventListener('click', () => {
-        auth.signOut().then(() => window.location.href = '../../public/login.html');
+document.getElementById('logout-btn').addEventListener('click', () => {
+    // 1. Clear Browser Memory
+    sessionStorage.clear();
+    localStorage.clear();
+    
+    // 2. Sign out of Firebase
+    auth.signOut().then(() => {
+        window.location.href = '../../public/login.html';
     });
-
+});
     function listenToRequests(uid) {
         db.collection('permissions')
             .where('studentID', '==', uid)
