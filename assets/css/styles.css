@@ -1,13 +1,24 @@
-/* assets/css/style.css */
+/* assets/css/styles.css */
 
-/* --- 1. CUSTOM CURSOR --- */
-@media (pointer: fine) {
-    /* Only hide default cursor on computers (mouse users), not phones */
-    body, a, button, input, select, textarea {
-        cursor: none !important;
-    }
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* --- 1. SAFE CUSTOM CURSOR --- */
+/* Default: Cursor is VISIBLE */
+body {
+    cursor: auto; 
 }
 
+/* Only hide default cursor if we have added the class via JS */
+body.custom-cursor-active,
+body.custom-cursor-active a,
+body.custom-cursor-active button,
+body.custom-cursor-active input {
+    cursor: none !important;
+}
+
+/* The visual elements */
 .cursor-dot,
 .cursor-outline {
     position: fixed;
@@ -16,7 +27,14 @@
     transform: translate(-50%, -50%);
     border-radius: 50%;
     z-index: 9999;
-    pointer-events: none; /* Allows clicking through them */
+    pointer-events: none; /* Click through enabled */
+    display: none; /* Hidden until JS activates */
+}
+
+/* Show them when active */
+body.custom-cursor-active .cursor-dot,
+body.custom-cursor-active .cursor-outline {
+    display: block;
 }
 
 .cursor-dot {
@@ -32,7 +50,7 @@
     transition: width 0.2s, height 0.2s, background-color 0.2s;
 }
 
-/* Hover Effect: Grow when hovering clickable items */
+/* Hover Effect */
 body.hovering .cursor-outline {
     width: 60px;
     height: 60px;
@@ -40,9 +58,9 @@ body.hovering .cursor-outline {
     border-color: transparent;
 }
 
-/* --- 2. MOBILE RESPONSIVE TWEAKS --- */
+/* --- 2. RESPONSIVE TWEAKS --- */
 
-/* Sidebar Mobile Transition */
+/* Smooth Sidebar Transition for Mobile */
 .sidebar-mobile {
     transform: translateX(-100%);
     transition: transform 0.3s ease-in-out;
@@ -52,7 +70,7 @@ body.hovering .cursor-outline {
     transform: translateX(0);
 }
 
-/* Fix Table Overflow on Mobile */
+/* Table Overflow Fix for Mobile Cards */
 table {
     display: block;
     overflow-x: auto;
