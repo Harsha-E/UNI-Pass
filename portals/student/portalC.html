@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Lab Info • Student</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<script src="/assets/js/route-guard.js"></script>
+<style>
+*{box-sizing:border-box;font-family:Inter,system-ui,sans-serif}
+body{margin:0;background:#0b0f2a;color:#fff}
+nav{
+ padding:1rem 1.4rem;display:flex;gap:1.2rem;
+ background:rgba(0,0,0,.4);backdrop-filter:blur(10px)
+}
+nav a{color:#9db5ff;text-decoration:none;font-size:.9rem}
+nav a.active{color:#fff;font-weight:600}
+.container{padding:1.6rem}
+.card{
+ background:rgba(255,255,255,.06);border-radius:14px;
+ padding:1.4rem;margin-bottom:1rem
+}
+h2{margin:.2rem 0 .8rem;font-size:1.1rem}
+table{width:100%;border-collapse:collapse;font-size:.85rem}
+td,th{
+ border-bottom:1px solid rgba(255,255,255,.1);
+ padding:.6rem;text-align:left
+}
+th{color:#9db5ff;font-weight:500}
+small{color:#aaa}
+</style>
+</head>
+
+<body>
+<nav>
+  <a href="../student/portalA.html">Portal A</a>
+  <a href="../student/portalB.html">Portal B</a>
+  <a class="active">Portal C</a>
+</nav>
+
+<div class="container">
+
+  <div class="card">
+    <h2>Lab Free Hours</h2>
+    <table>
+      <tr><th>Lab</th><th>Status</th><th>Next Free Slot</th></tr>
+      <tr><td>AI Lab</td><td>Busy</td><td><small>4:00 – 6:00 PM</small></td></tr>
+      <tr><td>Networks Lab</td><td>Free</td><td><small>Now</small></td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h2>Available Software</h2>
+    <table>
+      <tr><th>Software</th><th>Lab</th></tr>
+      <tr><td>MATLAB</td><td>AI Lab</td></tr>
+      <tr><td>Vivado</td><td>VLSI Lab</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<script>
+sessionStorage.setItem("role","student")
+</script>
+</body>
+</html>
