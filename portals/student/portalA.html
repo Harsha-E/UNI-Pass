@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Uni Pass • Student</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <script src="/assets/js/route-guard.js"></script>
+</head>
+
+<body class="student-page">
+
+  <nav class="top-nav">
+    <span class="brand">Uni Pass</span>
+    <div class="nav-links">
+      <a class="active">Portal A</a>
+      <a href="./portalB.html">Portal B</a>
+      <a href="./portalC.html">Portal C</a>
+    </div>
+  </nav>
+
+  <main class="student-container">
+
+    <section class="request-card">
+      <h2>Request Permission</h2>
+
+      <input id="scope" placeholder="Permission Scope" />
+      <input id="from" type="datetime-local" />
+      <input id="to" type="datetime-local" />
+      <textarea id="reason" placeholder="Reason"></textarea>
+
+      <button id="send">Submit Request</button>
+    </section>
+
+    <section class="timeline-card">
+      <h2>Your Requests</h2>
+      <div id="list"></div>
+    </section>
+
+  </main>
+
+  <script type="module">
+    import {
+      createPermission,
+      getUserPermissions,
+      getPermissionTimeline
+    } from "/assets/js/permission-events.js";
+
+    const uid = sessionStorage.getItem("uid");
+    const list = document.getElementById("list");
+
+    document.getElementById("send").onclick = async () => {
+      const scope = document.getElementById("scope").value;
+      const from = document.getElementById("from").value;
+      const to = document.getElementById("to").value;
+      const reason = document.getElementById("reason").value;
+
+      if (!scope || !from || !to) return;
+
+      await createPermission({
+        ownerUid: uid,
+        scope,
+        validFrom: from,
+        validTill: to,
+        data: { reason }
+      });
+
+      location.reload();
+    };
+
+    async function load() {
+      const items = await getUserPermissions(uid);
+      list.innerHTML = "";
+
+      for (const p of items) {
+        const div = document.createElement("div");
+        div.className = "request-item";
+        div.textContent = `${p.scope} (${p.sealed ? "Authorized" : "Pending"})`;
+        div.onclick = async () => {
+          const t = await getPermissionTimeline(p.id);
+          alert(
+            t.map(e => `${e.type} - ${e.actorRole}`).join("\n")
+          );
+        };
+        list.appendChild(div);
+      }
+    }
+
+    load();
+  </script>
+
+</body>
+</html>
