@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Uni Pass • Teacher</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <script src="/assets/js/route-guard.js"></script>
+</head>
+
+<body class="teacher-page">
+
+  <nav class="top-nav">
+    <span class="brand">Uni Pass</span>
+    <div class="nav-links">
+      <a class="active">Portal A</a>
+      <a href="./portalC.html">Portal C</a>
+    </div>
+  </nav>
+
+  <main class="teacher-container">
+
+    <section class="queue-card">
+      <h2>Pending Recommendations</h2>
+      <div id="queue"></div>
+    </section>
+
+  </main>
+
+  <script type="module">
+    import {
+      getPendingForRole,
+      recommendPermission,
+      rejectPermission
+    } from "/assets/js/permission-events.js";
+
+    const uid = sessionStorage.getItem("uid");
+    const queue = document.getElementById("queue");
+
+    async function load() {
+      const items = await getPendingForRole(uid, "teacher");
+      queue.innerHTML = "";
+
+      for (const p of items) {
+        const div = document.createElement("div");
+        div.className = "queue-item";
+        div.textContent = p.permissionId;
+
+        const ok = document.createElement("button");
+        ok.textContent = "Recommend";
+        ok.onclick = async () => {
+          await recommendPermission(p.permissionId, uid, "");
+          load();
+        };
+
+        const no = document.createElement("button");
+        no.textContent = "Reject";
+        no.onclick = async () => {
+          await rejectPermission(p.permissionId, uid, "teacher", "");
+          load();
+        };
+
+        div.appendChild(ok);
+        div.appendChild(no);
+        queue.appendChild(div);
+      }
+    }
+
+    load();
+  </script>
+
+</body>
+</html>
