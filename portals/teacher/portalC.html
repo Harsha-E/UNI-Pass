@@ -1,65 +1,804 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full" data-theme="light">
 <head>
-<meta charset="UTF-8">
-<title>Lab Info • Teacher</title>
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<script src="/assets/js/route-guard.js"></script>
-<style>
-*{box-sizing:border-box;font-family:Inter,system-ui,sans-serif}
-body{margin:0;background:#0b0f2a;color:#fff}
-nav{
- padding:1rem 1.4rem;display:flex;gap:1.2rem;
- background:rgba(0,0,0,.4);backdrop-filter:blur(10px)
-}
-nav a{color:#9db5ff;text-decoration:none;font-size:.9rem}
-nav a.active{color:#fff;font-weight:600}
-.container{padding:1.6rem}
-.card{
- background:rgba(255,255,255,.06);border-radius:14px;
- padding:1.4rem;margin-bottom:1rem
-}
-h2{margin:.2rem 0 .8rem;font-size:1.1rem}
-table{width:100%;border-collapse:collapse;font-size:.85rem}
-td,th{
- border-bottom:1px solid rgba(255,255,255,.1);
- padding:.6rem;text-align:left
-}
-th{color:#9db5ff;font-weight:500}
-small{color:#aaa}
-</style>
+  <meta charset="UTF-8" />
+  <title>Uni Pass • Lab Management</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/assets/css/advanced.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons/css/all/all.css">
+  <script src="/assets/js/route-guard.js"></script>
+  <style>
+    /* Teacher Lab Management Portal Specific Styles */
+    .lab-management-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: var(--space-xl);
+      margin-bottom: var(--space-2xl);
+    }
+
+    .lab-management-card {
+      background: var(--color-bg-secondary);
+      border: 1px solid var(--color-border-primary);
+      border-radius: var(--radius-2xl);
+      overflow: hidden;
+      transition: all var(--duration-300) var(--easing-out);
+      position: relative;
+    }
+
+    .lab-management-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-xl);
+      border-color: var(--color-primary);
+    }
+
+    .lab-management-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+      transform: scaleX(0);
+      transition: transform var(--duration-300) var(--easing-out);
+    }
+
+    .lab-management-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .lab-management-header {
+      padding: var(--space-xl);
+      background: linear-gradient(135deg, var(--color-bg-accent), var(--color-bg-tertiary));
+      border-bottom: 1px solid var(--color-border-primary);
+      position: relative;
+    }
+
+    .lab-management-title {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      margin-bottom: var(--space-sm);
+    }
+
+    .lab-management-icon {
+      width: 3rem;
+      height: 3rem;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+      border-radius: var(--radius-lg);
+      display: grid;
+      place-items: center;
+      color: var(--color-text-inverse);
+      font-size: var(--text-xl);
+      box-shadow: var(--shadow-md);
+    }
+
+    .lab-management-name {
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--color-text-primary);
+    }
+
+    .lab-management-status {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--radius-full);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .lab-management-status.free {
+      background: hsl(var(--hue-success), 89%, 46%, 0.1);
+      color: var(--color-success);
+      border: 1px solid hsl(var(--hue-success), 89%, 46%, 0.2);
+    }
+
+    .lab-management-status.busy {
+      background: hsl(var(--hue-error), 89%, 56%, 0.1);
+      color: var(--color-error);
+      border: 1px solid hsl(var(--hue-error), 89%, 56%, 0.2);
+    }
+
+    .lab-management-status.maintenance {
+      background: hsl(var(--hue-warning), 89%, 56%, 0.1);
+      color: var(--color-warning);
+      border: 1px solid hsl(var(--hue-warning), 89%, 56%, 0.2);
+    }
+
+    .status-dot {
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: var(--radius-full);
+      animation: pulse 2s infinite;
+    }
+
+    .lab-management-status.free .status-dot {
+      background: var(--color-success);
+    }
+
+    .lab-management-status.busy .status-dot {
+      background: var(--color-error);
+    }
+
+    .lab-management-status.maintenance .status-dot {
+      background: var(--color-warning);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .lab-management-content {
+      padding: var(--space-xl);
+    }
+
+    .control-panel {
+      display: grid;
+      gap: var(--space-lg);
+      margin-bottom: var(--space-lg);
+    }
+
+    .control-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-md);
+      background: var(--color-bg-accent);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border-primary);
+      transition: all var(--duration-200) var(--easing-out);
+    }
+
+    .control-item:hover {
+      background: var(--color-bg-tertiary);
+      transform: translateX(4px);
+    }
+
+    .control-label {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-text-secondary);
+    }
+
+    .control-value {
+      font-size: var(--text-sm);
+      color: var(--color-text-primary);
+      font-weight: 500;
+    }
+
+    .software-management-list {
+      display: grid;
+      gap: var(--space-sm);
+    }
+
+    .software-management-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding: var(--space-md);
+      background: var(--color-bg-accent);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border-primary);
+      transition: all var(--duration-200) var(--easing-out);
+    }
+
+    .software-management-item:hover {
+      background: var(--color-bg-tertiary);
+      transform: translateX(4px);
+      border-color: var(--color-primary);
+    }
+
+    .software-management-icon {
+      width: 2rem;
+      height: 2rem;
+      background: linear-gradient(135deg, var(--color-accent), hsl(var(--hue-accent), 89%, 36%));
+      border-radius: var(--radius-md);
+      display: grid;
+      place-items: center;
+      color: var(--color-text-inverse);
+      font-size: var(--text-sm);
+      flex-shrink: 0;
+    }
+
+    .software-management-name {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-text-primary);
+      flex: 1;
+    }
+
+    .software-management-actions {
+      display: flex;
+      gap: var(--space-xs);
+    }
+
+    .action-button {
+      padding: var(--space-xs) var(--space-sm);
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: var(--text-2xs);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--duration-200) var(--easing-out);
+    }
+
+    .action-button.update {
+      background: hsl(var(--hue-primary), 89%, 56%, 0.1);
+      color: var(--color-primary);
+    }
+
+    .action-button.update:hover {
+      background: var(--color-primary);
+      color: var(--color-text-inverse);
+    }
+
+    .action-button.remove {
+      background: hsl(var(--hue-error), 89%, 56%, 0.1);
+      color: var(--color-error);
+    }
+
+    .action-button.remove:hover {
+      background: var(--color-error);
+      color: var(--color-text-inverse);
+    }
+
+    /* Schedule Management Section */
+    .schedule-management-section {
+      background: var(--color-bg-secondary);
+      border: 1px solid var(--color-border-primary);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-xl);
+    }
+
+    .schedule-management-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-lg);
+    }
+
+    .schedule-management-title {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+    }
+
+    .schedule-management-title-text {
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--color-text-primary);
+    }
+
+    .add-schedule-button {
+      padding: var(--space-sm) var(--space-lg);
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+      color: var(--color-text-inverse);
+      border: none;
+      border-radius: var(--radius-lg);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      cursor: pointer;
+      transition: all var(--duration-200) var(--easing-out);
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      box-shadow: var(--shadow-md);
+    }
+
+    .add-schedule-button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+
+    .schedule-management-grid {
+      display: grid;
+      gap: var(--space-md);
+    }
+
+    .schedule-management-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      gap: var(--space-md);
+      align-items: center;
+      padding: var(--space-md);
+      background: var(--color-bg-accent);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border-primary);
+      transition: all var(--duration-200) var(--easing-out);
+    }
+
+    .schedule-management-item:hover {
+      background: var(--color-bg-tertiary);
+      transform: translateX(4px);
+    }
+
+    .schedule-management-time {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-primary);
+      white-space: nowrap;
+    }
+
+    .schedule-management-details {
+      flex: 1;
+    }
+
+    .schedule-management-lab {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-xs);
+    }
+
+    .schedule-management-purpose {
+      font-size: var(--text-xs);
+      color: var(--color-text-secondary);
+    }
+
+    .schedule-management-badge {
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--radius-full);
+      font-size: var(--text-2xs);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .schedule-management-badge.lecture {
+      background: hsl(var(--hue-primary), 89%, 56%, 0.1);
+      color: var(--color-primary);
+    }
+
+    .schedule-management-badge.practical {
+      background: hsl(var(--hue-success), 89%, 46%, 0.1);
+      color: var(--color-success);
+    }
+
+    .schedule-management-badge.maintenance {
+      background: hsl(var(--hue-warning), 89%, 56%, 0.1);
+      color: var(--color-warning);
+    }
+
+    /* Quick Actions */
+    .quick-actions-panel {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: var(--space-lg);
+      margin-bottom: var(--space-xl);
+    }
+
+    .quick-action-card {
+      background: var(--color-bg-secondary);
+      border: 1px solid var(--color-border-primary);
+      border-radius: var(--radius-xl);
+      padding: var(--space-lg);
+      cursor: pointer;
+      transition: all var(--duration-200) var(--easing-out);
+      text-align: center;
+    }
+
+    .quick-action-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--color-primary);
+    }
+
+    .quick-action-icon {
+      width: 3rem;
+      height: 3rem;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+      border-radius: var(--radius-lg);
+      display: grid;
+      place-items: center;
+      color: var(--color-text-inverse);
+      font-size: var(--text-xl);
+      margin: 0 auto var(--space-md);
+    }
+
+    .quick-action-title {
+      font-size: var(--text-base);
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-xs);
+    }
+
+    .quick-action-description {
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+    }
+
+    /* Responsive Design */
+    @container (max-width: 768px) {
+      .lab-management-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .quick-actions-panel {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
 </head>
 
-<body>
-<nav>
-  <a href="../teacher/portalA.html">Portal A</a>
-  <a class="active">Portal C</a>
-</nav>
+<body class="auth-container">
+  <!-- Header -->
+  <header class="auth-header">
+    <div class="brand">
+      <i class="fi fi-rr-graduation-cap" style="font-size: var(--text-xl); color: var(--color-primary); margin-right: var(--space-sm);"></i>
+      <span style="font-size: var(--text-lg); font-weight: 700; color: var(--color-text-primary);">UniPass</span>
+    </div>
+    <nav style="display: flex; gap: var(--space-md); align-items: center;">
+      <a href="portalA.html" class="footer-link">Portal A</a>
+      <a href="#" class="footer-link" style="color: var(--color-primary); font-weight: 600;">Portal C</a>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <i class="fi fi-rr-moon" style="font-size: var(--text-lg); color: var(--color-text-primary);"></i>
+      </button>
+    </nav>
+  </header>
 
-<div class="container">
+  <!-- Main Content -->
+  <main class="auth-main">
+    <div style="width: 100%; max-width: 1200px; margin: 0 auto;">
+      <!-- Header Section -->
+      <div style="text-align: center; margin-bottom: var(--space-2xl);">
+        <h1 style="font-size: var(--text-3xl); font-weight: 700; color: var(--color-text-primary); margin-bottom: var(--space-md);">
+          Lab Management Dashboard
+        </h1>
+        <p style="font-size: var(--text-lg); color: var(--color-text-secondary); max-width: 600px; margin: 0 auto;">
+          Manage lab schedules, software installations, and maintenance activities
+        </p>
+      </div>
 
-  <div class="card">
-    <h2>Lab Free Hours</h2>
-    <table>
-      <tr><th>Lab</th><th>Status</th><th>Next Free Slot</th></tr>
-      <tr><td>AI Lab</td><td>Busy</td><td><small>3:00 – 5:00 PM</small></td></tr>
-      <tr><td>VLSI Lab</td><td>Free</td><td><small>Now</small></td></tr>
-    </table>
-  </div>
+      <!-- Quick Actions -->
+      <div class="quick-actions-panel">
+        <div class="quick-action-card" onclick="showNotification('Opening schedule editor...')">
+          <div class="quick-action-icon">
+            <i class="fi fi-rr-calendar-edit"></i>
+          </div>
+          <div class="quick-action-title">Edit Schedule</div>
+          <div class="quick-action-description">Modify lab schedules and bookings</div>
+        </div>
+        <div class="quick-action-card" onclick="showNotification('Opening software manager...')">
+          <div class="quick-action-icon">
+            <i class="fi fi-rr-download"></i>
+          </div>
+          <div class="quick-action-title">Software Updates</div>
+          <div class="quick-action-description">Install and update lab software</div>
+        </div>
+        <div class="quick-action-card" onclick="showNotification('Generating reports...')">
+          <div class="quick-action-icon">
+            <i class="fi fi-rr-chart-pie"></i>
+          </div>
+          <div class="quick-action-title">Usage Reports</div>
+          <div class="quick-action-description">View lab utilization statistics</div>
+        </div>
+        <div class="quick-action-card" onclick="showNotification('Opening maintenance panel...')">
+          <div class="quick-action-icon">
+            <i class="fi fi-rr-tools"></i>
+          </div>
+          <div class="quick-action-title">Maintenance</div>
+          <div class="quick-action-description">Schedule lab maintenance</div>
+        </div>
+      </div>
 
-  <div class="card">
-    <h2>Software Availability</h2>
-    <table>
-      <tr><th>Software</th><th>Lab</th></tr>
-      <tr><td>Vivado</td><td>VLSI Lab</td></tr>
-      <tr><td>ANSYS</td><td>Mechanical Lab</td></tr>
-    </table>
-  </div>
+      <!-- Schedule Management -->
+      <div class="schedule-management-section">
+        <div class="schedule-management-header">
+          <div class="schedule-management-title">
+            <div class="quick-action-icon" style="width: 2.5rem; height: 2.5rem; font-size: var(--text-lg);">
+              <i class="fi fi-rr-calendar"></i>
+            </div>
+            <div class="schedule-management-title-text">Today's Lab Schedule</div>
+          </div>
+          <button class="add-schedule-button" onclick="showNotification('Opening schedule editor...')">
+            <i class="fi fi-rr-plus"></i>
+            <span>Add Schedule</span>
+          </button>
+        </div>
+        <div class="schedule-management-grid">
+          <div class="schedule-management-item">
+            <div class="schedule-management-time">9:00 AM</div>
+            <div class="schedule-management-details">
+              <div class="schedule-management-lab">AI Lab</div>
+              <div class="schedule-management-purpose">Machine Learning Practical - CSE Batch A</div>
+            </div>
+            <div class="schedule-management-badge practical">Practical</div>
+            <div class="software-management-actions">
+              <button class="action-button update" onclick="showNotification('Editing schedule...')">Edit</button>
+              <button class="action-button remove" onclick="showNotification('Removing schedule...')">Remove</button>
+            </div>
+          </div>
+          <div class="schedule-management-item">
+            <div class="schedule-management-time">11:00 AM</div>
+            <div class="schedule-management-details">
+              <div class="schedule-management-lab">Networks Lab</div>
+              <div class="schedule-management-purpose">Computer Networks Lab - CSE Batch B</div>
+            </div>
+            <div class="schedule-management-badge practical">Practical</div>
+            <div class="software-management-actions">
+              <button class="action-button update" onclick="showNotification('Editing schedule...')">Edit</button>
+              <button class="action-button remove" onclick="showNotification('Removing schedule...')">Remove</button>
+            </div>
+          </div>
+          <div class="schedule-management-item">
+            <div class="schedule-management-time">2:00 PM</div>
+            <div class="schedule-management-details">
+              <div class="schedule-management-lab">VLSI Lab</div>
+              <div class="schedule-management-purpose">Digital Circuit Design - ECE Batch A</div>
+            </div>
+            <div class="schedule-management-badge lecture">Lecture</div>
+            <div class="software-management-actions">
+              <button class="action-button update" onclick="showNotification('Editing schedule...')">Edit</button>
+              <button class="action-button remove" onclick="showNotification('Removing schedule...')">Remove</button>
+            </div>
+          </div>
+          <div class="schedule-management-item">
+            <div class="schedule-management-time">4:00 PM</div>
+            <div class="schedule-management-details">
+              <div class="schedule-management-lab">AI Lab</div>
+              <div class="schedule-management-purpose">System Maintenance</div>
+            </div>
+            <div class="schedule-management-badge maintenance">Maintenance</div>
+            <div class="software-management-actions">
+              <button class="action-button update" onclick="showNotification('Editing schedule...')">Edit</button>
+              <button class="action-button remove" onclick="showNotification('Removing schedule...')">Remove</button>
+            </div>
+          </div>
+        </div>
+      </div>
 
-</div>
+      <!-- Lab Management Grid -->
+      <div class="lab-management-grid">
+        <!-- AI Lab Management -->
+        <div class="lab-management-card">
+          <div class="lab-management-header">
+            <div class="lab-management-title">
+              <div class="lab-management-icon">
+                <i class="fi fi-rr-brain"></i>
+              </div>
+              <div>
+                <div class="lab-management-name">AI Lab</div>
+                <div class="lab-management-status busy">
+                  <div class="status-dot"></div>
+                  <span>Busy</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="lab-management-content">
+            <div class="control-panel">
+              <div class="control-item">
+                <div class="control-label">
+                  <i class="fi fi-rr-users"></i>
+                  <span>Current Capacity</span>
+                </div>
+                <div class="control-value">25/30 Students</div>
+              </div>
+              <div class="control-item">
+                <div class="control-label">
+                  <i class="fi fi-rr-clock"></i>
+                  <span>Next Available</span>
+                </div>
+                <div class="control-value">3:00 - 5:00 PM</div>
+              </div>
+              <div class="control-item">
+                <div class="control-label">
+                  <i class="fi fi-rr-temperature-low"></i>
+                  <span>Temperature</span>
+                </div>
+                <div class="control-value">22°C</div>
+              </div>
+            </div>
+            <div style="margin-top: var(--space-lg);">
+              <div style="font-size: var(--text-sm); font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--space-sm);">
+                Software Management
+              </div>
+              <div class="software-management-list">
+                <div class="software-management-item">
+                  <div class="software-management-icon">
+                    <i class="fi fi-rr-chart-line"></i>
+                  </div>
+                  <div class="software-management-name">Python 3.9</div>
+                  <div class="software-management-actions">
+                    <button class="action-button update" onclick="showNotification('Updating Python...')">Update</button>
+                    <button class="action-button remove" onclick="showNotification('Removing Python...')">Remove</button>
+                  </div>
+                </div>
+                <div class="software-management-item">
+                  <div class="software-management-icon">
+                    <i class="fi fi-rr-cube"></i>
+                  </div>
+                  <div class="software-management-name">TensorFlow</div>
+                  <div class="software-management-actions">
+                    <button class="action-button update" onclick="showNotification('Updating TensorFlow...')">Update</button>
+                    <button class="action-button remove" onclick="showNotification('Removing TensorFlow...')">Remove</button>
+                  </div>
+                </div>
+                <div class="software-management-item">
+                  <div class="software-management-icon">
+                    <i class="fi fi-rr-chart-network"></i>
+                  </div>
+                  <div class="software-management-name">Jupyter Notebook</div>
+                  <div class="software-management-actions">
+                    <button class="action-button update" onclick="showNotification('Updating Jupyter...')">Update</button>
+                    <button class="action-button remove" onclick="showNotification('Removing Jupyter...')">Remove</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-<script>
-sessionStorage.setItem("role","teacher")
-</script>
+        <!-- VLSI Lab Management -->
+        <div class="lab-management-card">
+          <div class="lab-management-header">
+            <div class="lab-management-title">
+              <div class="lab-management-icon">
+                <i class="fi fi-rr-microchip"></i>
+              </div>
+              <div>
+                <div class="lab-management-name">VLSI Lab</div>
+                <div class="lab-management-status free">
+                  <div class="status-dot"></div>
+                  <span>Free</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="lab-management-content">
+            <div class="control-panel">
+              <div class="control-item">
+                <div class="control-label">
+                  <i class="fi fi-rr-users"></i>
+                  <span>Current Capacity</span>
+                </div>
+                <div class="control-value">0/20 Students</div>
+              </div>
+              <div class="control-item">
+                <div class="control-label">
+                  <i class="fi fi-rr-clock"></i>
+                  <span>Available</span>
+                </div>
+                <div class="control-value">Now</div>
+              </div>
+              <div class="control-item">
+                <div class="control-label">
+                  <i class="fi fi-rr-temperature-low"></i>
+                  <span>Temperature</span>
+                </div>
+                <div class="control-value">21°C</div>
+              </div>
+            </div>
+            <div style="margin-top: var(--space-lg);">
+              <div style="font-size: var(--text-sm); font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--space-sm);">
+                Software Management
+              </div>
+              <div class="software-management-list">
+                <div class="software-management-item">
+                  <div class="software-management-icon">
+                    <i class="fi fi-rr-drafting"></i>
+                  </div>
+                  <div class="software-management-name">Vivado</div>
+                  <div class="software-management-actions">
+                    <button class="action-button update" onclick="showNotification('Updating Vivado...')">Update</button>
+                    <button class="action-button remove" onclick="showNotification('Removing Vivado...')">Remove</button>
+                  </div>
+                </div>
+                <div class="software-management-item">
+                  <div class="software-management-icon">
+                    <i class="fi fi-rr-chip"></i>
+                  </div>
+                  <div class="software-management-name">ModelSim</div>
+                  <div class="software-management-actions">
+                    <button class="action-button update" onclick="showNotification('Updating ModelSim...')">Update</button>
+                    <button class="action-button remove" onclick="showNotification('Removing ModelSim...')">Remove</button>
+                  </div>
+                </div>
+                <div class="software-management-item">
+                  <div class="software-management-icon">
+                    <i class="fi fi-rr-cube"></i>
+                  </div>
+                  <div class="software-management-name">AutoCAD</div>
+                  <div class="software-management-actions">
+                    <button class="action-button update" onclick="showNotification('Updating AutoCAD...')">Update</button>
+                    <button class="action-button remove" onclick="showNotification('Removing AutoCAD...')">Remove</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initTheme, toggleTheme } from '/assets/js/theme.js';
+    
+    // Initialize theme
+    initTheme();
+    
+    // Theme toggle
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      toggleTheme();
+      const icon = document.querySelector('#themeToggle i');
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      icon.className = currentTheme === 'dark' ? 'fi fi-rr-sun' : 'fi fi-rr-moon';
+    });
+
+    // Set role for route guard
+    sessionStorage.setItem("role", "teacher");
+
+    // Notification system
+    function showNotification(message) {
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+        color: var(--color-text-inverse);
+        padding: var(--space-md) var(--space-lg);
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-xl);
+        z-index: 1000;
+        animation: slideInRight var(--duration-300) var(--easing-out);
+        max-width: 300px;
+        font-size: var(--text-sm);
+        font-weight: 500;
+      `;
+      notification.textContent = message;
+      
+      // Add to DOM
+      document.body.appendChild(notification);
+      
+      // Remove after 3 seconds
+      setTimeout(() => {
+        notification.style.animation = 'slideOutRight var(--duration-300) var(--easing-out)';
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 300);
+      }, 3000);
+    }
+
+    // Make showNotification globally available
+    window.showNotification = showNotification;
+
+    // Simulate real-time updates
+    function updateLabStatus() {
+      const labCards = document.querySelectorAll('.lab-management-status');
+      labCards.forEach(status => {
+        // Randomly update status for demo
+        if (Math.random() > 0.8) {
+          const currentStatus = status.classList.contains('free') ? 'free' : 
+                              status.classList.contains('busy') ? 'busy' : 'maintenance';
+          const statuses = ['free', 'busy', 'maintenance'];
+          const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
+          
+          if (newStatus !== currentStatus) {
+            status.className = `lab-management-status ${newStatus}`;
+            const dot = status.querySelector('.status-dot');
+            const span = status.querySelector('span');
+            
+            status.classList.remove('free', 'busy', 'maintenance');
+            status.classList.add(newStatus);
+            span.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+          }
+        }
+      });
+    }
+
+    // Update lab status every 30 seconds for demo
+    setInterval(updateLabStatus, 30000);
+  </script>
 </body>
 </html>
