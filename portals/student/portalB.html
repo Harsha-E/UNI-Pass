@@ -1,583 +1,333 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full" data-theme="light">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Uni Pass • Alumni Chatbot</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="/assets/css/advanced.css" />
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons/css/all/all.css">
-  <script src="/assets/js/route-guard.js"></script>
-  <style>
-    /* Chatbot Portal Specific Styles */
-    .chat-container {
-      display: grid;
-      grid-template-rows: auto 1fr auto;
-      height: calc(100vh - 200px);
-      min-height: 500px;
-      background: var(--color-bg-secondary);
-      border: 1px solid var(--color-border-primary);
-      border-radius: var(--radius-2xl);
-      overflow: hidden;
-      box-shadow: var(--shadow-xl);
-      position: relative;
-    }
-
-    .chat-header {
-      background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-      color: var(--color-text-inverse);
-      padding: var(--space-lg) var(--space-xl);
-      display: flex;
-      align-items: center;
-      gap: var(--space-md);
-      position: relative;
-      z-index: 10;
-    }
-
-    .chat-header::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-    }
-
-    .chat-header-content {
-      position: relative;
-      z-index: 1;
-      display: flex;
-      align-items: center;
-      gap: var(--space-md);
-      width: 100%;
-    }
-
-    .bot-avatar {
-      width: 3rem;
-      height: 3rem;
-      background: rgba(255, 255, 255, 0.2);
-      border-radius: var(--radius-full);
-      display: grid;
-      place-items: center;
-      font-size: var(--text-xl);
-      backdrop-filter: blur(10px);
-      border: 2px solid rgba(255, 255, 255, 0.3);
-    }
-
-    .bot-info {
-      flex: 1;
-    }
-
-    .bot-name {
-      font-size: var(--text-lg);
-      font-weight: 700;
-      margin-bottom: var(--space-xs);
-    }
-
-    .bot-status {
-      font-size: var(--text-sm);
-      opacity: 0.9;
-      display: flex;
-      align-items: center;
-      gap: var(--space-xs);
-    }
-
-    .status-dot {
-      width: 0.5rem;
-      height: 0.5rem;
-      background: #10b981;
-      border-radius: var(--radius-full);
-      animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-      0%, 100% { opacity: 1; }
-      50% { opacity: 0.5; }
-    }
-
-    .chat-messages {
-      flex: 1;
-      overflow-y: auto;
-      padding: var(--space-lg);
-      display: flex;
-      flex-direction: column;
-      gap: var(--space-md);
-      background: var(--color-bg-primary);
-      position: relative;
-    }
-
-    .chat-messages::-webkit-scrollbar {
-      width: 6px;
-    }
-
-    .chat-messages::-webkit-scrollbar-track {
-      background: transparent;
-    }
-
-    .chat-messages::-webkit-scrollbar-thumb {
-      background: var(--color-border-primary);
-      border-radius: var(--radius-full);
-    }
-
-    .message {
-      max-width: 70%;
-      padding: var(--space-md) var(--space-lg);
-      border-radius: var(--radius-xl);
-      position: relative;
-      animation: slideInUp var(--duration-300) var(--easing-out);
-    }
-
-    @keyframes slideInUp {
-      from {
-        opacity: 0;
-        transform: translateY(20px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    .message.bot {
-      align-self: flex-start;
-      background: var(--color-bg-secondary);
-      border: 1px solid var(--color-border-primary);
-      color: var(--color-text-primary);
-      border-bottom-left-radius: var(--radius-sm);
-    }
-
-    .message.user {
-      align-self: flex-end;
-      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
-      color: var(--color-text-inverse);
-      border-bottom-right-radius: var(--radius-sm);
-      box-shadow: var(--shadow-md);
-    }
-
-    .message-content {
-      font-size: var(--text-sm);
-      line-height: 1.5;
-      margin-bottom: var(--space-xs);
-    }
-
-    .message-time {
-      font-size: var(--text-2xs);
-      opacity: 0.7;
-      text-align: right;
-    }
-
-    .message.user .message-time {
-      color: rgba(255, 255, 255, 0.8);
-    }
-
-    .chat-input-container {
-      padding: var(--space-lg);
-      background: var(--color-bg-secondary);
-      border-top: 1px solid var(--color-border-primary);
-      display: flex;
-      gap: var(--space-md);
-      align-items: center;
-    }
-
-    .chat-input {
-      flex: 1;
-      padding: var(--space-md) var(--space-lg);
-      border: 2px solid var(--color-border-primary);
-      border-radius: var(--radius-xl);
-      background: var(--color-bg-primary);
-      color: var(--color-text-primary);
-      font-size: var(--text-base);
-      transition: all var(--duration-200) var(--easing-out);
-      outline: none;
-    }
-
-    .chat-input:focus {
-      border-color: var(--color-primary);
-      box-shadow: 0 0 0 3px hsl(var(--hue-primary), 89%, 56%, 0.1);
-    }
-
-    .chat-input::placeholder {
-      color: var(--color-text-muted);
-    }
-
-    .send-button {
-      padding: var(--space-md) var(--space-lg);
-      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
-      color: var(--color-text-inverse);
-      border: none;
-      border-radius: var(--radius-xl);
-      font-size: var(--text-base);
-      font-weight: 600;
-      cursor: pointer;
-      transition: all var(--duration-200) var(--easing-out);
-      display: flex;
-      align-items: center;
-      gap: var(--space-sm);
-      box-shadow: var(--shadow-md);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .send-button::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-      transition: left var(--duration-500) var(--easing-out);
-    }
-
-    .send-button:hover:not(:disabled)::before {
-      left: 100%;
-    }
-
-    .send-button:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-lg);
-    }
-
-    .send-button:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-    }
-
-    .typing-indicator {
-      display: none;
-      align-items: center;
-      gap: var(--space-xs);
-      padding: var(--space-md) var(--space-lg);
-      background: var(--color-bg-secondary);
-      border: 1px solid var(--color-border-primary);
-      border-radius: var(--radius-xl);
-      border-bottom-left-radius: var(--radius-sm);
-      width: fit-content;
-    }
-
-    .typing-indicator.active {
-      display: flex;
-    }
-
-    .typing-dots {
-      display: flex;
-      gap: var(--space-2xs);
-    }
-
-    .typing-dot {
-      width: 0.5rem;
-      height: 0.5rem;
-      background: var(--color-text-muted);
-      border-radius: var(--radius-full);
-      animation: typing 1.4s infinite;
-    }
-
-    .typing-dot:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-
-    .typing-dot:nth-child(3) {
-      animation-delay: 0.4s;
-    }
-
-    @keyframes typing {
-      0%, 60%, 100% {
-        transform: translateY(0);
-        opacity: 0.5;
-      }
-      30% {
-        transform: translateY(-10px);
-        opacity: 1;
-      }
-    }
-
-    /* Quick Actions */
-    .quick-actions {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: var(--space-md);
-      margin-bottom: var(--space-lg);
-    }
-
-    .quick-action-card {
-      background: var(--color-bg-secondary);
-      border: 1px solid var(--color-border-primary);
-      border-radius: var(--radius-xl);
-      padding: var(--space-lg);
-      cursor: pointer;
-      transition: all var(--duration-200) var(--easing-out);
-      text-align: center;
-    }
-
-    .quick-action-card:hover {
-      transform: translateY(-2px);
-      box-shadow: var(--shadow-md);
-      border-color: var(--color-primary);
-    }
-
-    .quick-action-icon {
-      width: 3rem;
-      height: 3rem;
-      background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-      border-radius: var(--radius-lg);
-      display: grid;
-      place-items: center;
-      color: var(--color-text-inverse);
-      font-size: var(--text-xl);
-      margin: 0 auto var(--space-md);
-    }
-
-    .quick-action-title {
-      font-size: var(--text-base);
-      font-weight: 600;
-      color: var(--color-text-primary);
-      margin-bottom: var(--space-xs);
-    }
-
-    .quick-action-description {
-      font-size: var(--text-sm);
-      color: var(--color-text-secondary);
-    }
-
-    /* Responsive Design */
-    @container (max-width: 768px) {
-      .message {
-        max-width: 85%;
-      }
-      
-      .quick-actions {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
-</head>
-
-<body class="auth-container">
-  <!-- Header -->
-  <header class="auth-header">
-    <div class="brand">
-      <i class="fi fi-rr-graduation-cap" style="font-size: var(--text-xl); color: var(--color-primary); margin-right: var(--space-sm);"></i>
-      <span style="font-size: var(--text-lg); font-weight: 700; color: var(--color-text-primary);">UniPass</span>
-    </div>
-    <nav style="display: flex; gap: var(--space-md); align-items: center;">
-      <a href="portalA.html" class="footer-link">Portal A</a>
-      <a href="#" class="footer-link" style="color: var(--color-primary); font-weight: 600;">Portal B</a>
-      <a href="portalC.html" class="footer-link">Portal C</a>
-      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
-        <i class="fi fi-rr-moon" style="font-size: var(--text-lg); color: var(--color-text-primary);"></i>
-      </button>
-    </nav>
-  </header>
-
-  <!-- Main Content -->
-  <main class="auth-main">
-    <div style="width: 100%; max-width: 1200px; margin: 0 auto;">
-      <!-- Header Section -->
-      <div style="text-align: center; margin-bottom: var(--space-2xl);">
-        <h1 style="font-size: var(--text-3xl); font-weight: 700; color: var(--color-text-primary); margin-bottom: var(--space-md);">
-          Alumni Career Assistant
-        </h1>
-        <p style="font-size: var(--text-lg); color: var(--color-text-secondary); max-width: 600px; margin: 0 auto;">
-          Get personalized career guidance, alumni insights, and professional advice from our AI-powered assistant
-        </p>
-      </div>
-
-      <!-- Quick Actions -->
-      <div class="quick-actions">
-        <div class="quick-action-card" onclick="sendQuickMessage('career paths')">
-          <div class="quick-action-icon">
-            <i class="fi fi-rr-road-sign"></i>
-          </div>
-          <div class="quick-action-title">Career Paths</div>
-          <div class="quick-action-description">Explore career options based on your profile</div>
-        </div>
-        <div class="quick-action-card" onclick="sendQuickMessage('alumni success stories')">
-          <div class="quick-action-icon">
-            <i class="fi fi-rr-trophy"></i>
-          </div>
-          <div class="quick-action-title">Success Stories</div>
-          <div class="quick-action-description">Learn from alumni achievements</div>
-        </div>
-        <div class="quick-action-card" onclick="sendQuickMessage('interview preparation')">
-          <div class="quick-action-icon">
-            <i class="fi fi-rr-user-tie"></i>
-          </div>
-          <div class="quick-action-title">Interview Prep</div>
-          <div class="quick-action-description">Get tips for technical and HR interviews</div>
-        </div>
-        <div class="quick-action-card" onclick="sendQuickMessage('skill development')">
-          <div class="quick-action-icon">
-            <i class="fi fi-rr-chart-line-up"></i>
-          </div>
-          <div class="quick-action-title">Skill Development</div>
-          <div class="quick-action-description">Identify skills to enhance your career</div>
-        </div>
-      </div>
-
-      <!-- Chat Container -->
-      <div class="chat-container">
-        <!-- Chat Header -->
-        <div class="chat-header">
-          <div class="chat-header-content">
-            <div class="bot-avatar">
-              <i class="fi fi-rr-robot"></i>
-            </div>
-            <div class="bot-info">
-              <div class="bot-name">Alumni Assistant</div>
-              <div class="bot-status">
-                <div class="status-dot"></div>
-                <span>Online • Ready to help</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Chat Messages -->
-        <div class="chat-messages" id="chatMessages">
-          <div class="message bot">
-            <div class="message-content">
-              Hello! I'm your alumni career assistant. I can help you with career guidance, alumni insights, interview preparation, and skill development. What would you like to know today?
-            </div>
-            <div class="message-time">Just now</div>
-          </div>
-        </div>
-
-        <!-- Typing Indicator -->
-        <div class="typing-indicator" id="typingIndicator">
-          <div class="typing-dots">
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
-          </div>
-          <span style="font-size: var(--text-sm); color: var(--color-text-secondary); margin-left: var(--space-sm);">Alumni Assistant is typing...</span>
-        </div>
-
-        <!-- Chat Input -->
-        <div class="chat-input-container">
-          <input 
-            type="text" 
-            id="chatInput" 
-            class="chat-input" 
-            placeholder="Ask about careers, alumni paths, or guidance..."
-            maxlength="500"
-          >
-          <button id="sendButton" class="send-button" onclick="sendMessage()">
-            <i class="fi fi-rr-paper-plane"></i>
-            <span>Send</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </main>
-
-  <script type="module">
-    import { initTheme, toggleTheme } from '/assets/js/theme.js';
-    
-    // Initialize theme
-    initTheme();
-    
-    // Theme toggle
-    document.getElementById('themeToggle').addEventListener('click', () => {
-      toggleTheme();
-      const icon = document.querySelector('#themeToggle i');
-      const currentTheme = document.documentElement.getAttribute('data-theme');
-      icon.className = currentTheme === 'dark' ? 'fi fi-rr-sun' : 'fi fi-rr-moon';
-    });
-
-    // Set role for route guard
-    sessionStorage.setItem("role", "student");
-
-    // Chat functionality
-    const chatInput = document.getElementById('chatInput');
-    const sendButton = document.getElementById('sendButton');
-    const chatMessages = document.getElementById('chatMessages');
-    const typingIndicator = document.getElementById('typingIndicator');
-
-    function sendMessage() {
-      const message = chatInput.value.trim();
-      if (!message) return;
-
-      // Add user message
-      addMessage(message, 'user');
-      chatInput.value = '';
-      
-      // Show typing indicator
-      showTypingIndicator();
-
-      // Simulate bot response
-      setTimeout(() => {
-        hideTypingIndicator();
-        const response = generateBotResponse(message);
-        addMessage(response, 'bot');
-      }, 1500 + Math.random() * 1000);
-    }
-
-    function sendQuickMessage(topic) {
-      chatInput.value = `Tell me about ${topic}`;
-      sendMessage();
-    }
-
-    function addMessage(content, type) {
-      const messageDiv = document.createElement('div');
-      messageDiv.className = `message ${type}`;
-      
-      const messageContent = document.createElement('div');
-      messageContent.className = 'message-content';
-      messageContent.textContent = content;
-      
-      const messageTime = document.createElement('div');
-      messageTime.className = 'message-time';
-      messageTime.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      
-      messageDiv.appendChild(messageContent);
-      messageDiv.appendChild(messageTime);
-      
-      chatMessages.appendChild(messageDiv);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    function showTypingIndicator() {
-      typingIndicator.classList.add('active');
-      chatMessages.scrollTop = chatMessages.scrollHeight;
-    }
-
-    function hideTypingIndicator() {
-      typingIndicator.classList.remove('active');
-    }
-
-    function generateBotResponse(message) {
-      const responses = {
-        'career paths': 'Based on your academic background, popular career paths include Software Development, Data Science, Cloud Architecture, and Product Management. Would you like detailed information about any of these?',
-        'alumni success stories': 'Our alumni have excelled at companies like Google, Microsoft, Amazon, and startups. Recent graduates have secured packages ranging from 8-30 LPA depending on their skills and experience.',
-        'interview preparation': 'Focus on DSA, system design, and core fundamentals. Practice LeetCode problems, understand your projects deeply, and prepare behavioral questions using the STAR method.',
-        'skill development': 'Key skills in demand: Python/JavaScript, Cloud platforms (AWS/Azure), Data structures, Machine Learning basics, and soft skills like communication and teamwork.'
-      };
-
-      const lowerMessage = message.toLowerCase();
-      for (const [key, response] of Object.entries(responses)) {
-        if (lowerMessage.includes(key)) {
-          return response;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Request | UNI-PASS Student</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+<script src="../../assets/js/ui.js" defer></script>
+<script type="module" src="../../assets/js/route-guard.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 500: '#3b82f6', 600: '#2563eb', 900: '#1e3a8a' }
+                    }
+                }
+            }
         }
-      }
+    </script>
+    <style>
+        .step-connector { width: 2px; background: #e5e7eb; position: absolute; left: 15px; top: 30px; bottom: -10px; z-index: 0; }
+        .step-active .step-connector { background: #3b82f6; }
+        .step-item:last-child .step-connector { display: none; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
 
-      return "That's a great question! Based on current industry trends and our alumni experiences, I'd recommend focusing on building strong fundamentals while gaining practical experience through projects and internships. Would you like more specific guidance on any particular area?";
+    <nav class="bg-white shadow-sm z-50">
+        <div class="max-w-4xl mx-auto px-4">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center gap-2">
+                    <a href="portalA.html" class="text-gray-400 hover:text-gray-600"><i class="fas fa-arrow-left"></i></a>
+                    <span class="font-bold text-xl text-gray-800">My Permissions</span>
+                </div>
+                <div class="flex items-center">
+                    <button id="logout-btn" class="text-sm text-red-500 font-medium hover:text-red-700">Logout</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 space-y-6">
+
+        <div id="active-request-container" class="hidden">
+            <div class="bg-white rounded-xl shadow-lg border border-brand-100 overflow-hidden relative">
+                <div class="bg-brand-600 p-6 text-white flex justify-between items-center">
+                    <div>
+                        <h2 class="text-xl font-bold">Request in Progress</h2>
+                        <p class="text-brand-100 text-sm mt-1" id="active-id">ID: #Loading...</p>
+                    </div>
+                    <div class="bg-white/20 p-3 rounded-full backdrop-blur-sm animate-pulse">
+                        <i class="fas fa-sync-alt fa-spin"></i>
+                    </div>
+                </div>
+
+                <div class="p-6 md:p-8">
+                    <div class="space-y-8 relative pl-2" id="tracker-steps">
+                        <div class="step-item relative z-10 flex gap-4">
+                            <div class="step-connector"></div>
+                            <div class="w-8 h-8 rounded-full bg-brand-500 text-white flex items-center justify-center shadow font-bold text-sm">1</div>
+                            <div>
+                                <h4 class="font-bold text-gray-800">Request Submitted</h4>
+                                <p class="text-xs text-gray-500" id="date-submitted">...</p>
+                            </div>
+                        </div>
+
+                        <div class="step-item relative z-10 flex gap-4" id="step-teacher">
+                            <div class="step-connector"></div>
+                            <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-bold text-sm transition-colors duration-500 icon-box">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-400 title">Class Teacher Approval</h4>
+                                <p class="text-xs text-gray-400 status-text">Pending review...</p>
+                            </div>
+                        </div>
+
+                        <div class="step-item relative z-10 flex gap-4 hidden" id="step-hod">
+                            <div class="step-connector"></div>
+                            <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-bold text-sm transition-colors duration-500 icon-box">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-400 title">HOD Verification</h4>
+                                <p class="text-xs text-gray-400 status-text">Escalation required</p>
+                            </div>
+                        </div>
+
+                        <div class="step-item relative z-10 flex gap-4" id="step-final">
+                            <div class="w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-bold text-sm transition-colors duration-500 icon-box">
+                                <i class="fas fa-check"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-400 title">Ready for Download</h4>
+                                <p class="text-xs text-gray-400 status-text">Waiting for final signature</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-gray-100 flex justify-end" id="action-area">
+                        <button disabled class="px-6 py-2 bg-gray-100 text-gray-400 rounded-lg font-medium cursor-not-allowed flex items-center gap-2">
+                            <i class="fas fa-lock"></i> Download Pass
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="empty-state" class="hidden bg-white p-8 rounded-xl shadow-sm border border-dashed border-gray-300 text-center">
+            <div class="w-16 h-16 bg-blue-50 text-brand-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">
+                <i class="fas fa-plus"></i>
+            </div>
+            <h3 class="text-lg font-bold text-gray-800">No Active Requests</h3>
+            <p class="text-gray-500 mb-6">You don't have any permission requests in progress.</p>
+            <a href="portalA.html" class="inline-block px-6 py-2 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 shadow transition">
+                Create New Request
+            </a>
+        </div>
+
+        <div class="mt-8">
+            <h3 class="font-bold text-lg text-gray-700 mb-4 px-1">Recent History</h3>
+            <div class="bg-white rounded-lg shadow-sm overflow-hidden" id="history-list">
+                <div class="p-6 text-center text-gray-400 text-sm">Loading history...</div>
+            </div>
+        </div>
+
+    </main>
+    <script type="module" src="../../assets/js/permission-pdf.js"></script>
+    <script type="module">
+    import { db, auth } from '../../assets/js/firebase-init.js';
+    
+    let currentPermissionData = null; // Holds data for PDF generation
+
+    auth.onAuthStateChanged(user => {
+        if (!user) window.location.href = '../../public/login.html';
+        listenToRequests(user.uid);
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+        auth.signOut().then(() => window.location.href = '../../public/login.html');
+    });
+
+    function listenToRequests(uid) {
+        db.collection('permissions')
+            .where('studentID', '==', uid)
+            .orderBy('timestamp', 'desc') // Requires Index
+            .onSnapshot(snapshot => {
+                const historyList = document.getElementById('history-list');
+                historyList.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    document.getElementById('empty-state').classList.remove('hidden');
+                    document.getElementById('active-request-container').classList.add('hidden');
+                    return;
+                }
+
+                document.getElementById('empty-state').classList.add('hidden');
+                document.getElementById('active-request-container').classList.remove('hidden');
+
+                // 1. By default, show the latest one
+                const latestDoc = snapshot.docs[0];
+                updateTracker(latestDoc.id, latestDoc.data());
+
+                // 2. Build the interactive list
+                snapshot.forEach(doc => {
+                    const row = createHistoryRow(doc.id, doc.data());
+                    historyList.appendChild(row);
+                });
+            });
     }
 
-    // Event listeners
-    sendButton.addEventListener('click', sendMessage);
-    chatInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
-    });
+    // New: Allow clicking ANY row to update the tracker
+    window.viewRequest = (id, dataString) => {
+        // Decode data back from string (simple way to pass obj in HTML)
+        const data = JSON.parse(decodeURIComponent(dataString));
+        
+        // Visual feedback (Highlight selected row)
+        document.querySelectorAll('.history-row').forEach(r => r.classList.remove('bg-blue-50', 'border-l-4', 'border-brand-500'));
+        const selectedRow = document.getElementById(`row-${id}`);
+        if(selectedRow) selectedRow.classList.add('bg-blue-50', 'border-l-4', 'border-brand-500');
 
-    // Enable/disable send button based on input
-    chatInput.addEventListener('input', () => {
-      sendButton.disabled = !chatInput.value.trim();
-    });
-  </script>
+        // Update the big tracker
+        updateTracker(id, data);
+        
+        // Scroll to top smooth
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+
+    function updateTracker(id, data) {
+        currentPermissionData = { id, ...data }; // Save for PDF
+        
+        // Update Header Info
+        document.getElementById('active-id').innerText = `Ref: ${id.substring(0,8).toUpperCase()}`;
+        document.getElementById('date-submitted').innerText = new Date(data.timestamp).toLocaleString();
+        
+        // Update Roll No display in UI if needed, or just keep it for PDF
+        
+        const status = data.status;
+
+        // Reset Steps
+        resetStep('step-teacher');
+        resetStep('step-hod');
+        resetStep('step-final');
+
+        // Step 1: Teacher
+        const teacherStep = document.getElementById('step-teacher');
+        if (status === 'PENDING_TEACHER') {
+            setStepStatus(teacherStep, 'current', 'Awaiting Class Teacher...');
+        } else if (['PENDING_HOD', 'APPROVED'].includes(status)) {
+            setStepStatus(teacherStep, 'complete', 'Approved by Class Teacher');
+        } else if (status === 'REJECTED') {
+            setStepStatus(teacherStep, 'error', 'Rejected by Teacher');
+            lockDownload();
+            return; 
+        }
+
+        // Step 2: HOD (Conditional Logic)
+        const hodStep = document.getElementById('step-hod');
+        const wasEscalated = data.workflowHistory?.some(h => h.step === 'PENDING_HOD') || status === 'PENDING_HOD';
+        
+        if (wasEscalated) {
+            hodStep.classList.remove('hidden');
+            if (status === 'PENDING_HOD') {
+                setStepStatus(hodStep, 'current', 'Awaiting HOD Review...');
+            } else if (status === 'APPROVED') {
+                setStepStatus(hodStep, 'complete', 'Verified by HOD');
+            } else if (status === 'REJECTED') {
+                setStepStatus(hodStep, 'error', 'Rejected by HOD');
+                lockDownload();
+                return;
+            }
+        } else {
+            hodStep.classList.add('hidden');
+        }
+
+        // Step 3: Final Download
+        const finalStep = document.getElementById('step-final');
+        const actionArea = document.getElementById('action-area');
+
+        if (status === 'APPROVED') {
+            setStepStatus(finalStep, 'complete', 'Pass Generated');
+            // Unlock Download
+            actionArea.innerHTML = `
+                <button id="download-btn" class="px-6 py-2 bg-green-600 text-white rounded-lg font-bold shadow-lg hover:bg-green-700 flex items-center gap-2 transition transform hover:scale-105">
+                    <i class="fas fa-file-pdf"></i> Download Official Pass
+                </button>
+            `;
+            document.getElementById('download-btn').onclick = () => {
+                if(window.generateOfficialPDF) window.generateOfficialPDF(currentPermissionData.id, currentPermissionData);
+            };
+        } else {
+            setStepStatus(finalStep, 'pending', 'Waiting for final signature');
+            lockDownload();
+        }
+    }
+
+    function lockDownload() {
+        document.getElementById('action-area').innerHTML = `
+            <button disabled class="px-6 py-2 bg-gray-100 text-gray-400 rounded-lg font-medium cursor-not-allowed flex items-center gap-2">
+                <i class="fas fa-lock"></i> Download Pass
+            </button>`;
+    }
+
+    function resetStep(id) {
+        const el = document.getElementById(id);
+        const icon = el.querySelector('.icon-box');
+        icon.className = "w-8 h-8 rounded-full bg-gray-200 text-gray-500 flex items-center justify-center font-bold text-sm transition-colors duration-500 icon-box";
+        icon.innerHTML = (id.includes('teacher')) ? '<i class="fas fa-chalkboard-teacher"></i>' : (id.includes('hod') ? '<i class="fas fa-user-tie"></i>' : '<i class="fas fa-check"></i>');
+        
+        el.querySelector('.title').className = "font-bold text-gray-400 title";
+        el.querySelector('.status-text').className = "text-xs text-gray-400 status-text";
+        el.querySelector('.status-text').innerText = "Pending...";
+    }
+
+    function setStepStatus(element, state, text) {
+        const iconBox = element.querySelector('.icon-box');
+        const title = element.querySelector('.title');
+        const statusText = element.querySelector('.status-text');
+
+        statusText.innerText = text;
+
+        if (state === 'complete') {
+            iconBox.className = "w-8 h-8 rounded-full bg-green-500 text-white flex items-center justify-center font-bold text-sm shadow icon-box";
+            iconBox.innerHTML = '<i class="fas fa-check"></i>';
+            title.className = "font-bold text-gray-800 title";
+            statusText.className = "text-xs text-green-600 font-medium status-text";
+        } else if (state === 'current') {
+            iconBox.className = "w-8 h-8 rounded-full bg-blue-100 text-blue-600 border-2 border-blue-500 flex items-center justify-center font-bold text-sm animate-pulse icon-box";
+            title.className = "font-bold text-blue-600 title";
+            statusText.className = "text-xs text-blue-500 font-medium status-text";
+        } else if (state === 'error') {
+            iconBox.className = "w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center font-bold text-sm icon-box";
+            iconBox.innerHTML = '<i class="fas fa-times"></i>';
+            title.className = "font-bold text-red-600 title";
+            statusText.className = "text-xs text-red-500 font-medium status-text";
+        }
+    }
+
+    function createHistoryRow(id, data) {
+        const div = document.createElement('div');
+        div.id = `row-${id}`;
+        div.className = "history-row p-4 border-b border-gray-100 flex justify-between items-center hover:bg-gray-50 transition cursor-pointer";
+        
+        // Encode data safely to pass to onclick
+        const dataString = encodeURIComponent(JSON.stringify(data));
+        div.onclick = () => window.viewRequest(id, dataString);
+
+        let badgeClass = 'bg-gray-100 text-gray-600';
+        if (data.status === 'APPROVED') badgeClass = 'bg-green-100 text-green-700';
+        if (data.status === 'REJECTED') badgeClass = 'bg-red-100 text-red-700';
+        if (data.status.includes('PENDING')) badgeClass = 'bg-yellow-100 text-yellow-700';
+
+        div.innerHTML = `
+            <div>
+                <p class="text-sm font-bold text-gray-800">${data.reasonType}</p>
+                <p class="text-xs text-gray-500">${new Date(data.timestamp).toLocaleDateString()}</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <span class="px-2 py-1 rounded text-xs font-bold ${badgeClass}">
+                    ${data.status.replace('_', ' ')}
+                </span>
+                <i class="fas fa-chevron-right text-gray-300"></i>
+            </div>
+        `;
+        return div;
+    }
+    </script>
 </body>
 </html>
