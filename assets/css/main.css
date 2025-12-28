@@ -10,6 +10,9 @@
   --shadow:0 10px 30px rgba(0,0,0,.08)
 }
 
+/* Tailwind CDN */
+@import url('https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css');
+
 [data-theme="dark"]{
   --bg:#0b0f1a;
   --fg:#e5e7eb;
@@ -20,6 +23,25 @@
   --success:#34d399;
   --border:#1f2937;
   --shadow:0 20px 60px rgba(0,0,0,.6)
+}
+
+/* Custom Cursor (Desktop Only) */
+@media (min-width: 768px) {
+  * {
+    cursor: none;
+  }
+
+  html {
+    cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="1" fill="%23000"/><circle cx="10" cy="10" r="8" fill="none" stroke="%23000" stroke-width="1" opacity="0.5"/></svg>'), auto;
+  }
+
+  button, a, input, textarea, select {
+    cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="2" fill="%23000"/><circle cx="10" cy="10" r="8" fill="none" stroke="%23000" stroke-width="1" opacity="0.5"/></svg>'), pointer;
+  }
+
+  button:disabled {
+    cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="1" fill="%23999"/><circle cx="10" cy="10" r="8" fill="none" stroke="%23999" stroke-width="1" opacity="0.5"/></svg>'), not-allowed;
+  }
 }
 
 *{
