@@ -1,136 +1,185 @@
-import { db } from "/assets/js/firebase-init.js";
+import { db } from "./firebase-init.js";
 import {
   collection,
   doc,
-  setDoc,
   addDoc,
   getDoc,
   getDocs,
   updateDoc,
   query,
   where,
-  orderBy,
   serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-export async function createPermission(payload) {
+async function getReasonRule(reasonId) {
+  const ref = doc(db, "permissionRules", "reasons", reasonId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) throw new Error("Invalid reason");
+  return snap.data();
+}
+
+export async function createPermission({
+  student,
+  reasonId,
+  customReasonText = null,
+  validity = {}
+}) {
+  const rule = await getReasonRule(reasonId);
+
   const ref = await addDoc(collection(db, "permissions"), {
-    ownerUid: payload.ownerUid,
-    scope: payload.scope,
-    validFrom: payload.validFrom,
-    validTill: payload.validTill,
-    createdAt: serverTimestamp(),
-    sealed: false
+    student,
+    reason: {
+      id: reasonId,
+      label: rule.label,
+      isCustom: !!rule.isCustom,
+      customText: customReasonText
+    },
+    approvalType: rule.approvalType,
+    status: {
+      teacher: "pending",
+      hod: rule.approvalType === "TEACHER_ONLY" ? "not_required" : "pending",
+      final: "pending"
+    },
+    approvals: {
+      teacher: null,
+      hod: null
+    },
+    validity,
+    hash: null,
+    pdf: {
+      generated: false,
+      generatedAt: null,
+      url: null
+    },
+    createdAt: serverTimestamp()
   });
 
   await addDoc(collection(db, "permissionEvents"), {
     permissionId: ref.id,
     type: "REQUESTED",
-    actorUid: payload.ownerUid,
-    actorRole: "student",
-    data: payload.data,
+    actorRole: "STUDENT",
+    actor: { uid: student.uid, email: student.email },
     at: serverTimestamp()
   });
 
   return ref.id;
 }
 
-export async function recommendPermission(permissionId, teacherUid, note) {
+export async function teacherDecision(permissionId, teacher, decision) {
+  const ref = doc(db, "permissions", permissionId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+
+  const data = snap.data();
+  if (data.status.teacher !== "pending") return;
+
+  await updateDoc(ref, {
+    "status.teacher": decision,
+    "status.final":
+      decision === "rejected"
+        ? "rejected"
+        : data.approvalType === "TEACHER_ONLY"
+        ? "approved"
+        : "pending",
+    "approvals.teacher": {
+      uid: teacher.uid,
+      name: teacher.name,
+      email: teacher.email,
+      approvedAt: serverTimestamp()
+    }
+  });
+
   await addDoc(collection(db, "permissionEvents"), {
     permissionId,
-    type: "RECOMMENDED",
-    actorUid: teacherUid,
-    actorRole: "teacher",
-    data: { note },
+    type: decision === "approved" ? "TEACHER_APPROVED" : "TEACHER_REJECTED",
+    actorRole: "TEACHER",
+    actor: { uid: teacher.uid, email: teacher.email },
     at: serverTimestamp()
   });
 }
 
-export async function authorizePermission(permissionId, hodUid) {
+export async function hodDecision(permissionId, hod, decision) {
+  const ref = doc(db, "permissions", permissionId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+
+  const data = snap.data();
+  if (data.approvalType !== "TEACHER_HOD") return;
+  if (data.status.teacher !== "approved") return;
+  if (data.status.hod !== "pending") return;
+
+  await updateDoc(ref, {
+    "status.hod": decision,
+    "status.final": decision,
+    "approvals.hod": {
+      uid: hod.uid,
+      name: hod.name,
+      email: hod.email,
+      approvedAt: serverTimestamp()
+    }
+  });
+
   await addDoc(collection(db, "permissionEvents"), {
     permissionId,
-    type: "AUTHORIZED",
-    actorUid: hodUid,
-    actorRole: "hod",
-    data: {},
+    type: decision === "approved" ? "HOD_APPROVED" : "HOD_REJECTED",
+    actorRole: "HOD",
+    actor: { uid: hod.uid, email: hod.email },
     at: serverTimestamp()
-  });
-
-  await updateDoc(doc(db, "permissions", permissionId), {
-    sealed: true,
-    authorizedAt: serverTimestamp()
   });
 }
 
-export async function rejectPermission(permissionId, uid, role, reason) {
+export async function markPdfGenerated(permissionId, pdfUrl) {
+  const ref = doc(db, "permissions", permissionId);
+  await updateDoc(ref, {
+    "pdf.generated": true,
+    "pdf.generatedAt": serverTimestamp(),
+    "pdf.url": pdfUrl
+  });
+
   await addDoc(collection(db, "permissionEvents"), {
     permissionId,
-    type: "REJECTED",
-    actorUid: uid,
-    actorRole: role,
-    data: { reason },
+    type: "PDF_GENERATED",
+    actorRole: "SYSTEM",
     at: serverTimestamp()
   });
 }
 
-export async function revokePermission(permissionId, adminUid, reason) {
-  await addDoc(collection(db, "permissionEvents"), {
-    permissionId,
-    type: "REVOKED",
-    actorUid: adminUid,
-    actorRole: "admin",
-    data: { reason },
-    at: serverTimestamp()
-  });
-
-  await updateDoc(doc(db, "permissions", permissionId), {
-    sealed: false,
-    revokedAt: serverTimestamp()
-  });
-}
-
-export async function getPermissionTimeline(permissionId) {
-  const q = query(
-    collection(db, "permissionEvents"),
-    where("permissionId", "==", permissionId),
-    orderBy("at", "asc")
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map(d => d.data());
-}
-
-export async function isPermissionValid(permissionId, atTime = Date.now()) {
-  const p = await getDoc(doc(db, "permissions", permissionId));
-  if (!p.exists()) return false;
-
-  const d = p.data();
-  if (!d.sealed) return false;
-  if (new Date(d.validFrom).getTime() > atTime) return false;
-  if (new Date(d.validTill).getTime() < atTime) return false;
-
-  const q = query(
-    collection(db, "permissionEvents"),
-    where("permissionId", "==", permissionId),
-    where("type", "==", "REVOKED")
-  );
-  const r = await getDocs(q);
-  return r.empty;
-}
-
-export async function getUserPermissions(uid) {
+export async function fetchStudentPermissions(studentUid) {
   const q = query(
     collection(db, "permissions"),
-    where("ownerUid", "==", uid),
-    orderBy("createdAt", "desc")
+    where("student.uid", "==", studentUid)
   );
   const snap = await getDocs(q);
   return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
-export async function getPendingForRole(roleUid, role) {
+export async function fetchTeacherPermissions() {
+  const snap = await getDocs(collection(db, "permissions"));
+  return snap.docs
+    .map(d => ({ id: d.id, ...d.data() }))
+    .filter(p => p.status.teacher === "pending");
+}
+
+export async function fetchHodPermissions() {
+  const snap = await getDocs(collection(db, "permissions"));
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+export async function fetchApprovedPermissionByHash(hash) {
+  const q = query(
+    collection(db, "permissions"),
+    where("hash.short", "==", hash),
+    where("status.final", "==", "approved")
+  );
+  const snap = await getDocs(q);
+  if (snap.empty) return null;
+  return { id: snap.docs[0].id, ...snap.docs[0].data() };
+}
+
+export async function fetchPermissionTimeline(permissionId) {
   const q = query(
     collection(db, "permissionEvents"),
-    where("type", "==", role === "teacher" ? "REQUESTED" : "RECOMMENDED")
+    where("permissionId", "==", permissionId)
   );
   const snap = await getDocs(q);
   return snap.docs.map(d => d.data());

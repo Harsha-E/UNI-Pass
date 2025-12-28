@@ -1,67 +1,92 @@
-import { jsPDF } from "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.es.min.js";
-import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.4/+esm";
+/**
+ * UNI-PASS PDF GENERATOR
+ */
+import { db } from './firebase-init.js';
 
-export async function generatePermissionPDF(data) {
-  const pdf = new jsPDF("p", "mm", "a4");
-
-  pdf.setFillColor(30, 41, 59);
-  pdf.rect(0, 0, 210, 32, "F");
-
-  pdf.setTextColor(255, 255, 255);
-  pdf.setFontSize(18);
-  pdf.text("UNI PASS", 105, 20, { align: "center" });
-
-  pdf.setTextColor(0, 0, 0);
-  pdf.setFontSize(11);
-
-  let y = 45;
-
-  const row = (l, r) => {
-    pdf.text(l, 20, y);
-    pdf.text(r, 110, y);
-    y += 8;
-  };
-
-  row("Student Name", data.name);
-  row("Registration No", data.regd);
-  row("Department", data.department);
-  y += 4;
-  row("Permission Scope", data.scope);
-  row("Reason", data.reason);
-  y += 4;
-  row("Permission ID", data.permissionId);
-  row("Status", "AUTHORIZED");
-  y += 4;
-  row("Valid From", data.validFrom);
-  row("Valid Till", data.validTill);
-  y += 4;
-  row("Requested At", data.requestedAt);
-  row("Recommended By", data.recommendedBy);
-  row("Authorized By", data.authorizedBy);
-  row("Authorized At", data.authorizedAt);
-
-  const qrData = await QRCode.toDataURL(
-    `${data.verifyUrl}?pid=${data.permissionId}&hash=${data.permissionHashFull || ''}`
-  );
-
-  pdf.addImage(qrData, "PNG", 70, y + 10, 70, 70);
-
-  pdf.setFontSize(9);
-  pdf.text("Scan QR to verify permission status in real-time", 105, y + 90, { align: "center" });
-
-  pdf.setFontSize(8);
-  pdf.text(`Permission Hash: ${data.permissionHashFull || data.permissionId}`, 105, y + 100, { align: 'center' });
-
-  pdf.setDrawColor(180);
-  pdf.line(20, 265, 190, 265);
-
-  pdf.setFontSize(8);
-  pdf.text(
-    "This is a system-generated authorization certificate. Firestore is the source of truth.",
-    105,
-    275,
-    { align: "center" }
-  );
-
-  pdf.save(`UniPass_${data.permissionId}.pdf`);
+// 1. Crypto Engine
+async function generateDigitalSignature(data) {
+    const rawString = `${data.studentID}|${data.startDate}|${data.endDate}|${data.status}|${data.timestamp}`;
+    const encoder = new TextEncoder();
+    const encoded = encoder.encode(rawString);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
+
+// 2. Main Function
+window.generateOfficialPDF = async function(docId, data) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const width = doc.internal.pageSize.getWidth();
+
+    // Data Prep
+    const rollNo = data.rollNumber || data.studentID.substring(0,10).toUpperCase();
+    const dept = data.department ? data.department.toUpperCase() : "ENGINEERING";
+    
+    // Signature Logic
+    let signature = data.digitalSignature;
+    if (!signature) {
+        signature = await generateDigitalSignature(data);
+        await db.collection('permissions').doc(docId).update({ digitalSignature: signature });
+    }
+    
+    // Find Approver
+    const approverEvent = data.workflowHistory?.find(e => e.step === 'APPROVED');
+    const approverName = approverEvent ? approverEvent.actor.toUpperCase() : "AUTHORIZED FACULTY";
+
+    // --- DESIGN ---
+    // Header
+    doc.setFillColor(30, 58, 138); 
+    doc.rect(0, 0, width, 45, 'F');
+    doc.setTextColor(255);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(20);
+    doc.text("MVGR COLLEGE OF ENGINEERING", width/2, 20, {align: 'center'});
+    doc.setFontSize(12); doc.setFont("helvetica", "normal");
+    doc.text("OFFICIAL CAMPUS GATE PASS", width/2, 35, {align: 'center'});
+
+    // Status Banner
+    doc.setFillColor(220, 252, 231); doc.setDrawColor(22, 163, 74);
+    doc.roundedRect(15, 55, width - 30, 20, 2, 2, 'FD');
+    doc.setTextColor(22, 163, 74); doc.setFontSize(12); doc.setFont("helvetica", "bold");
+    doc.text(`STATUS: APPROVED BY ${approverName}`, width/2, 68, {align: 'center'});
+
+    // Info Table
+    doc.setDrawColor(200); doc.setFillColor(250, 250, 250);
+    doc.rect(15, 85, width - 30, 100, 'FD');
+
+    let y = 100;
+    function addRow(lbl, val) {
+        doc.setTextColor(100); doc.setFontSize(10); doc.text(lbl.toUpperCase(), 25, y);
+        doc.setTextColor(0); doc.setFontSize(12); doc.text(val, 80, y);
+        doc.line(25, y+4, width - 25, y+4);
+        y += 15;
+    }
+
+    addRow("Student Name", data.studentName);
+    addRow("Roll Number", rollNo);
+    addRow("Department", dept);
+    addRow("Section", data.section || "A");
+    addRow("Valid From", new Date(data.startDate).toDateString());
+    addRow("Valid To", new Date(data.endDate).toDateString());
+    addRow("Reason Type", data.reasonType);
+
+    // Reason Note
+    doc.setTextColor(100); doc.setFontSize(10); doc.text("NOTE / DESTINATION:", 25, y+5);
+    doc.setTextColor(50); doc.setFont("helvetica", "italic");
+    const splitText = doc.splitTextToSize(data.reason || "N/A", width - 50);
+    doc.text(splitText, 25, y+12);
+
+    // Footer
+    const footerY = 250;
+    const checkUrl = `https://uni-pass-project.web.app/public/checker.html?id=${docId}`;
+    doc.addImage("https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(checkUrl), "PNG", 20, footerY-10, 25, 25);
+    
+    doc.setFont("courier", "normal"); doc.setFontSize(8); doc.setTextColor(80);
+    doc.text("DIGITAL HASH:", 50, footerY);
+    doc.text(signature.substring(0, 60), 50, footerY+5);
+    doc.text(signature.substring(60), 50, footerY+10);
+    
+    doc.setFont("helvetica", "italic"); doc.setFontSize(10); doc.setTextColor(0);
+    doc.text("Signed Electronically", width-60, footerY, {align:'center'});
+    
+    doc.save(`PASS_${rollNo}.pdf`);
+};
