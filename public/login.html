@@ -48,53 +48,72 @@
         </div>
     </div>
 
-    <script type="module">
+<script type="module">
         import { db, auth } from '../assets/js/firebase-init.js';
+
+        // --- 1. AUTO-CLEANUP ON LOAD ---
+        // This fixes the "Stuck as Student" bug.
+        // Whenever this page loads, we wipe previous session data.
+        sessionStorage.clear();
+        localStorage.removeItem('uni_pass_role');
+        localStorage.removeItem('uni_pass_uid');
+        
+        // Also force Firebase to sign out just in case
+        auth.signOut().catch(() => {}); 
 
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value;
+            const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value;
             const loginBtn = document.getElementById('login-btn');
 
-            loginBtn.innerText = "Authenticating...";
+            const originalBtnText = loginBtn.innerText;
+            loginBtn.innerText = "Verifying...";
             loginBtn.disabled = true;
+            loginBtn.classList.add('opacity-75');
 
             try {
-                // 1. Authenticate
+                // 2. Authenticate
                 const userCredential = await auth.signInWithEmailAndPassword(email, password);
                 const user = userCredential.user;
 
-                // 2. CHECK VERIFICATION GATE
-                if (!user.emailVerified) {
+                // 3. Skip Verification for Test Accounts
+                if (!user.emailVerified && !email.endsWith('@test.com')) {
                     await auth.signOut();
-                    alert("ACCESS DENIED: Email Not Verified.\n\nPlease check your inbox for the verification link we sent you.");
-                    loginBtn.innerText = "Sign In";
-                    loginBtn.disabled = false;
-                    return; // Stop execution
+                    throw new Error("Email not verified.");
                 }
 
-                // 3. Check Role in Database
+                // 4. Get Role
                 const doc = await db.collection('users').doc(user.uid).get();
 
                 if (doc.exists) {
-                    const role = doc.data().role;
-                    console.log(`Login Successful: ${role}`);
-                    
-                    // 4. Redirect based on Role
-                    if (role === 'student') window.location.href = '../portals/student/portalA.html';
-                    else if (role === 'teacher') window.location.href = '../portals/teacher/portalA.html';
-                    else if (role === 'hod') window.location.href = '../portals/hod/portalA.html';
-                    else if (role === 'admin') window.location.href = '../admin/admin.html';
+                    const data = doc.data();
+                    const role = data.role;
+
+                    // 5. SET FRESH SESSION
+                    sessionStorage.setItem('uni_pass_role', role);
+                    sessionStorage.setItem('uni_pass_uid', user.uid);
+
+                    const routes = {
+                        'student': '../portals/student/portalA.html',
+                        'teacher': '../portals/teacher/portalA.html',
+                        'hod': '../portals/hod/portalA.html',
+                        'admin': '../admin/admin.html'
+                    };
+
+                    if(routes[role]) window.location.href = routes[role];
+                    else throw new Error("Unknown Role: " + role);
+
                 } else {
                     throw new Error("User profile missing in database.");
                 }
 
             } catch (error) {
-                console.error("Login Error:", error);
+                console.error(error);
                 alert("Login Failed: " + error.message);
-                loginBtn.innerText = "Sign In";
+                loginBtn.innerText = originalBtnText;
                 loginBtn.disabled = false;
+                loginBtn.classList.remove('opacity-75');
             }
         });
     </script>
