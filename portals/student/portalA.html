@@ -1,93 +1,1030 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full" data-theme="light">
 <head>
   <meta charset="UTF-8" />
-  <title>Uni Pass • Student</title>
+  <title>Uni Pass • Student Portal</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="stylesheet" href="/assets/css/advanced.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons/css/all/all.css">
   <script src="/assets/js/route-guard.js"></script>
+  <style>
+    /* Advanced Student Portal Specific Styles */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: var(--space-xl);
+      margin-bottom: var(--space-2xl);
+    }
+
+    .permission-card {
+      background: var(--color-bg-secondary);
+      border: 1px solid var(--color-border-primary);
+      border-radius: var(--radius-xl);
+      padding: var(--space-xl);
+      position: relative;
+      overflow: hidden;
+      transition: all var(--duration-300) var(--easing-out);
+      cursor: pointer;
+    }
+
+    .permission-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-xl);
+      border-color: var(--color-primary);
+    }
+
+    .permission-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+      transform: scaleX(0);
+      transition: transform var(--duration-300) var(--easing-out);
+    }
+
+    .permission-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .permission-icon {
+      width: 3rem;
+      height: 3rem;
+      border-radius: var(--radius-lg);
+      display: grid;
+      place-items: center;
+      font-size: var(--text-2xl);
+      margin-bottom: var(--space-md);
+      position: relative;
+    }
+
+    .permission-icon.library {
+      background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+      color: var(--color-text-inverse);
+    }
+
+    .permission-icon.lab {
+      background: linear-gradient(135deg, var(--color-secondary), hsl(var(--hue-secondary), 89%, 46%));
+      color: var(--color-text-inverse);
+    }
+
+    .permission-icon.event {
+      background: linear-gradient(135deg, var(--color-accent), hsl(var(--hue-accent), 89%, 36%));
+      color: var(--color-text-inverse);
+    }
+
+    .permission-icon.transport {
+      background: linear-gradient(135deg, var(--color-success), hsl(var(--hue-success), 89%, 36%));
+      color: var(--color-text-inverse);
+    }
+
+    .permission-title {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-xs);
+    }
+
+    .permission-description {
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+      line-height: 1.5;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-lg);
+      margin-bottom: var(--space-2xl);
+    }
+
+    .activity-feed {
+      background: var(--color-bg-secondary);
+      border: 1px solid var(--color-border-primary);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+    }
+
+    .activity-header {
+      padding: var(--space-lg) var(--space-xl);
+      border-bottom: 1px solid var(--color-border-primary);
+      background: var(--color-bg-accent);
+    }
+
+    .activity-title {
+      font-size: var(--text-lg);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin: 0;
+    }
+
+    .activity-list {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .activity-item {
+      padding: var(--space-lg) var(--space-xl);
+      border-bottom: 1px solid var(--color-border-primary);
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: var(--space-md);
+      transition: background-color var(--duration-200) var(--easing-out);
+    }
+
+    .activity-item:hover {
+      background: var(--color-bg-accent);
+    }
+
+    .activity-item:last-child {
+      border-bottom: none;
+    }
+
+    .activity-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: var(--radius-lg);
+      display: grid;
+      place-items: center;
+      font-size: var(--text-lg);
+    }
+
+    .activity-icon.success {
+      background: hsl(var(--hue-success), 89%, 46%, 0.1);
+      color: var(--color-success);
+    }
+
+    .activity-icon.warning {
+      background: hsl(var(--hue-warning), 89%, 56%, 0.1);
+      color: var(--color-warning);
+    }
+
+    .activity-icon.info {
+      background: hsl(var(--hue-info), 89%, 56%, 0.1);
+      color: var(--color-info);
+    }
+
+    .activity-content h4 {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin: 0 0 var(--space-2xs) 0;
+    }
+
+    .activity-content p {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      margin: 0;
+    }
+
+    .activity-time {
+      font-size: var(--text-xs);
+      color: var(--color-text-muted);
+      white-space: nowrap;
+    }
+
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: var(--space-md);
+      margin-bottom: var(--space-2xl);
+    }
+
+    .action-btn {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      padding: var(--space-md);
+      background: var(--color-bg-secondary);
+      border: 1px solid var(--color-border-primary);
+      border-radius: var(--radius-lg);
+      color: var(--color-text-primary);
+      text-decoration: none;
+      transition: all var(--duration-200) var(--easing-out);
+      font-size: var(--text-sm);
+      font-weight: 500;
+    }
+
+    .action-btn:hover {
+      background: var(--color-bg-accent);
+      border-color: var(--color-primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .action-btn i {
+      font-size: var(--text-lg);
+      color: var(--color-primary);
+    }
+
+    /* Advanced Animations for Portal */
+    .stagger-animation {
+      animation: fade-in-up var(--duration-500) var(--easing-out);
+    }
+
+    .stagger-animation:nth-child(1) { animation-delay: 0ms; }
+    .stagger-animation:nth-child(2) { animation-delay: 100ms; }
+    .stagger-animation:nth-child(3) { animation-delay: 200ms; }
+    .stagger-animation:nth-child(4) { animation-delay: 300ms; }
+    .stagger-animation:nth-child(5) { animation-delay: 400ms; }
+    .stagger-animation:nth-child(6) { animation-delay: 500ms; }
+
+    /* Advanced Progress Indicators */
+    .progress-ring {
+      width: 80px;
+      height: 80px;
+      position: relative;
+    }
+
+    .progress-ring-circle {
+      width: 100%;
+      height: 100%;
+      fill: none;
+      stroke: var(--color-border-primary);
+      stroke-width: 8;
+      transform: rotate(-90deg);
+      transform-origin: 50% 50%;
+    }
+
+    .progress-ring-circle-fill {
+      stroke: var(--color-primary);
+      stroke-dasharray: 220;
+      stroke-dashoffset: 220;
+      stroke-linecap: round;
+      transition: stroke-dashoffset var(--duration-1000) var(--easing-out);
+    }
+
+    .progress-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: var(--text-sm);
+      font-weight: 700;
+      color: var(--color-text-primary);
+    }
+  </style>
 </head>
 
-<body class="student-page">
+<body class="portal-container">
+  <!-- Advanced Sidebar -->
+  <aside class="portal-sidebar">
+    <header class="sidebar-header">
+      <div class="flex items-center gap-md">
+        <div class="w-10 h-10 bg-primary rounded-xl flex items-center justify-center">
+          <i class="fi fi-rr-graduation-cap text-xl text-inverse"></i>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-primary m-0">UniPass</h2>
+          <p class="text-xs text-muted m-0">Student Portal</p>
+        </div>
+      </div>
+    </header>
 
-  <nav class="top-nav">
-    <span class="brand">Uni Pass</span>
-    <div class="nav-links">
-      <a class="active">Portal A</a>
-      <a href="./portalB.html">Portal B</a>
-      <a href="./portalC.html">Portal C</a>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active">
+        <i class="fi fi-rr-home"></i>
+        <span>Dashboard</span>
+      </a>
+      <a href="./portalB.html" class="nav-item">
+        <i class="fi fi-rr-document"></i>
+        <span>Permissions</span>
+      </a>
+      <a href="./portalC.html" class="nav-item">
+        <i class="fi fi-rr-calendar"></i>
+        <span>Schedule</span>
+      </a>
+      <a href="/public/alumni-chatbot.html" target="_blank" class="nav-item">
+        <i class="fi fi-rr-robot"></i>
+        <span>Alumni Bot</span>
+      </a>
+      <a href="/public/lab-resources.html" target="_blank" class="nav-item">
+        <i class="fi fi-rr-computer"></i>
+        <span>Lab Resources</span>
+      </a>
+      <a href="/public/login.html" class="nav-item">
+        <i class="fi fi-rr-sign-out-alt"></i>
+        <span>Logout</span>
+      </a>
+    </nav>
+
+    <footer class="sidebar-footer">
+      <div class="text-center">
+        <div class="text-xs text-muted mb-sm">Current Session</div>
+        <div class="text-sm font-medium text-primary">John Doe</div>
+        <div class="text-xs text-muted">CS Student</div>
+      </div>
+    </footer>
+  </aside>
+
+  <!-- Advanced Header -->
+  <header class="portal-header">
+    <div class="flex justify-between items-center px-xl py-lg">
+      <div>
+        <h1 class="text-2xl font-bold text-primary m-0">Student Dashboard</h1>
+        <p class="text-muted m-0">Welcome back! Here's your permission overview.</p>
+      </div>
+      <div class="flex items-center gap-md">
+        <button class="btn btn-ghost">
+          <i class="fi fi-rr-bell"></i>
+          <span class="hidden sm:inline">Notifications</span>
+        </button>
+        <button id="themeToggle" class="w-10 h-10 bg-secondary border border-primary rounded-xl flex items-center justify-center transition-all duration-200 hover:scale-105 focus-ring">
+          <i class="fi fi-rr-moon text-lg text-primary"></i>
+        </button>
+      </div>
     </div>
-  </nav>
+  </header>
 
-  <main class="student-container">
+  <!-- Advanced Main Content -->
+  <main class="portal-main">
+    <!-- Statistics Cards -->
+    <div class="stats-grid stagger-animation">
+      <div class="data-card">
+        <div class="flex items-center justify-between mb-md">
+          <div>
+            <div class="metric-value">12</div>
+            <div class="metric-label">Active Permissions</div>
+          </div>
+          <div class="progress-ring">
+            <svg class="progress-ring-circle" viewBox="0 0 80 80">
+              <circle cx="40" cy="40" r="35" class="progress-ring-circle-fill" style="stroke-dashoffset: 66;"></circle>
+            </svg>
+            <div class="progress-text">70%</div>
+          </div>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 70%;"></div>
+        </div>
+      </div>
 
-    <section class="request-card">
-      <h2>Request Permission</h2>
+      <div class="data-card">
+        <div class="flex items-center justify-between mb-md">
+          <div>
+            <div class="metric-value">8</div>
+            <div class="metric-label">Pending Approvals</div>
+          </div>
+          <div class="w-12 h-12 bg-warning rounded-xl flex items-center justify-center">
+            <i class="fi fi-rr-clock text-inverse text-lg"></i>
+          </div>
+        </div>
+        <div class="text-sm text-muted">3 require urgent attention</div>
+      </div>
 
-      <input id="scope" placeholder="Permission Scope" />
-      <input id="from" type="datetime-local" />
-      <input id="to" type="datetime-local" />
-      <textarea id="reason" placeholder="Reason"></textarea>
+      <div class="data-card">
+        <div class="flex items-center justify-between mb-md">
+          <div>
+            <div class="metric-value">24</div>
+            <div class="metric-label">This Month</div>
+          </div>
+          <div class="w-12 h-12 bg-success rounded-xl flex items-center justify-center">
+            <i class="fi fi-rr-check text-inverse text-lg"></i>
+          </div>
+        </div>
+        <div class="text-sm text-success">+12% from last month</div>
+      </div>
 
-      <button id="send">Submit Request</button>
-    </section>
+      <div class="data-card">
+        <div class="flex items-center justify-between mb-md">
+          <div>
+            <div class="metric-value">4.8</div>
+            <div class="metric-label">Avg. Response Time</div>
+          </div>
+          <div class="w-12 h-12 bg-info rounded-xl flex items-center justify-center">
+            <i class="fi fi-rr-time-fast text-inverse text-lg"></i>
+          </div>
+        </div>
+        <div class="text-sm text-muted">Hours to approval</div>
+      </div>
+    </div>
 
-    <section class="timeline-card">
-      <h2>Your Requests</h2>
-      <div id="list"></div>
-    </section>
+    <!-- Quick Actions -->
+    <div class="quick-actions stagger-animation">
+      <a href="./portalB.html" class="action-btn">
+        <i class="fi fi-rr-plus"></i>
+        <span>New Permission</span>
+      </a>
+      <a href="./portalC.html" class="action-btn">
+        <i class="fi fi-rr-calendar"></i>
+        <span>View Schedule</span>
+      </a>
+      <a href="/public/lab-resources.html" target="_blank" class="action-btn">
+        <i class="fi fi-rr-computer"></i>
+        <span>Lab Booking</span>
+      </a>
+      <a href="/public/alumni-chatbot.html" target="_blank" class="action-btn">
+        <i class="fi fi-rr-robot"></i>
+        <span>Ask Alumni</span>
+      </a>
+    </div>
 
+    <!-- Main Content Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-xl">
+      <!-- Permission Types -->
+      <div class="lg:col-span-2">
+        <div class="card">
+          <div class="card-header">
+            <h3 class="text-xl font-bold text-primary m-0">Request Permission</h3>
+            <p class="text-muted m-0">Choose the type of permission you need</p>
+          </div>
+          <div class="card-content">
+            <div class="dashboard-grid">
+              <div class="permission-card stagger-animation">
+                <div class="permission-icon library">
+                  <i class="fi fi-rr-book"></i>
+                </div>
+                <div>
+                  <h4 class="permission-title">Library Access</h4>
+                  <p class="permission-description">Request extended library hours or special collection access</p>
+                </div>
+              </div>
+
+              <div class="permission-card stagger-animation">
+                <div class="permission-icon lab">
+                  <i class="fi fi-rr-flask"></i>
+                </div>
+                <div>
+                  <h4 class="permission-title">Lab Equipment</h4>
+                  <p class="permission-description">Reserve laboratory equipment and facilities</p>
+                </div>
+              </div>
+
+              <div class="permission-card stagger-animation">
+                <div class="permission-icon event">
+                  <i class="fi fi-rr-calendar"></i>
+                </div>
+                <div>
+                  <h4 class="permission-title">Event Permission</h4>
+                  <p class="permission-description">Request approval for organizing college events</p>
+                </div>
+              </div>
+
+              <div class="permission-card stagger-animation">
+                <div class="permission-icon transport">
+                  <i class="fi fi-rr-bus"></i>
+                </div>
+                <div>
+                  <h4 class="permission-title">Transport</h4>
+                  <p class="permission-description">Request transportation for field trips or events</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity Feed -->
+      <div class="lg:col-span-1">
+        <div class="activity-feed stagger-animation">
+          <div class="activity-header">
+            <h3 class="activity-title">Recent Activity</h3>
+          </div>
+          <div class="activity-list">
+            <div class="activity-item">
+              <div class="activity-icon success">
+                <i class="fi fi-rr-check"></i>
+              </div>
+              <div class="activity-content">
+                <h4>Lab Access Approved</h4>
+                <p>Chemistry Lab - Period 3</p>
+              </div>
+              <div class="activity-time">2h ago</div>
+            </div>
+
+            <div class="activity-item">
+              <div class="activity-icon warning">
+                <i class="fi fi-rr-clock"></i>
+              </div>
+              <div class="activity-content">
+                <h4>Library Extension Pending</h4>
+                <p>Extended hours request</p>
+              </div>
+              <div class="activity-time">4h ago</div>
+            </div>
+
+            <div class="activity-item">
+              <div class="activity-icon info">
+                <i class="fi fi-rr-calendar"></i>
+              </div>
+              <div class="activity-content">
+                <h4>Event Permission Submitted</h4>
+                <p>Tech Fest 2024</p>
+              </div>
+              <div class="activity-time">1d ago</div>
+            </div>
+
+            <div class="activity-item">
+              <div class="activity-icon success">
+                <i class="fi fi-rr-check"></i>
+              </div>
+              <div class="activity-content">
+                <h4>Transport Approved</h4>
+                <p>Field trip to museum</p>
+              </div>
+              <div class="activity-time">2d ago</div>
+            </div>
+
+            <div class="activity-item">
+              <div class="activity-icon info">
+                <i class="fi fi-rr-bell"></i>
+              </div>
+              <div class="activity-content">
+                <h4>New Policy Update</h4>
+                <p>Lab safety guidelines</p>
+              </div>
+              <div class="activity-time">3d ago</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </main>
 
-  <script type="module">
-    import {
-      createPermission,
-      getUserPermissions,
-      getPermissionTimeline
-    } from "/assets/js/permission-events.js";
+  <!-- Advanced JavaScript for Interactions -->
+  <script>
+    // Theme Management
+    const themeToggle = document.getElementById('themeToggle');
+    const html = document.documentElement;
 
-    const uid = sessionStorage.getItem("uid");
-    const list = document.getElementById("list");
+    function initTheme() {
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      html.setAttribute('data-theme', savedTheme);
+      updateThemeIcon(savedTheme);
+    }
 
-    document.getElementById("send").onclick = async () => {
-      const scope = document.getElementById("scope").value;
-      const from = document.getElementById("from").value;
-      const to = document.getElementById("to").value;
-      const reason = document.getElementById("reason").value;
+    function toggleTheme() {
+      const currentTheme = html.getAttribute('data-theme');
+      const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      updateThemeIcon(newTheme);
+    }
 
-      if (!scope || !from || !to) return;
+    function updateThemeIcon(theme) {
+      const icon = themeToggle.querySelector('i');
+      icon.className = theme === 'dark' ? 'fi fi-rr-sun text-yellow-400 text-lg' : 'fi fi-rr-moon text-lg text-primary';
+    }
 
-      await createPermission({
-        ownerUid: uid,
-        scope,
-        validFrom: from,
-        validTill: to,
-        data: { reason }
+    themeToggle.addEventListener('click', toggleTheme);
+    initTheme();
+
+    // Advanced Permission Card Interactions
+    document.querySelectorAll('.permission-card').forEach(card => {
+      card.addEventListener('click', () => {
+        // Add click animation
+        card.style.transform = 'scale(0.98)';
+        setTimeout(() => {
+          card.style.transform = '';
+          // Navigate to permission form (you can customize this)
+          window.location.href = './portalB.html';
+        }, 150);
       });
+    });
 
-      location.reload();
+    // Animate progress rings on scroll
+    const observerOptions = {
+      threshold: 0.1,
+      rootMargin: '0px 0px -50px 0px'
     };
 
-    async function load() {
-      const items = await getUserPermissions(uid);
-      list.innerHTML = "";
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const circle = entry.target.querySelector('.progress-ring-circle-fill');
+          if (circle) {
+            circle.style.strokeDashoffset = '66'; // 70% progress
+          }
+        }
+      });
+    }, observerOptions);
 
-      for (const p of items) {
-        const div = document.createElement("div");
-        div.className = "request-item";
-        div.textContent = `${p.scope} (${p.sealed ? "Authorized" : "Pending"})`;
-        div.onclick = async () => {
-          const t = await getPermissionTimeline(p.id);
-          alert(
-            t.map(e => `${e.type} - ${e.actorRole}`).join("\n")
-          );
-        };
-        list.appendChild(div);
+    document.querySelectorAll('.data-card').forEach(card => {
+      observer.observe(card);
+    });
+
+    // Advanced stagger animations
+    const animatedElements = document.querySelectorAll('.stagger-animation');
+    animatedElements.forEach((element, index) => {
+      element.style.animationDelay = `${index * 100}ms`;
+    });
+
+    // Route guard (existing functionality)
+    if (typeof routeGuard !== 'undefined') {
+      routeGuard();
+    }
+  </script>
+</body>
+</html>
+    <!-- Stepper Header -->
+    <div class="mb-8">
+      <div class="text-center mb-6">
+        <h1 class="text-2xl font-semibold text-gray-900 dark:text-white mb-1">Request Permission</h1>
+        <p class="text-sm text-gray-600 dark:text-gray-400">Complete the steps below to submit your request</p>
+      </div>
+
+      <!-- Step Indicator -->
+      <div class="flex items-center justify-center max-w-md mx-auto">
+        <div class="flex items-center flex-1">
+          <div id="step1" class="step-circle active">
+            <span class="step-number">1</span>
+          </div>
+          <div class="step-line"></div>
+        </div>
+        <div class="flex items-center flex-1">
+          <div id="step2" class="step-circle">
+            <span class="step-number">2</span>
+          </div>
+          <div class="step-line"></div>
+        </div>
+        <div class="flex items-center">
+          <div id="step3" class="step-circle">
+            <span class="step-number">3</span>
+          </div>
+        </div>
+      </div>
+      <div class="flex justify-between max-w-md mx-auto mt-2">
+        <span class="step-label text-xs">Type</span>
+        <span class="step-label text-xs">Details</span>
+        <span class="step-label text-xs">Review</span>
+      </div>
+    </div>
+
+    <!-- Step Content -->
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+      <!-- Step 1: Select Permission Type -->
+      <div id="step1Content" class="step-content active">
+        <div class="p-4">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Select Permission Type</h2>
+          <div class="grid grid-cols-2 gap-3">
+            <button class="permission-type-card" data-type="lab" data-reason="Access to computer lab for project work">
+              <i class="fi fi-rr-computer text-xl text-blue-600 dark:text-blue-400 mb-1"></i>
+              <span class="font-medium text-sm">Lab Access</span>
+            </button>
+            <button class="permission-type-card" data-type="library" data-reason="Extended library hours for research">
+              <i class="fi fi-rr-books text-xl text-green-600 dark:text-green-400 mb-1"></i>
+              <span class="font-medium text-sm">Library</span>
+            </button>
+            <button class="permission-type-card" data-type="sports" data-reason="Sports facility access for practice/training">
+              <i class="fi fi-rr-basketball text-xl text-orange-600 dark:text-orange-400 mb-1"></i>
+              <span class="font-medium text-sm">Sports</span>
+            </button>
+            <button class="permission-type-card" data-type="event" data-reason="Permission to organize/host university event">
+              <i class="fi fi-rr-calendar text-xl text-purple-600 dark:text-purple-400 mb-1"></i>
+              <span class="font-medium text-sm">Event</span>
+            </button>
+            <button class="permission-type-card" data-type="transport" data-reason="University transport for official purposes">
+              <i class="fi fi-rr-bus text-xl text-red-600 dark:text-red-400 mb-1"></i>
+              <span class="font-medium text-sm">Transport</span>
+            </button>
+            <button class="permission-type-card" data-type="other" data-reason="">
+              <i class="fi fi-rr-plus text-xl text-gray-600 dark:text-gray-400 mb-1"></i>
+              <span class="font-medium text-sm">Other</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 2: Details -->
+      <div id="step2Content" class="step-content">
+        <div class="p-4">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Permission Details</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Type</label>
+              <div id="selectedType" class="flex items-center p-2 bg-gray-50 dark:bg-gray-700 rounded">
+                <i class="fi fi-rr-info text-gray-400 mr-2"></i>
+                <span class="text-gray-900 dark:text-white text-sm">Select a permission type first</span>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div>
+                <label for="fromDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">From</label>
+                <input
+                  id="fromDate"
+                  type="datetime-local"
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                />
+              </div>
+              <div>
+                <label for="toDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">To</label>
+                <input
+                  id="toDate"
+                  type="datetime-local"
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label for="reason" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Reason</label>
+              <textarea
+                id="reason"
+                rows="3"
+                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white resize-none text-sm"
+                placeholder="Provide details..."
+              ></textarea>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Review -->
+      <div id="step3Content" class="step-content">
+        <div class="p-4">
+          <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-3">Review Request</h2>
+          <div class="space-y-3">
+            <div class="bg-gray-50 dark:bg-gray-700 rounded p-3">
+              <h3 class="font-medium text-gray-900 dark:text-white text-sm mb-1">Type</h3>
+              <p id="reviewType" class="text-gray-600 dark:text-gray-300 text-sm">Not selected</p>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-700 rounded p-3">
+              <h3 class="font-medium text-gray-900 dark:text-white text-sm mb-1">Duration</h3>
+              <p id="reviewDuration" class="text-gray-600 dark:text-gray-300 text-sm">Not specified</p>
+            </div>
+            <div class="bg-gray-50 dark:bg-gray-700 rounded p-3">
+              <h3 class="font-medium text-gray-900 dark:text-white text-sm mb-1">Reason</h3>
+              <p id="reviewReason" class="text-gray-600 dark:text-gray-300 text-sm">Not provided</p>
+            </div>
+          </div>
+          <div class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded">
+            <div class="flex items-start">
+              <i class="fi fi-rr-info text-blue-600 dark:text-blue-400 mt-0.5 mr-2"></i>
+              <div>
+                <h4 class="font-medium text-blue-800 dark:text-blue-200 text-sm">Approval Process</h4>
+                <p class="text-blue-700 dark:text-blue-300 text-xs mt-1">
+                  Request sent to teacher → HOD for approval. Email notifications included.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Buttons -->
+    <div class="flex justify-between mt-6">
+      <button id="prevBtn" class="px-6 py-2 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        <i class="fi fi-rr-angle-left mr-2"></i>Previous
+      </button>
+      <button id="nextBtn" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
+        Next<i class="fi fi-rr-angle-right ml-2"></i>
+      </button>
+      <button id="submitBtn" class="hidden px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+        <i class="fi fi-rr-paper-plane mr-2"></i>Submit Request
+      </button>
+    </div>
+  </main>
+
+  <!-- Success Modal -->
+  <div id="successModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+      <div class="text-center">
+        <div class="w-16 h-16 bg-green-100 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fi fi-rr-check text-green-600 dark:text-green-400 text-2xl"></i>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">Request Submitted!</h3>
+        <p class="text-gray-600 dark:text-gray-300 mb-4">Your permission request has been sent for approval.</p>
+        <button id="closeModal" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+          Continue
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initTheme, toggleTheme } from '/assets/js/theme.js';
+    import { createPermission } from "/assets/js/permission-events.js";
+
+    // Initialize theme
+    initTheme();
+
+    // Theme toggle
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      toggleTheme();
+      const icon = document.querySelector('#themeToggle i');
+      icon.className = document.documentElement.getAttribute('data-theme') === 'dark' ? 'fi fi-rr-sun text-yellow-400' : 'fi fi-rr-moon text-gray-600 dark:text-gray-300';
+    });
+
+    const uid = sessionStorage.getItem("uid");
+    let currentStep = 1;
+    let selectedPermissionType = null;
+
+    const stepContents = ['step1Content', 'step2Content', 'step3Content'];
+    const stepCircles = ['step1', 'step2', 'step3'];
+
+    // Stepper functions
+    function updateStepper() {
+      stepContents.forEach((id, index) => {
+        const element = document.getElementById(id);
+        const circle = document.getElementById(stepCircles[index]);
+        if (index + 1 === currentStep) {
+          element.classList.add('active');
+          circle.classList.add('active');
+          // Add entrance animation
+          element.style.animation = 'slideInRight 0.3s ease-out';
+        } else {
+          element.classList.remove('active');
+          circle.classList.remove('active');
+        }
+      });
+
+      document.getElementById('prevBtn').style.display = currentStep > 1 ? 'block' : 'none';
+      document.getElementById('nextBtn').style.display = currentStep < 3 ? 'block' : 'none';
+      document.getElementById('submitBtn').style.display = currentStep === 3 ? 'block' : 'none';
+    }
+
+    function nextStep() {
+      if (currentStep < 3) {
+        if (currentStep === 1 && !selectedPermissionType) {
+          alert('Please select a permission type');
+          return;
+        }
+        if (currentStep === 2) {
+          const fromDate = document.getElementById('fromDate').value;
+          const toDate = document.getElementById('toDate').value;
+          const reason = document.getElementById('reason').value;
+          if (!fromDate || !toDate || !reason) {
+            alert('Please fill in all required fields');
+            return;
+          }
+          updateReview();
+        }
+        currentStep++;
+        updateStepper();
       }
     }
 
-    load();
+    function prevStep() {
+      if (currentStep > 1) {
+        currentStep--;
+        updateStepper();
+      }
+    }
+
+    // Permission type selection
+    document.querySelectorAll('.permission-type-card').forEach(card => {
+      card.addEventListener('click', () => {
+        document.querySelectorAll('.permission-type-card').forEach(c => c.classList.remove('selected'));
+        card.classList.add('selected');
+        selectedPermissionType = {
+          type: card.dataset.type,
+          reason: card.dataset.reason
+        };
+        document.getElementById('selectedType').innerHTML = `
+          <i class="fi fi-rr-${getIconForType(card.dataset.type)} text-blue-600 dark:text-blue-400 mr-3"></i>
+          <span class="text-gray-900 dark:text-white">${card.querySelector('span').textContent}</span>
+        `;
+        document.getElementById('reason').value = card.dataset.reason;
+      });
+    });
+
+    function getIconForType(type) {
+      const icons = {
+        lab: 'computer',
+        library: 'books',
+        sports: 'basketball',
+        event: 'calendar',
+        transport: 'bus',
+        other: 'plus'
+      };
+      return icons[type] || 'info';
+    }
+
+    function updateReview() {
+      if (selectedPermissionType) {
+        document.getElementById('reviewType').textContent = selectedPermissionType.type.charAt(0).toUpperCase() + selectedPermissionType.type.slice(1);
+      }
+      const fromDate = document.getElementById('fromDate').value;
+      const toDate = document.getElementById('toDate').value;
+      if (fromDate && toDate) {
+        const from = new Date(fromDate).toLocaleString();
+        const to = new Date(toDate).toLocaleString();
+        document.getElementById('reviewDuration').textContent = `${from} to ${to}`;
+      }
+      document.getElementById('reviewReason').textContent = document.getElementById('reason').value;
+    }
+
+    // Event listeners
+    document.getElementById('nextBtn').addEventListener('click', nextStep);
+    document.getElementById('prevBtn').addEventListener('click', prevStep);
+
+    document.getElementById('submitBtn').addEventListener('click', async () => {
+      const scope = selectedPermissionType.type;
+      const from = document.getElementById('fromDate').value;
+      const to = document.getElementById('toDate').value;
+      const reason = document.getElementById('reason').value;
+
+      try {
+        await createPermission({
+          ownerUid: uid,
+          scope,
+          validFrom: from,
+          validTill: to,
+          data: { reason }
+        });
+        document.getElementById('successModal').classList.remove('hidden');
+      } catch (error) {
+        alert('Failed to submit request. Please try again.');
+      }
+    });
+
+    document.getElementById('closeModal').addEventListener('click', () => {
+      document.getElementById('successModal').classList.add('hidden');
+      location.reload();
+    });
+
+    // Initialize
+    updateStepper();
   </script>
 
+  <style>
+    .step-circle {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background-color: #e5e7eb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 8px;
+      transition: all 0.3s ease;
+    }
+    .step-circle.active {
+      background-color: #3b82f6;
+      transform: scale(1.1);
+    }
+    .step-circle .step-number {
+      color: #6b7280;
+      font-weight: 600;
+    }
+    .step-circle.active .step-number {
+      color: white;
+    }
+    .step-label {
+      font-size: 14px;
+      color: #6b7280;
+      margin-left: 8px;
+    }
+    .step-line {
+      width: 60px;
+      height: 2px;
+      background-color: #e5e7eb;
+      margin: 0 8px;
+      transition: background-color 0.3s ease;
+    }
+    .step-content {
+      display: none;
+      opacity: 0;
+      transform: translateX(20px);
+    }
+    .step-content.active {
+      display: block;
+      opacity: 1;
+      transform: translateX(0);
+    }
+    @keyframes slideInRight {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    .permission-type-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px;
+      border: 1px solid #e5e7eb;
+      border-radius: 6px;
+      background-color: white;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    .dark .permission-type-card {
+      background-color: #374151;
+      border-color: #4b5563;
+    }
+    .permission-type-card:hover {
+      border-color: #3b82f6;
+      background-color: #f8fafc;
+    }
+    .dark .permission-type-card:hover {
+      background-color: #4b5563;
+    }
+    .permission-type-card.selected {
+      border-color: #3b82f6;
+      background-color: #eff6ff;
+    }
+    .dark .permission-type-card.selected {
+      background-color: #1e3a8a;
+    }
+  </style>
 </body>
 </html>

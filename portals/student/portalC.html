@@ -1,66 +1,813 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full" data-theme="light">
 <head>
-<meta charset="UTF-8">
-<title>Lab Info • Student</title>
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
-<script src="/assets/js/route-guard.js"></script>
-<style>
-*{box-sizing:border-box;font-family:Inter,system-ui,sans-serif}
-body{margin:0;background:#0b0f2a;color:#fff}
-nav{
- padding:1rem 1.4rem;display:flex;gap:1.2rem;
- background:rgba(0,0,0,.4);backdrop-filter:blur(10px)
-}
-nav a{color:#9db5ff;text-decoration:none;font-size:.9rem}
-nav a.active{color:#fff;font-weight:600}
-.container{padding:1.6rem}
-.card{
- background:rgba(255,255,255,.06);border-radius:14px;
- padding:1.4rem;margin-bottom:1rem
-}
-h2{margin:.2rem 0 .8rem;font-size:1.1rem}
-table{width:100%;border-collapse:collapse;font-size:.85rem}
-td,th{
- border-bottom:1px solid rgba(255,255,255,.1);
- padding:.6rem;text-align:left
-}
-th{color:#9db5ff;font-weight:500}
-small{color:#aaa}
-</style>
+  <meta charset="UTF-8" />
+  <title>Uni Pass • Lab Resources</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="/assets/css/advanced.css" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@flaticon/flaticon-uicons/css/all/all.css">
+  <script src="/assets/js/route-guard.js"></script>
+  <style>
+    /* Lab Resources Portal Specific Styles */
+    .lab-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: var(--space-xl);
+      margin-bottom: var(--space-2xl);
+    }
+
+    .lab-card {
+      background: var(--color-bg-secondary);
+      border: 1px solid var(--color-border-primary);
+      border-radius: var(--radius-2xl);
+      overflow: hidden;
+      transition: all var(--duration-300) var(--easing-out);
+      position: relative;
+    }
+
+    .lab-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-xl);
+      border-color: var(--color-primary);
+    }
+
+    .lab-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--color-primary), var(--color-secondary));
+      transform: scaleX(0);
+      transition: transform var(--duration-300) var(--easing-out);
+    }
+
+    .lab-card:hover::before {
+      transform: scaleX(1);
+    }
+
+    .lab-header {
+      padding: var(--space-xl);
+      background: linear-gradient(135deg, var(--color-bg-accent), var(--color-bg-tertiary));
+      border-bottom: 1px solid var(--color-border-primary);
+      position: relative;
+    }
+
+    .lab-title {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      margin-bottom: var(--space-sm);
+    }
+
+    .lab-icon {
+      width: 3rem;
+      height: 3rem;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+      border-radius: var(--radius-lg);
+      display: grid;
+      place-items: center;
+      color: var(--color-text-inverse);
+      font-size: var(--text-xl);
+      box-shadow: var(--shadow-md);
+    }
+
+    .lab-name {
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--color-text-primary);
+    }
+
+    .lab-status {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-xs);
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--radius-full);
+      font-size: var(--text-xs);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .lab-status.free {
+      background: hsl(var(--hue-success), 89%, 46%, 0.1);
+      color: var(--color-success);
+      border: 1px solid hsl(var(--hue-success), 89%, 46%, 0.2);
+    }
+
+    .lab-status.busy {
+      background: hsl(var(--hue-error), 89%, 56%, 0.1);
+      color: var(--color-error);
+      border: 1px solid hsl(var(--hue-error), 89%, 56%, 0.2);
+    }
+
+    .lab-status.maintenance {
+      background: hsl(var(--hue-warning), 89%, 56%, 0.1);
+      color: var(--color-warning);
+      border: 1px solid hsl(var(--hue-warning), 89%, 56%, 0.2);
+    }
+
+    .status-dot {
+      width: 0.5rem;
+      height: 0.5rem;
+      border-radius: var(--radius-full);
+      animation: pulse 2s infinite;
+    }
+
+    .lab-status.free .status-dot {
+      background: var(--color-success);
+    }
+
+    .lab-status.busy .status-dot {
+      background: var(--color-error);
+    }
+
+    .lab-status.maintenance .status-dot {
+      background: var(--color-warning);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+
+    .lab-content {
+      padding: var(--space-xl);
+    }
+
+    .lab-info-grid {
+      display: grid;
+      gap: var(--space-lg);
+      margin-bottom: var(--space-lg);
+    }
+
+    .info-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: var(--space-md);
+      background: var(--color-bg-accent);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border-primary);
+      transition: all var(--duration-200) var(--easing-out);
+    }
+
+    .info-item:hover {
+      background: var(--color-bg-tertiary);
+      transform: translateX(4px);
+    }
+
+    .info-label {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-text-secondary);
+    }
+
+    .info-value {
+      font-size: var(--text-sm);
+      color: var(--color-text-primary);
+      font-weight: 500;
+    }
+
+    .software-list {
+      display: grid;
+      gap: var(--space-sm);
+    }
+
+    .software-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      padding: var(--space-md);
+      background: var(--color-bg-accent);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border-primary);
+      transition: all var(--duration-200) var(--easing-out);
+    }
+
+    .software-item:hover {
+      background: var(--color-bg-tertiary);
+      transform: translateX(4px);
+      border-color: var(--color-primary);
+    }
+
+    .software-icon {
+      width: 2rem;
+      height: 2rem;
+      background: linear-gradient(135deg, var(--color-accent), hsl(var(--hue-accent), 89%, 36%));
+      border-radius: var(--radius-md);
+      display: grid;
+      place-items: center;
+      color: var(--color-text-inverse);
+      font-size: var(--text-sm);
+      flex-shrink: 0;
+    }
+
+    .software-name {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-text-primary);
+    }
+
+    .software-version {
+      font-size: var(--text-2xs);
+      color: var(--color-text-muted);
+      margin-left: auto;
+    }
+
+    /* Schedule Section */
+    .schedule-section {
+      background: var(--color-bg-secondary);
+      border: 1px solid var(--color-border-primary);
+      border-radius: var(--radius-2xl);
+      padding: var(--space-xl);
+      margin-bottom: var(--space-xl);
+    }
+
+    .schedule-header {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      margin-bottom: var(--space-lg);
+    }
+
+    .schedule-title {
+      font-size: var(--text-xl);
+      font-weight: 700;
+      color: var(--color-text-primary);
+    }
+
+    .schedule-grid {
+      display: grid;
+      gap: var(--space-md);
+    }
+
+    .schedule-item {
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: var(--space-md);
+      align-items: center;
+      padding: var(--space-md);
+      background: var(--color-bg-accent);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border-primary);
+      transition: all var(--duration-200) var(--easing-out);
+    }
+
+    .schedule-item:hover {
+      background: var(--color-bg-tertiary);
+      transform: translateX(4px);
+    }
+
+    .schedule-time {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-primary);
+      white-space: nowrap;
+    }
+
+    .schedule-details {
+      flex: 1;
+    }
+
+    .schedule-lab {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-xs);
+    }
+
+    .schedule-purpose {
+      font-size: var(--text-xs);
+      color: var(--color-text-secondary);
+    }
+
+    .schedule-badge {
+      padding: var(--space-xs) var(--space-sm);
+      border-radius: var(--radius-full);
+      font-size: var(--text-2xs);
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .schedule-badge.lecture {
+      background: hsl(var(--hue-primary), 89%, 56%, 0.1);
+      color: var(--color-primary);
+    }
+
+    .schedule-badge.practical {
+      background: hsl(var(--hue-success), 89%, 46%, 0.1);
+      color: var(--color-success);
+    }
+
+    .schedule-badge.maintenance {
+      background: hsl(var(--hue-warning), 89%, 56%, 0.1);
+      color: var(--color-warning);
+    }
+
+    /* Stats Overview */
+    .stats-overview {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: var(--space-lg);
+      margin-bottom: var(--space-xl);
+    }
+
+    .stat-card {
+      background: var(--color-bg-secondary);
+      border: 1px solid var(--color-border-primary);
+      border-radius: var(--radius-xl);
+      padding: var(--space-lg);
+      text-align: center;
+      transition: all var(--duration-200) var(--easing-out);
+    }
+
+    .stat-card:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-md);
+      border-color: var(--color-primary);
+    }
+
+    .stat-icon {
+      width: 3rem;
+      height: 3rem;
+      background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
+      border-radius: var(--radius-lg);
+      display: grid;
+      place-items: center;
+      color: var(--color-text-inverse);
+      font-size: var(--text-xl);
+      margin: 0 auto var(--space-md);
+    }
+
+    .stat-value {
+      font-size: var(--text-2xl);
+      font-weight: 700;
+      color: var(--color-text-primary);
+      margin-bottom: var(--space-xs);
+    }
+
+    .stat-label {
+      font-size: var(--text-sm);
+      color: var(--color-text-secondary);
+    }
+
+    /* Responsive Design */
+    @container (max-width: 768px) {
+      .lab-grid {
+        grid-template-columns: 1fr;
+      }
+      
+      .stats-overview {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+  </style>
 </head>
 
-<body>
-<nav>
-  <a href="../student/portalA.html">Portal A</a>
-  <a href="../student/portalB.html">Portal B</a>
-  <a class="active">Portal C</a>
-</nav>
+<body class="auth-container">
+  <!-- Header -->
+  <header class="auth-header">
+    <div class="brand">
+      <i class="fi fi-rr-graduation-cap" style="font-size: var(--text-xl); color: var(--color-primary); margin-right: var(--space-sm);"></i>
+      <span style="font-size: var(--text-lg); font-weight: 700; color: var(--color-text-primary);">UniPass</span>
+    </div>
+    <nav style="display: flex; gap: var(--space-md); align-items: center;">
+      <a href="portalA.html" class="footer-link">Portal A</a>
+      <a href="portalB.html" class="footer-link">Portal B</a>
+      <a href="#" class="footer-link" style="color: var(--color-primary); font-weight: 600;">Portal C</a>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+        <i class="fi fi-rr-moon" style="font-size: var(--text-lg); color: var(--color-text-primary);"></i>
+      </button>
+    </nav>
+  </header>
 
-<div class="container">
+  <!-- Main Content -->
+  <main class="auth-main">
+    <div style="width: 100%; max-width: 1200px; margin: 0 auto;">
+      <!-- Header Section -->
+      <div style="text-align: center; margin-bottom: var(--space-2xl);">
+        <h1 style="font-size: var(--text-3xl); font-weight: 700; color: var(--color-text-primary); margin-bottom: var(--space-md);">
+          Lab Resources & Schedule
+        </h1>
+        <p style="font-size: var(--text-lg); color: var(--color-text-secondary); max-width: 600px; margin: 0 auto;">
+          Real-time lab availability, software information, and schedule management
+        </p>
+      </div>
 
-  <div class="card">
-    <h2>Lab Free Hours</h2>
-    <table>
-      <tr><th>Lab</th><th>Status</th><th>Next Free Slot</th></tr>
-      <tr><td>AI Lab</td><td>Busy</td><td><small>4:00 – 6:00 PM</small></td></tr>
-      <tr><td>Networks Lab</td><td>Free</td><td><small>Now</small></td></tr>
-    </table>
-  </div>
+      <!-- Stats Overview -->
+      <div class="stats-overview">
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fi fi-rr-flask"></i>
+          </div>
+          <div class="stat-value">8</div>
+          <div class="stat-label">Total Labs</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fi fi-rr-check-circle"></i>
+          </div>
+          <div class="stat-value">3</div>
+          <div class="stat-label">Available Now</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fi fi-rr-clock"></i>
+          </div>
+          <div class="stat-value">2</div>
+          <div class="stat-label">Busy</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon">
+            <i class="fi fi-rr-tools"></i>
+          </div>
+          <div class="stat-value">1</div>
+          <div class="stat-label">Maintenance</div>
+        </div>
+      </div>
 
-  <div class="card">
-    <h2>Available Software</h2>
-    <table>
-      <tr><th>Software</th><th>Lab</th></tr>
-      <tr><td>MATLAB</td><td>AI Lab</td></tr>
-      <tr><td>Vivado</td><td>VLSI Lab</td></tr>
-    </table>
-  </div>
+      <!-- Today's Schedule -->
+      <div class="schedule-section">
+        <div class="schedule-header">
+          <div class="stat-icon" style="width: 2.5rem; height: 2.5rem; font-size: var(--text-lg);">
+            <i class="fi fi-rr-calendar"></i>
+          </div>
+          <div class="schedule-title">Today's Lab Schedule</div>
+        </div>
+        <div class="schedule-grid">
+          <div class="schedule-item">
+            <div class="schedule-time">9:00 AM</div>
+            <div class="schedule-details">
+              <div class="schedule-lab">AI Lab</div>
+              <div class="schedule-purpose">Machine Learning Practical - CSE Batch A</div>
+            </div>
+            <div class="schedule-badge practical">Practical</div>
+          </div>
+          <div class="schedule-item">
+            <div class="schedule-time">11:00 AM</div>
+            <div class="schedule-details">
+              <div class="schedule-lab">Networks Lab</div>
+              <div class="schedule-purpose">Computer Networks Lab - CSE Batch B</div>
+            </div>
+            <div class="schedule-badge practical">Practical</div>
+          </div>
+          <div class="schedule-item">
+            <div class="schedule-time">2:00 PM</div>
+            <div class="schedule-details">
+              <div class="schedule-lab">VLSI Lab</div>
+              <div class="schedule-purpose">Digital Circuit Design - ECE Batch A</div>
+            </div>
+            <div class="schedule-badge lecture">Lecture</div>
+          </div>
+          <div class="schedule-item">
+            <div class="schedule-time">4:00 PM</div>
+            <div class="schedule-details">
+              <div class="schedule-lab">AI Lab</div>
+              <div class="schedule-purpose">System Maintenance</div>
+            </div>
+            <div class="schedule-badge maintenance">Maintenance</div>
+          </div>
+        </div>
+      </div>
 
-</div>
+      <!-- Lab Grid -->
+      <div class="lab-grid">
+        <!-- AI Lab -->
+        <div class="lab-card">
+          <div class="lab-header">
+            <div class="lab-title">
+              <div class="lab-icon">
+                <i class="fi fi-rr-brain"></i>
+              </div>
+              <div>
+                <div class="lab-name">AI Lab</div>
+                <div class="lab-status busy">
+                  <div class="status-dot"></div>
+                  <span>Busy</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="lab-content">
+            <div class="lab-info-grid">
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fi fi-rr-users"></i>
+                  <span>Capacity</span>
+                </div>
+                <div class="info-value">30 Students</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fi fi-rr-clock"></i>
+                  <span>Next Free</span>
+                </div>
+                <div class="info-value">4:00 - 6:00 PM</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fi fi-rr-user"></i>
+                  <span>Incharge</span>
+                </div>
+                <div class="info-value">Dr. Smith</div>
+              </div>
+            </div>
+            <div style="margin-top: var(--space-lg);">
+              <div style="font-size: var(--text-sm); font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--space-sm);">
+                Available Software
+              </div>
+              <div class="software-list">
+                <div class="software-item">
+                  <div class="software-icon">
+                    <i class="fi fi-rr-chart-line"></i>
+                  </div>
+                  <div class="software-name">Python 3.9</div>
+                  <div class="software-version">v3.9.7</div>
+                </div>
+                <div class="software-item">
+                  <div class="software-icon">
+                    <i class="fi fi-rr-cube"></i>
+                  </div>
+                  <div class="software-name">TensorFlow</div>
+                  <div class="software-version">v2.8.0</div>
+                </div>
+                <div class="software-item">
+                  <div class="software-icon">
+                    <i class="fi fi-rr-chart-network"></i>
+                  </div>
+                  <div class="software-name">Jupyter Notebook</div>
+                  <div class="software-version">v6.4.5</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-<script>
-sessionStorage.setItem("role","student")
-</script>
+        <!-- Networks Lab -->
+        <div class="lab-card">
+          <div class="lab-header">
+            <div class="lab-title">
+              <div class="lab-icon">
+                <i class="fi fi-rr-network"></i>
+              </div>
+              <div>
+                <div class="lab-name">Networks Lab</div>
+                <div class="lab-status free">
+                  <div class="status-dot"></div>
+                  <span>Free</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="lab-content">
+            <div class="lab-info-grid">
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fi fi-rr-users"></i>
+                  <span>Capacity</span>
+                </div>
+                <div class="info-value">25 Students</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fi fi-rr-clock"></i>
+                  <span>Available</span>
+                </div>
+                <div class="info-value">Now</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fi fi-rr-user"></i>
+                  <span>Incharge</span>
+                </div>
+                <div class="info-value">Prof. Johnson</div>
+              </div>
+            </div>
+            <div style="margin-top: var(--space-lg);">
+              <div style="font-size: var(--text-sm); font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--space-sm);">
+                Available Software
+              </div>
+              <div class="software-list">
+                <div class="software-item">
+                  <div class="software-icon">
+                    <i class="fi fi-rr-terminal"></i>
+                  </div>
+                  <div class="software-name">Cisco Packet Tracer</div>
+                  <div class="software-version">v8.2.0</div>
+                </div>
+                <div class="software-item">
+                  <div class="software-icon">
+                    <i class="fi fi-rr-shield"></i>
+                  </div>
+                  <div class="software-name">Wireshark</div>
+                  <div class="software-version">v3.6.1</div>
+                </div>
+                <div class="software-item">
+                  <div class="software-icon">
+                    <i class="fi fi-rr-server"></i>
+                  </div>
+                  <div class="software-name">VMware Workstation</div>
+                  <div class="software-version">v16.2.1</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- VLSI Lab -->
+        <div class="lab-card">
+          <div class="lab-header">
+            <div class="lab-title">
+              <div class="lab-icon">
+                <i class="fi fi-rr-microchip"></i>
+              </div>
+              <div>
+                <div class="lab-name">VLSI Lab</div>
+                <div class="lab-status free">
+                  <div class="status-dot"></div>
+                  <span>Free</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="lab-content">
+            <div class="lab-info-grid">
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fi fi-rr-users"></i>
+                  <span>Capacity</span>
+                </div>
+                <div class="info-value">20 Students</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fi fi-rr-clock"></i>
+                  <span>Available</span>
+                </div>
+                <div class="info-value">Now</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fi fi-rr-user"></i>
+                  <span>Incharge</span>
+                </div>
+                <div class="info-value">Dr. Williams</div>
+              </div>
+            </div>
+            <div style="margin-top: var(--space-lg);">
+              <div style="font-size: var(--text-sm); font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--space-sm);">
+                Available Software
+              </div>
+              <div class="software-list">
+                <div class="software-item">
+                  <div class="software-icon">
+                    <i class="fi fi-rr-drafting"></i>
+                  </div>
+                  <div class="software-name">Vivado</div>
+                  <div class="software-version">v2022.2</div>
+                </div>
+                <div class="software-item">
+                  <div class="software-icon">
+                    <i class="fi fi-rr-chip"></i>
+                  </div>
+                  <div class="software-name">ModelSim</div>
+                  <div class="software-version">v10.7c</div>
+                </div>
+                <div class="software-item">
+                  <div class="software-icon">
+                    <i class="fi fi-rr-cube"></i>
+                  </div>
+                  <div class="software-name">AutoCAD</div>
+                  <div class="software-version">v2023</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Mechanical Lab -->
+        <div class="lab-card">
+          <div class="lab-header">
+            <div class="lab-title">
+              <div class="lab-icon">
+                <i class="fi fi-rr-cog"></i>
+              </div>
+              <div>
+                <div class="lab-name">Mechanical Lab</div>
+                <div class="lab-status maintenance">
+                  <div class="status-dot"></div>
+                  <span>Maintenance</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="lab-content">
+            <div class="lab-info-grid">
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fi fi-rr-users"></i>
+                  <span>Capacity</span>
+                </div>
+                <div class="info-value">35 Students</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fi fi-rr-clock"></i>
+                  <span>Next Free</span>
+                </div>
+                <div class="info-value">Tomorrow 9:00 AM</div>
+              </div>
+              <div class="info-item">
+                <div class="info-label">
+                  <i class="fi fi-rr-user"></i>
+                  <span>Incharge</span>
+                </div>
+                <div class="info-value">Dr. Brown</div>
+              </div>
+            </div>
+            <div style="margin-top: var(--space-lg);">
+              <div style="font-size: var(--text-sm); font-weight: 600; color: var(--color-text-primary); margin-bottom: var(--space-sm);">
+                Available Software
+              </div>
+              <div class="software-list">
+                <div class="software-item">
+                  <div class="software-icon">
+                    <i class="fi fi-rr-cube"></i>
+                  </div>
+                  <div class="software-name">ANSYS</div>
+                  <div class="software-version">v2022 R2</div>
+                </div>
+                <div class="software-item">
+                  <div class="software-icon">
+                    <i class="fi fi-rr-wrench"></i>
+                  </div>
+                  <div class="software-name">SolidWorks</div>
+                  <div class="software-version">v2023</div>
+                </div>
+                <div class="software-item">
+                  <div class="software-icon">
+                    <i class="fi fi-rr-chart-line"></i>
+                  </div>
+                  <div class="software-name">MATLAB</div>
+                  <div class="software-version">vR2022b</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initTheme, toggleTheme } from '/assets/js/theme.js';
+    
+    // Initialize theme
+    initTheme();
+    
+    // Theme toggle
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      toggleTheme();
+      const icon = document.querySelector('#themeToggle i');
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      icon.className = currentTheme === 'dark' ? 'fi fi-rr-sun' : 'fi fi-rr-moon';
+    });
+
+    // Set role for route guard
+    sessionStorage.setItem("role", "student");
+
+    // Simulate real-time updates
+    function updateLabStatus() {
+      const labCards = document.querySelectorAll('.lab-status');
+      labCards.forEach(status => {
+        // Randomly update status for demo
+        if (Math.random() > 0.8) {
+          const currentStatus = status.classList.contains('free') ? 'free' : 
+                              status.classList.contains('busy') ? 'busy' : 'maintenance';
+          const statuses = ['free', 'busy', 'maintenance'];
+          const newStatus = statuses[Math.floor(Math.random() * statuses.length)];
+          
+          if (newStatus !== currentStatus) {
+            status.className = `lab-status ${newStatus}`;
+            const dot = status.querySelector('.status-dot');
+            const span = status.querySelector('span');
+            
+            status.classList.remove('free', 'busy', 'maintenance');
+            status.classList.add(newStatus);
+            span.textContent = newStatus.charAt(0).toUpperCase() + newStatus.slice(1);
+          }
+        }
+      });
+    }
+
+    // Update lab status every 30 seconds for demo
+    setInterval(updateLabStatus, 30000);
+  </script>
 </body>
 </html>
