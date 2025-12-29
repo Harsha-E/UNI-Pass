@@ -7,9 +7,9 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://harsha-e.github.io/UNI-Pass/assets/css/style.css">
-<script src="https://harsha-e.github.io/UNI-Pass/assets/js/ui.js" defer></script>
-    <script type="module" src="https://harsha-e.github.io/UNI-Pass/assets/js/route-guard.js"></script>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+<script src="../../assets/js/ui.js" defer></script>
+    <script type="module" src="../../assets/js/route-guard.js"></script>
 
     <script>
         tailwind.config = {
@@ -129,8 +129,8 @@
         </div>
     </div>
     <script type="module">
-        import { db, auth } from 'https://harsha-e.github.io/UNI-Pass/assets/js/firebase-init.js';
-        import { processApproval } from 'https://harsha-e.github.io/UNI-Pass/assets/js/permission-flow.js';
+        import { db, auth } from '../../assets/js/firebase-init.js';
+        import { processApproval } from '../../assets/js/permission-flow.js';
 
         let currentActionId = null;
         let currentActionType = null;
@@ -140,7 +140,7 @@
 
         // --- AUTH ---
         auth.onAuthStateChanged(user => {
-            if (!user) window.location.href = 'https://harsha-e.github.io/UNI-Pass/public/login.html';
+            if (!user) window.location.href = '../../public/login.html';
             document.getElementById('sidebar-name').innerText = user.displayName || 'Teacher';
             loadRequests('incoming');
         });
@@ -152,7 +152,7 @@ document.getElementById('logout-btn').addEventListener('click', () => {
     
     // 2. Sign out of Firebase
     auth.signOut().then(() => {
-        window.location.href = 'https://harsha-e.github.io/UNI-Pass/public/login.html';
+        window.location.href = '../../public/login.html';
     });
 });
 
@@ -318,5 +318,4 @@ document.getElementById('logout-btn').addEventListener('click', () => {
         });
     </script>
 </body>
-
 </html>

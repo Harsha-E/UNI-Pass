@@ -3,10 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <title>Teacher Portal • UNIPASS</title>
-  <link rel="stylesheet" href="https://harsha-e.github.io/UNI-Pass/assets/css/main.css" />
-  <script type="module" src="https://harsha-e.github.io/UNI-Pass/assets/js/route-guard.js"></script>
-  <link rel="stylesheet" href="https://harsha-e.github.io/UNI-Pass/assets/css/style.css">
-<script src="https://harsha-e.github.io/UNI-Pass/assets/js/ui.js" defer></script>
+  <link rel="stylesheet" href="../../assets/css/main.css" />
+  <script type="module" src="../../assets/js/route-guard.js"></script>
+  <link rel="stylesheet" href="../../assets/css/style.css">
+<script src="../../assets/js/ui.js" defer></script>
 </head>
 <body>
 
@@ -19,17 +19,17 @@
   </main>
 
   <script type="module">
-    import { auth } from "https://harsha-e.github.io/UNI-Pass/assets/js/firebase-init.js";
+    import { auth } from "../../assets/js/firebase-init.js";
     import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
     import {
       fetchTeacherPermissions
-    } from "https://harsha-e.github.io/UNI-Pass/assets/js/permission-events.js";
+    } from "../../assets/js/permission-events.js";
 
     import {
       approveAsTeacher,
       rejectAsTeacher
-    } from "https://harsha-e.github.io/UNI-Pass/assets/js/permission-flow.js";
+    } from "../../assets/js/permission-flow.js";
 
     const pendingList = document.getElementById("pendingList");
     const historyList = document.getElementById("historyList");
@@ -99,4 +99,3 @@
 
 </body>
 </html>
-
