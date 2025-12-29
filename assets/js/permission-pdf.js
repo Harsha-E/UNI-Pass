@@ -1,89 +1,94 @@
-// Import jsPDF from the CDN (ensure this path works in your setup, typically standard for browser modules)
-import { jsPDF } from "https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js";
+/**
+ * UNI-PASS PDF GENERATOR
+ */
+import { db } from './firebase-init.js';
 
-export function generateOfficialPDF(requestData, docId) {
+// 1. Crypto Engine
+async function generateDigitalSignature(data) {
+    const rawString = `${data.studentID}|${data.startDate}|${data.endDate}|${data.status}|${data.timestamp}`;
+    const encoder = new TextEncoder();
+    const encoded = encoder.encode(rawString);
+    const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
+    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// 2. Main Function
+window.generateOfficialPDF = async function(docId, data) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    
-    // -- CONFIGURATION --
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const primaryColor = [30, 58, 138]; // #1e3a8a
-    
-    // 1. Header Section
-    doc.setFillColor(...primaryColor);
-    doc.rect(0, 0, pageWidth, 40, 'F');
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(22);
-    doc.setFont("helvetica", "bold");
-    doc.text("OFFICIAL GATE PASS", pageWidth / 2, 20, { align: 'center' });
-    
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "normal");
-    doc.text("INSTITUTE OF TECHNOLOGY", pageWidth / 2, 30, { align: 'center' });
+    const width = doc.internal.pageSize.getWidth();
 
-    // 2. Student Details
-    const startY = 60;
-    doc.setTextColor(0, 0, 0);
+    // Data Prep
+    const rollNo = data.rollNumber || data.studentID.substring(0,10).toUpperCase();
+    const dept = data.department ? data.department.toUpperCase() : "ENGINEERING";
     
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("STUDENT DETAILS", 20, startY);
+    // Signature Logic
+    let signature = data.digitalSignature;
+    if (!signature) {
+        signature = await generateDigitalSignature(data);
+        await db.collection('permissions').doc(docId).update({ digitalSignature: signature });
+    }
     
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "normal");
-    doc.setLineHeightFactor(1.5);
-    
-    doc.text(`Name: ${requestData.studentName}`, 20, startY + 10);
-    doc.text(`Roll Number: ${requestData.rollNumber}`, 20, startY + 18);
-    doc.text(`Department: ${requestData.department}`, 20, startY + 26);
-    doc.text(`Reason: ${requestData.reasonType}`, 20, startY + 34);
+    // Find Approver
+    const approverEvent = data.workflowHistory?.find(e => e.step === 'APPROVED');
+    const approverName = approverEvent ? approverEvent.actor.toUpperCase() : "AUTHORIZED FACULTY";
 
-    // 3. Authorization Details
-    const authY = startY + 50;
-    doc.setFontSize(14);
-    doc.setFont("helvetica", "bold");
-    doc.text("AUTHORIZATION", 20, authY);
-    
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "normal");
-    
-    doc.text(`Valid From: ${requestData.startDate}`, 20, authY + 10);
-    doc.text(`Valid To: ${requestData.endDate}`, 20, authY + 18);
-    doc.text(`Status: APPROVED`, 20, authY + 26);
-    
-    // 4. Footer & QR Code
+    // --- DESIGN ---
+    // Header
+    doc.setFillColor(30, 58, 138); 
+    doc.rect(0, 0, width, 45, 'F');
+    doc.setTextColor(255);
+    doc.setFont("helvetica", "bold"); doc.setFontSize(20);
+    doc.text("MVGR COLLEGE OF ENGINEERING", width/2, 20, {align: 'center'});
+    doc.setFontSize(12); doc.setFont("helvetica", "normal");
+    doc.text("OFFICIAL CAMPUS GATE PASS", width/2, 35, {align: 'center'});
+
+    // Status Banner
+    doc.setFillColor(220, 252, 231); doc.setDrawColor(22, 163, 74);
+    doc.roundedRect(15, 55, width - 30, 20, 2, 2, 'FD');
+    doc.setTextColor(22, 163, 74); doc.setFontSize(12); doc.setFont("helvetica", "bold");
+    doc.text(`STATUS: APPROVED BY ${approverName}`, width/2, 68, {align: 'center'});
+
+    // Info Table
+    doc.setDrawColor(200); doc.setFillColor(250, 250, 250);
+    doc.rect(15, 85, width - 30, 100, 'FD');
+
+    let y = 100;
+    function addRow(lbl, val) {
+        doc.setTextColor(100); doc.setFontSize(10); doc.text(lbl.toUpperCase(), 25, y);
+        doc.setTextColor(0); doc.setFontSize(12); doc.text(val, 80, y);
+        doc.line(25, y+4, width - 25, y+4);
+        y += 15;
+    }
+
+    addRow("Student Name", data.studentName);
+    addRow("Roll Number", rollNo);
+    addRow("Department", dept);
+    addRow("Section", data.section || "A");
+    addRow("Valid From", new Date(data.startDate).toDateString());
+    addRow("Valid To", new Date(data.endDate).toDateString());
+    addRow("Reason Type", data.reasonType);
+
+    // Reason Note
+    doc.setTextColor(100); doc.setFontSize(10); doc.text("NOTE / DESTINATION:", 25, y+5);
+    doc.setTextColor(50); doc.setFont("helvetica", "italic");
+    const splitText = doc.splitTextToSize(data.reason || "N/A", width - 50);
+    doc.text(splitText, 25, y+12);
+
+// Footer
     const footerY = 250;
     
-    // --- UPDATED QR LINK ---
-    // Make sure this matches your exact GitHub URL
+    // --- UPDATED LINK FOR GITHUB PAGES ---
     const checkUrl = `https://harsha-e.github.io/UNI-Pass/public/checker.html?id=${docId}`;
     
-    doc.addImage(
-        "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(checkUrl), 
-        "PNG", 
-        20, 
-        footerY - 15, 
-        30, 
-        30
-    );
+    doc.addImage("https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(checkUrl), "PNG", 20, footerY-10, 25, 25);
+    doc.setFont("courier", "normal"); doc.setFontSize(8); doc.setTextColor(80);
+    doc.text("DIGITAL HASH:", 50, footerY);
+    doc.text(signature.substring(0, 60), 50, footerY+5);
+    doc.text(signature.substring(60), 50, footerY+10);
     
-    // --- UPDATED TEXT ID ---
-    doc.setFont("courier", "bold"); 
-    doc.setFontSize(12); 
-    doc.setTextColor(0);
-    doc.text("PASS ID: " + docId, 60, footerY); // Readable ID
-
-    doc.setFont("courier", "normal"); 
-    doc.setFontSize(8); 
-    doc.setTextColor(100);
-    doc.text("DIGITAL SIGNATURE VERIFIED", 60, footerY + 6);
+    doc.setFont("helvetica", "italic"); doc.setFontSize(10); doc.setTextColor(0);
+    doc.text("Signed Electronically", width-60, footerY, {align:'center'});
     
-    doc.setFont("helvetica", "italic"); 
-    doc.setFontSize(10); 
-    doc.setTextColor(0);
-    doc.text("Authorized Electronically", pageWidth - 20, footerY, { align: 'right' });
-    
-    // Save File
-    doc.save(`PASS_${requestData.rollNumber || 'Student'}.pdf`);
-}
+    doc.save(`PASS_${rollNo}.pdf`);
+};
