@@ -3,116 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UNI-PASS</title>
+    <title>UNI-PASS | Digital Campus Gateway</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* Custom Brand Colors that were lost when removing the script */
+        /* Define Brand Colors Manually since Script is removed */
         .bg-brand-600 { background-color: #2563eb !important; }
-        .bg-brand-700 { background-color: #1d4ed8 !important; }
+        .bg-brand-800 { background-color: #1e40af !important; }
         .bg-brand-900 { background-color: #1e3a8a !important; }
-        
         .text-brand-600 { color: #2563eb !important; }
-        .text-brand-900 { color: #1e3a8a !important; }
+        .text-brand-800 { color: #1e40af !important; }
         
-        .border-brand-600 { border-color: #2563eb !important; }
-        
-        /* Hover States */
-        .hover\:bg-brand-600:hover { background-color: #2563eb !important; }
+        /* Hover Effects */
         .hover\:bg-brand-700:hover { background-color: #1d4ed8 !important; }
+        .hover\:text-brand-800:hover { color: #1e40af !important; }
         
-        /* Focus Rings */
-        .focus\:ring-brand-600:focus { --tw-ring-color: #2563eb !important; }
+        /* Glassmorphism & Animations */
+        .glass {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+        .animate-float { animation: float 6s ease-in-out infinite; }
         
-        /* Animations */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
-        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .animate-slide-up { animation: slideUp 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.8s ease-out forwards; }
     </style>
 </head>
-    <body class="bg-gradient-to-br from-slate-50 to-slate-200 min-h-screen flex flex-col font-sans text-slate-800">
+<body class="bg-gradient-to-br from-blue-50 via-white to-blue-100 min-h-screen font-sans text-gray-800">
 
-    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200">
+    <nav class="fixed w-full z-50 glass border-b border-white/50">
         <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-brand-600 rounded-lg flex items-center justify-center text-white text-xl shadow-lg shadow-brand-600/30">
-                    <i class="fas fa-university"></i>
+                <div class="w-10 h-10 bg-brand-900 rounded-lg flex items-center justify-center text-white text-lg shadow-lg">
+                    <i class="fas fa-graduation-cap"></i>
                 </div>
-                <span class="font-bold text-2xl tracking-tight text-slate-900">UNI-PASS</span>
+                <span class="font-bold text-2xl tracking-tighter text-gray-900">UNI-PASS</span>
             </div>
-            <div>
-                <a href="public/login.html" class="text-brand-600 font-bold hover:text-brand-900 transition mr-6 hidden sm:inline-block">Staff Login</a>
-                <a href="public/checker.html" class="bg-slate-900 text-white px-5 py-2.5 rounded-full font-bold hover:bg-slate-700 transition shadow-lg">
-                    <i class="fas fa-qrcode mr-2"></i> Verify Pass
+            
+            <div class="hidden md:flex items-center gap-6">
+                <a href="#features" class="text-sm font-medium text-gray-500 hover:text-brand-600 transition">Features</a>
+                <a href="public/checker.html" class="text-sm font-medium text-gray-500 hover:text-brand-600 transition">Verify Pass</a>
+                <a href="public/login.html" class="px-6 py-2.5 bg-brand-900 text-white rounded-full font-bold text-sm hover:bg-brand-800 transition shadow-lg transform hover:-translate-y-0.5">
+                    Login
                 </a>
             </div>
         </div>
     </nav>
 
-    <main class="flex-1 flex items-center justify-center p-6">
-        <div class="max-w-4xl w-full text-center space-y-8 animate-fade-in">
+    <main class="pt-32 pb-20 px-6">
+        <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center gap-12">
             
-            <div class="inline-block bg-blue-100 text-brand-600 px-4 py-1.5 rounded-full text-sm font-bold tracking-wide mb-2 border border-blue-200">
-                <i class="fas fa-bolt mr-2 text-yellow-500"></i> FAST &middot; SECURE &middot; PAPERLESS
-            </div>
-
-            <h1 class="text-5xl md:text-7xl font-black text-slate-900 leading-tight tracking-tight">
-                Campus Permissions <br>
-                <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-cyan-500">Reimagined.</span>
-            </h1>
-
-            <p class="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
-                Streamline gate passes, leave requests, and lab bookings with an automated, QR-verified digital workflow.
-            </p>
-
-            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
-                <a href="public/login.html" class="w-full sm:w-auto px-8 py-4 bg-brand-600 text-white rounded-xl font-bold text-lg hover:bg-brand-700 transition shadow-xl shadow-brand-600/30 transform hover:-translate-y-1">
-                    Student / Staff Login
-                </a>
-                <a href="public/checker.html" class="w-full sm:w-auto px-8 py-4 bg-white text-slate-700 border border-slate-300 rounded-xl font-bold text-lg hover:bg-slate-50 transition shadow-sm hover:shadow-md">
-                    Security Scanner
-                </a>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left mt-16 border-t border-slate-200 pt-12">
-                <div class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition border border-slate-100">
-                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-xl mb-4">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <h3 class="font-bold text-lg text-slate-900">Instant Approvals</h3>
-                    <p class="text-slate-500 text-sm mt-2">Automated routing to Class Teachers and HODs ensures rapid decision-making.</p>
+            <div class="flex-1 text-center md:text-left space-y-8 animate-fade-in">
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-blue-100 text-brand-800 text-xs font-bold uppercase tracking-wider">
+                    <span class="w-2 h-2 rounded-full bg-brand-600 animate-pulse"></span>
+                    System Online
                 </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition border border-slate-100">
-                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 text-xl mb-4">
-                        <i class="fas fa-qrcode"></i>
-                    </div>
-                    <h3 class="font-bold text-lg text-slate-900">QR Verification</h3>
-                    <p class="text-slate-500 text-sm mt-2">Tamper-proof digital gate passes signed with SHA-256 cryptography.</p>
+                
+                <h1 class="text-5xl md:text-7xl font-black text-gray-900 leading-tight">
+                    The Smart Way <br>
+                    <span class="text-brand-600">to Move Campus.</span>
+                </h1>
+                
+                <p class="text-xl text-gray-500 leading-relaxed max-w-lg mx-auto md:mx-0">
+                    Replace manual paperwork with secure, digital gate passes. 
+                    Instant approvals, QR verification, and real-time tracking for students and faculty.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row items-center gap-4 pt-4 justify-center md:justify-start">
+                    <a href="public/login.html" class="w-full sm:w-auto px-8 py-4 bg-brand-600 text-white rounded-xl font-bold text-lg hover:bg-brand-700 transition shadow-xl shadow-blue-500/30">
+                        Get Started <i class="fas fa-arrow-right ml-2"></i>
+                    </a>
+                    <a href="public/checker.html" class="w-full sm:w-auto px-8 py-4 bg-white text-gray-700 border border-gray-200 rounded-xl font-bold text-lg hover:bg-gray-50 transition">
+                        Scanner Tool
+                    </a>
                 </div>
-                <div class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition border border-slate-100">
-                    <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 text-xl mb-4">
-                        <i class="fas fa-mobile-alt"></i>
-                    </div>
-                    <h3 class="font-bold text-lg text-slate-900">Mobile First</h3>
-                    <p class="text-slate-500 text-sm mt-2">Fully responsive design for Students, Faculty, and Security Staff.</p>
+                
+                <div class="pt-8 flex items-center justify-center md:justify-start gap-8 text-gray-400 grayscale opacity-70">
+                    <i class="fab fa-google text-2xl"></i>
+                    <i class="fab fa-github text-2xl"></i>
+                    <i class="fas fa-university text-2xl"></i>
                 </div>
             </div>
+            
+            <div class="flex-1 relative hidden md:block">
+                <div class="absolute inset-0 bg-gradient-to-r from-blue-200 to-purple-200 rounded-full filter blur-3xl opacity-30 animate-pulse"></div>
+                
+                <div class="relative z-10 bg-white p-6 rounded-2xl shadow-2xl border border-gray-100 max-w-sm mx-auto animate-float">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-400">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            <div>
+                                <h4 class="font-bold text-gray-900">Student Pass</h4>
+                                <p class="text-xs text-gray-400">ID: 8723-A</p>
+                            </div>
+                        </div>
+                        <span class="bg-green-100 text-green-600 px-3 py-1 rounded-full text-xs font-bold">ACTIVE</span>
+                    </div>
+                    <div class="h-32 bg-gray-50 rounded-xl flex items-center justify-center border-2 border-dashed border-gray-200 mb-4">
+                        <i class="fas fa-qrcode text-6xl text-gray-800"></i>
+                    </div>
+                    <div class="flex justify-between text-sm">
+                        <span class="text-gray-500">Approver</span>
+                        <span class="font-bold text-brand-600">Class Teacher</span>
+                    </div>
+                </div>
 
+                <div class="absolute top-1/2 -right-4 bg-white p-4 rounded-xl shadow-xl border border-gray-100 animate-float" style="animation-delay: 1s;">
+                    <div class="flex items-center gap-3">
+                        <div class="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center text-white text-xs">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        <div>
+                            <p class="text-xs font-bold text-gray-900">Approved</p>
+                            <p class="text-[10px] text-gray-400">Just now</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </main>
 
-    <footer class="bg-white border-t border-slate-200 py-8 text-center text-slate-400 text-sm">
-        <p>&copy; 2024 UNI-PASS System. All rights reserved.</p>
-        <div class="mt-2 space-x-4">
-            <a href="#" class="hover:text-brand-600">Privacy</a>
-            <a href="#" class="hover:text-brand-600">Terms</a>
-            <a href="admin/admin.html" class="hover:text-brand-600">Admin</a>
+    <section id="features" class="bg-white py-20 border-t border-gray-100">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl font-bold text-gray-900">Why UNI-PASS?</h2>
+                <p class="text-gray-500 mt-2">Built for speed, security, and simplicity.</p>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="p-8 rounded-2xl bg-gray-50 hover:bg-white hover:shadow-xl transition border border-gray-100 group">
+                    <div class="w-14 h-14 bg-blue-100 text-brand-600 rounded-xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition">
+                        <i class="fas fa-bolt"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Instant Workflow</h3>
+                    <p class="text-gray-500 leading-relaxed">Requests are routed automatically to the right faculty member based on duration and reason.</p>
+                </div>
+                
+                <div class="p-8 rounded-2xl bg-gray-50 hover:bg-white hover:shadow-xl transition border border-gray-100 group">
+                    <div class="w-14 h-14 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Crypto Secure</h3>
+                    <p class="text-gray-500 leading-relaxed">Every pass is digitally signed with SHA-256 encryption. Impossible to forge or alter.</p>
+                </div>
+                
+                <div class="p-8 rounded-2xl bg-gray-50 hover:bg-white hover:shadow-xl transition border border-gray-100 group">
+                    <div class="w-14 h-14 bg-green-100 text-green-600 rounded-xl flex items-center justify-center text-2xl mb-6 group-hover:scale-110 transition">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3 class="text-xl font-bold text-gray-900 mb-2">Mobile First</h3>
+                    <p class="text-gray-500 leading-relaxed">Designed for smartphones. Students apply, teachers approve, and guards scan—all on mobile.</p>
+                </div>
+            </div>
         </div>
+    </section>
+
+    <footer class="bg-white py-8 border-t border-gray-100 text-center">
+        <p class="text-gray-400 text-sm">&copy; 2025 UNI-PASS System. All rights reserved.</p>
     </footer>
 
 </body>
 </html>
-
