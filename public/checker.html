@@ -3,30 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verify Pass | Official Campus Validator</title>
+    <title>UNI-PASS</title>
     
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        brand: { 600: '#2563eb', 900: '#1e3a8a' },
-                        success: { 50: '#f0fdf4', 600: '#16a34a', 700: '#15803d' },
-                        error: { 50: '#fef2f2', 600: '#dc2626', 700: '#b91c1c' }
-                    },
-                    animation: {
-                        'slide-up': 'slideUp 0.5s ease-out'
-                    },
-                    keyframes: {
-                        slideUp: { '0%': { transform: 'translateY(10px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
-                    }
-                }
-            }
-        }
-    </script>
+    <style>
+        /* Custom Brand Colors that were lost when removing the script */
+        .bg-brand-600 { background-color: #2563eb !important; }
+        .bg-brand-700 { background-color: #1d4ed8 !important; }
+        .bg-brand-900 { background-color: #1e3a8a !important; }
+        
+        .text-brand-600 { color: #2563eb !important; }
+        .text-brand-900 { color: #1e3a8a !important; }
+        
+        .border-brand-600 { border-color: #2563eb !important; }
+        
+        /* Hover States */
+        .hover\:bg-brand-600:hover { background-color: #2563eb !important; }
+        .hover\:bg-brand-700:hover { background-color: #1d4ed8 !important; }
+        
+        /* Focus Rings */
+        .focus\:ring-brand-600:focus { --tw-ring-color: #2563eb !important; }
+        
+        /* Animations */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
+        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        .animate-slide-up { animation: slideUp 0.5s ease-out; }
+    </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-800">
 
@@ -224,3 +229,4 @@
     </script>
 </body>
 </html>
+
