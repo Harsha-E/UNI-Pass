@@ -3,101 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UNI-PASS</title>
+    <title>Login | UNI-PASS</title>
     
     <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* Custom Brand Colors that were lost when removing the script */
-        .bg-brand-600 { background-color: #2563eb !important; }
-        .bg-brand-700 { background-color: #1d4ed8 !important; }
-        .bg-brand-900 { background-color: #1e3a8a !important; }
-        
+        /* Restoring the specific 'Brand' colors you liked */
+        .bg-brand-900 { background-color: #1e3a8a !important; } /* Deep Blue */
+        .bg-brand-600 { background-color: #2563eb !important; } /* Bright Blue */
         .text-brand-600 { color: #2563eb !important; }
-        .text-brand-900 { color: #1e3a8a !important; }
-        
         .border-brand-600 { border-color: #2563eb !important; }
         
-        /* Hover States */
-        .hover\:bg-brand-600:hover { background-color: #2563eb !important; }
         .hover\:bg-brand-700:hover { background-color: #1d4ed8 !important; }
+
+        /* Glassmorphism Effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
         
-        /* Focus Rings */
-        .focus\:ring-brand-600:focus { --tw-ring-color: #2563eb !important; }
-        
-        /* Animations */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
-        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .animate-slide-up { animation: slideUp 0.5s ease-out; }
+        /* Background Gradient */
+        .premium-bg {
+            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%);
+        }
     </style>
 </head>
-<body class="bg-gray-50 h-screen flex items-center justify-center p-4">
+<body class="premium-bg min-h-screen flex items-center justify-center p-4 font-sans">
 
-    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div class="bg-blue-900 p-8 text-center">
-            <div class="w-16 h-16 bg-white bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-filter backdrop-blur-sm text-white text-2xl">
-                <i class="fas fa-user-circle"></i>
+    <div class="max-w-md w-full glass rounded-2xl shadow-2xl overflow-hidden transform transition-all hover:scale-[1.01]">
+        
+        <div class="p-8 text-center border-b border-gray-100">
+            <div class="w-16 h-16 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 text-brand-600 text-3xl shadow-inner">
+                <i class="fas fa-university"></i>
             </div>
-            <h2 class="text-2xl font-bold text-white">Welcome Back</h2>
-            <p class="text-blue-200 text-sm mt-1">Sign in to access your portal</p>
+            <h2 class="text-3xl font-bold text-gray-800 tracking-tight">Welcome Back</h2>
+            <p class="text-gray-500 text-sm mt-2">Enter your credentials to access the portal.</p>
         </div>
 
-        <div class="p-8">
+        <div class="p-8 pt-6">
             <form id="loginForm" class="space-y-6">
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Email Address</label>
-                    <div class="relative">
-                        <i class="fas fa-envelope absolute left-4 top-3.5 text-gray-400"></i>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Email Address</label>
+                    <div class="relative group">
+                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 group-focus-within:text-brand-600 transition">
+                            <i class="fas fa-envelope"></i>
+                        </span>
                         <input type="email" id="email" required 
-                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
+                            class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-600 focus:border-transparent outline-none transition-all text-gray-800 font-medium placeholder-gray-400"
                             placeholder="student@college.edu">
                     </div>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Password</label>
-                    <div class="relative">
-                        <i class="fas fa-lock absolute left-4 top-3.5 text-gray-400"></i>
+                    <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Password</label>
+                    <div class="relative group">
+                        <span class="absolute inset-y-0 left-0 pl-4 flex items-center text-gray-400 group-focus-within:text-brand-600 transition">
+                            <i class="fas fa-lock"></i>
+                        </span>
                         <input type="password" id="password" required 
-                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
+                            class="w-full pl-11 pr-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:bg-white focus:ring-2 focus:ring-brand-600 focus:border-transparent outline-none transition-all text-gray-800 font-medium placeholder-gray-400"
                             placeholder="••••••••">
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between text-sm">
-                    <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-600">
-                        <span class="text-gray-600">Remember me</span>
+                    <label class="flex items-center gap-2 cursor-pointer select-none">
+                        <input type="checkbox" class="rounded text-brand-600 focus:ring-brand-600 border-gray-300">
+                        <span class="text-gray-600 font-medium">Remember me</span>
                     </label>
-                    <a href="#" class="text-blue-600 font-bold hover:underline">Forgot password?</a>
+                    <a href="#" class="text-brand-600 font-bold hover:underline">Forgot password?</a>
                 </div>
 
                 <button type="submit" id="loginBtn" 
-                    class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-900 transition shadow-lg transform active:scale-95">
-                    Sign In
+                    class="w-full bg-brand-600 text-white font-bold py-4 rounded-xl hover:bg-brand-700 transition-all shadow-lg shadow-blue-500/30 transform active:scale-95 flex items-center justify-center gap-2">
+                    <span>Sign In to Dashboard</span>
+                    <i class="fas fa-arrow-right text-sm"></i>
                 </button>
 
-                <p id="error-msg" class="text-red-500 text-center text-sm font-bold hidden"></p>
+                <div id="error-msg" class="hidden bg-red-50 text-red-600 p-3 rounded-lg text-sm text-center font-bold border border-red-100 flex items-center justify-center gap-2">
+                    <i class="fas fa-exclamation-circle"></i> <span>Error text</span>
+                </div>
             </form>
         </div>
         
-        <div class="bg-gray-50 p-4 text-center border-t border-gray-100">
-            <a href="../index.html" class="text-sm text-gray-500 hover:text-blue-600 font-medium">
-                <i class="fas fa-arrow-left mr-1"></i> Back to Home
-            </a>
+        <div class="bg-gray-50 p-5 text-center border-t border-gray-100">
+            <p class="text-sm text-gray-600">
+                Don't have an account? 
+                <a href="signup.html" class="text-brand-600 font-bold hover:underline ml-1">Sign Up</a>
+            </p>
+            <div class="mt-4 pt-4 border-t border-gray-200">
+                <a href="../index.html" class="text-xs text-gray-400 hover:text-gray-600 transition flex items-center justify-center gap-1">
+                    <i class="fas fa-home"></i> Back to Home
+                </a>
+            </div>
         </div>
     </div>
 
     <script type="module">
-        // Import from your Firebase Init file
-        // IMPORTANT: Ensure firebase-init.js has your correct API Keys!
         import { auth, db } from '../assets/js/firebase-init.js';
         import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
         const loginForm = document.getElementById('loginForm');
         const errorMsg = document.getElementById('error-msg');
+        const errorText = errorMsg.querySelector('span');
         const loginBtn = document.getElementById('loginBtn');
 
         loginForm.addEventListener('submit', async (e) => {
@@ -105,7 +115,7 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
-            // UI Loading
+            // Loading State
             loginBtn.disabled = true;
             loginBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Authenticating...';
             errorMsg.classList.add('hidden');
@@ -115,31 +125,39 @@
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                // 2. Check User Role in Firestore
+                // 2. Fetch Role
                 const doc = await db.collection('users').doc(user.uid).get();
                 
                 if (doc.exists) {
                     const role = doc.data().role;
-                    
-                    // 3. Redirect based on Role
-                    if (role === 'student') window.location.href = '../portals/student/portalA.html';
-                    else if (role === 'teacher') window.location.href = '../portals/staff/teacher-dashboard.html'; 
-                    else if (role === 'hod') window.location.href = '../portals/staff/hod-dashboard.html';
-                    else if (role === 'admin') window.location.href = '../admin/admin.html';
-                    else throw new Error("Role not assigned. Contact Admin.");
+                    const routes = {
+                        'student': '../portals/student/portalA.html',
+                        'teacher': '../portals/staff/teacher-dashboard.html',
+                        'hod': '../portals/staff/hod-dashboard.html',
+                        'admin': '../admin/admin.html'
+                    };
+
+                    if (routes[role]) {
+                        window.location.href = routes[role];
+                    } else {
+                        throw new Error("Role not configured properly.");
+                    }
                 } else {
-                    throw new Error("User profile not found.");
+                    throw new Error("User profile not found in database.");
                 }
 
             } catch (error) {
                 console.error(error);
-                errorMsg.innerText = error.message.replace("Firebase: ", "");
+                let message = "Invalid email or password.";
+                if (error.code === 'auth/network-request-failed') message = "Network Error. Check your internet connection.";
+                if (error.code === 'auth/user-not-found') message = "No account found with this email.";
+                
+                errorText.innerText = message;
                 errorMsg.classList.remove('hidden');
                 loginBtn.disabled = false;
-                loginBtn.innerText = "Sign In";
+                loginBtn.innerHTML = '<span>Sign In to Dashboard</span> <i class="fas fa-arrow-right text-sm"></i>';
             }
         });
     </script>
 </body>
 </html>
-
