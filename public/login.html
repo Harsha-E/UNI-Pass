@@ -4,22 +4,16 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | UNI-PASS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: { colors: { brand: { 600: '#2563eb', 900: '#1e3a8a' } } }
-            }
-        }
-    </script>
-</head>
-<body class="bg-slate-50 h-screen flex items-center justify-center p-4">
+    </head>
+<body class="bg-gray-50 h-screen flex items-center justify-center p-4">
 
     <div class="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
-        <div class="bg-brand-900 p-8 text-center">
-            <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm text-white text-2xl">
+        <div class="bg-blue-900 p-8 text-center">
+            <div class="w-16 h-16 bg-white bg-opacity-10 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-filter backdrop-blur-sm text-white text-2xl">
                 <i class="fas fa-user-circle"></i>
             </div>
             <h2 class="text-2xl font-bold text-white">Welcome Back</h2>
@@ -33,7 +27,7 @@
                     <div class="relative">
                         <i class="fas fa-envelope absolute left-4 top-3.5 text-gray-400"></i>
                         <input type="email" id="email" required 
-                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-600 focus:border-transparent outline-none transition"
+                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
                             placeholder="student@college.edu">
                     </div>
                 </div>
@@ -43,21 +37,21 @@
                     <div class="relative">
                         <i class="fas fa-lock absolute left-4 top-3.5 text-gray-400"></i>
                         <input type="password" id="password" required 
-                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-600 focus:border-transparent outline-none transition"
+                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-600 focus:border-transparent outline-none transition"
                             placeholder="••••••••">
                     </div>
                 </div>
 
                 <div class="flex items-center justify-between text-sm">
                     <label class="flex items-center gap-2 cursor-pointer">
-                        <input type="checkbox" class="rounded text-brand-600 focus:ring-brand-600">
+                        <input type="checkbox" class="rounded text-blue-600 focus:ring-blue-600">
                         <span class="text-gray-600">Remember me</span>
                     </label>
-                    <a href="#" class="text-brand-600 font-bold hover:underline">Forgot password?</a>
+                    <a href="#" class="text-blue-600 font-bold hover:underline">Forgot password?</a>
                 </div>
 
                 <button type="submit" id="loginBtn" 
-                    class="w-full bg-brand-600 text-white font-bold py-3.5 rounded-xl hover:bg-brand-900 transition shadow-lg active:scale-95">
+                    class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-900 transition shadow-lg transform active:scale-95">
                     Sign In
                 </button>
 
@@ -66,13 +60,15 @@
         </div>
         
         <div class="bg-gray-50 p-4 text-center border-t border-gray-100">
-            <a href="../index.html" class="text-sm text-gray-500 hover:text-brand-600 font-medium">
+            <a href="../index.html" class="text-sm text-gray-500 hover:text-blue-600 font-medium">
                 <i class="fas fa-arrow-left mr-1"></i> Back to Home
             </a>
         </div>
     </div>
 
     <script type="module">
+        // Import from your Firebase Init file
+        // IMPORTANT: Ensure firebase-init.js has your correct API Keys!
         import { auth, db } from '../assets/js/firebase-init.js';
         import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
@@ -103,14 +99,11 @@
                     
                     // 3. Redirect based on Role
                     if (role === 'student') window.location.href = '../portals/student/portalA.html';
-                    else if (role === 'teacher') window.location.href = '../portals/staff/teacher-dashboard.html'; // Assuming this exists
+                    else if (role === 'teacher') window.location.href = '../portals/staff/teacher-dashboard.html'; 
                     else if (role === 'hod') window.location.href = '../portals/staff/hod-dashboard.html';
                     else if (role === 'admin') window.location.href = '../admin/admin.html';
-                    else {
-                        throw new Error("Role not assigned. Contact Admin.");
-                    }
+                    else throw new Error("Role not assigned. Contact Admin.");
                 } else {
-                    // Fallback if user exists in Auth but not in DB (rare)
                     throw new Error("User profile not found.");
                 }
 
