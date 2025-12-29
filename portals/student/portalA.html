@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-    
     <link rel="stylesheet" href="../../assets/css/style.css">
     <script src="../../assets/js/ui.js" defer></script>
     
@@ -25,14 +24,17 @@
     <style>
         /* Highlight selected radio option */
         input[type="radio"]:checked + div {
-            background-color: #eff6ff;
-            border-color: #3b82f6;
+            background-color: #eff6ff; /* brand-50 */
+            border-color: #3b82f6; /* brand-500 */
             border-width: 2px;
-            color: #1e3a8a;
+            color: #1e3a8a; /* brand-900 */
             box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1);
             transform: translateY(-2px);
         }
-        .reason-box { transition: all 0.2s ease-in-out; }
+        /* Smooth transition for the box */
+        .reason-box {
+            transition: all 0.2s ease-in-out;
+        }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
@@ -149,12 +151,17 @@
     <script type="module">
         import { db, auth } from '../../assets/js/firebase-init.js';
 
-        let userProfile = { department: 'General', rollNumber: '', section: 'A' };
+        let userProfile = {
+            department: 'General',
+            rollNumber: '',
+            section: 'A'
+        };
 
+        // Date Pickers
         const startPicker = flatpickr("#start-date", { minDate: "today", dateFormat: "Y-m-d", onChange: updateFormState });
         const endPicker = flatpickr("#end-date", { minDate: "today", dateFormat: "Y-m-d", onChange: updateFormState });
 
-        // 1. Auth Check
+        // --- 1. AUTH & PROFILE LOAD ---
         auth.onAuthStateChanged(async (user) => {
             if (!user) { window.location.href = '../../public/login.html'; return; }
 
@@ -162,17 +169,20 @@
                 const doc = await db.collection('users').doc(user.uid).get();
                 if (doc.exists) {
                     const data = doc.data();
+                    
+                    const isBlocked = data.isBlocked || false;
                     const attendance = data.attendance !== undefined ? data.attendance : 75;
 
-                    document.getElementById('attendance-display').innerText = `${attendance}%`;
-                    if (data.isBlocked) { lockScreen("Your account is currently BLOCKED."); return; }
-                    if (attendance < 60) { lockScreen(`Attendance Low (${attendance}%).`); return; }
+                    const attEl = document.getElementById('attendance-display');
+                    attEl.innerText = `${attendance}%`;
+                    if(attendance < 60) attEl.className = "text-xl font-bold text-red-600";
 
-                    userProfile = {
-                        department: data.department || 'Engineering',
-                        rollNumber: data.rollNumber || user.uid,
-                        section: data.section || 'A'
-                    };
+                    if (isBlocked) { lockScreen("Your account is currently BLOCKED by the Administrator."); return; }
+                    if (attendance < 60) { lockScreen(`Attendance Low (${attendance}%). Minimum 60% required to apply.`); return; }
+
+                    userProfile.department = data.department || 'Engineering';
+                    userProfile.rollNumber = data.rollNumber || user.uid;
+                    userProfile.section = data.section || 'A';
                     
                     document.getElementById('display-name').value = data.displayName || user.displayName;
                     document.getElementById('display-id').value = userProfile.rollNumber;
@@ -181,38 +191,59 @@
         });
 
         document.getElementById('logout-btn').addEventListener('click', () => {
+            sessionStorage.clear();
             auth.signOut().then(() => window.location.href = '../../public/login.html');
         });
 
         function lockScreen(msg) {
-            document.getElementById('request-form').innerHTML = `<div class="text-center py-12"><div class="w-20 h-20 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl"><i class="fas fa-ban"></i></div><h2 class="text-xl font-bold text-gray-800">Permission Denied</h2><p class="text-red-600 font-medium mt-2">${msg}</p></div>`;
+            document.getElementById('request-form').innerHTML = `
+                <div class="text-center py-12">
+                    <div class="w-20 h-20 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
+                        <i class="fas fa-ban"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-800">Permission Denied</h2>
+                    <p class="text-red-600 font-medium mt-2 px-4">${msg}</p>
+                    <p class="text-gray-500 text-sm mt-4">Please meet your Class Counselor.</p>
+                </div>
+            `;
         }
 
-        // 2. Real-Time Logic
+        // --- 2. REAL-TIME UI UPDATER ---
+        // This runs on EVERY change (click, type, date pick)
         function updateFormState() {
             const reason = document.querySelector('input[name="reasonType"]:checked');
             const start = document.getElementById('start-date').value;
             const end = document.getElementById('end-date').value;
             const note = document.getElementById('custom-reason').value.trim();
             
-            let progress = 5;
+            // Calculate Progress
+            let progress = 5; // Base
             if(reason) progress += 30;
             if(start && end) progress += 30;
-            if(note.length > 5) progress += 35;
+            if(note.length > 5) progress += 35; // Finish only if note has content
 
+            // Update Bar
             document.getElementById('form-progress').style.width = `${progress}%`;
 
+            // Calculate Duration Logic
             if (start && end) {
                 const d1 = new Date(start); const d2 = new Date(end);
-                if (d2 >= d1) {
-                    const days = Math.ceil(Math.abs(d2 - d1) / (8.64e7)) + 1;
+                
+                if (d2 < d1) { 
+                    // Invalid date, don't show duration, maybe show error?
+                    // For now, simple fallback
+                } else {
+                    const days = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
                     document.getElementById('day-count').innerText = days;
                     document.getElementById('duration-feedback').classList.remove('hidden');
+
                     const warn = document.getElementById('escalation-warning');
-                    days > 2 ? warn.classList.remove('hidden') : warn.classList.add('hidden');
+                    if (days > 2) warn.classList.remove('hidden');
+                    else warn.classList.add('hidden');
                 }
             }
 
+            // Enable/Disable Button
             const btn = document.getElementById('submit-btn');
             if (reason && start && end && note.length > 3) {
                 btn.disabled = false;
@@ -225,14 +256,17 @@
             }
         }
 
+        // Attach Listeners to EVERYTHING
         document.getElementById('request-form').addEventListener('change', updateFormState);
-        document.getElementById('request-form').addEventListener('input', updateFormState);
+        document.getElementById('request-form').addEventListener('input', updateFormState); // For text typing
 
-        // 3. Submit
+        // --- 3. SUBMIT LOGIC ---
         document.getElementById('request-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
-            btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing...';
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing...';
 
             const reasonEl = document.querySelector('input[name="reasonType"]:checked');
             const start = document.getElementById('start-date').value;
@@ -248,18 +282,23 @@
                     rollNumber: userProfile.rollNumber,
                     department: userProfile.department,
                     section: userProfile.section,
+                    
                     reasonType: reasonEl.value,
                     reason: note,
                     startDate: start,
                     endDate: end,
                     status: 'PENDING_TEACHER',
                     timestamp: new Date().toISOString(),
-                    workflowHistory: [{ step: 'SUBMITTED', actor: 'student', timestamp: new Date(), note: 'Request initiated' }]
+                    workflowHistory: [{
+                        step: 'SUBMITTED', actor: 'student', timestamp: new Date(), note: 'Request initiated'
+                    }]
                 });
+
                 window.location.href = 'portalB.html';
             } catch (err) {
                 alert("Error: " + err.message);
-                btn.disabled = false; btn.innerText = "Submit Request";
+                btn.disabled = false;
+                btn.innerText = "Submit Request";
             }
         });
     </script>

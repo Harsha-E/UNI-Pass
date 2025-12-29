@@ -7,9 +7,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <link rel="stylesheet" href="https://harsha-e.github.io/UNI-Pass/assets/css/style.css">
-<script src="https://harsha-e.github.io/UNI-Pass/assets/js/ui.js" defer></script>
-<script type="module" src="https://harsha-e.github.io/UNI-Pass/assets/js/route-guard.js"></script>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+<script src="../../assets/js/ui.js" defer></script>
+<script type="module" src="../../assets/js/route-guard.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -33,7 +33,7 @@
         <div class="max-w-4xl mx-auto px-4">
             <div class="flex justify-between h-16">
                 <div class="flex items-center gap-2">
-                    <a href="https://harsha-e.github.io/UNI-Pass/portals/student/portalA.html" class="text-gray-400 hover:text-gray-600"><i class="fas fa-arrow-left"></i></a>
+                    <a href="portalA.html" class="text-gray-400 hover:text-gray-600"><i class="fas fa-arrow-left"></i></a>
                     <span class="font-bold text-xl text-gray-800">My Permissions</span>
                 </div>
                 <div class="flex items-center">
@@ -116,7 +116,7 @@
             </div>
             <h3 class="text-lg font-bold text-gray-800">No Active Requests</h3>
             <p class="text-gray-500 mb-6">You don't have any permission requests in progress.</p>
-            <a href="https://harsha-e.github.io/UNI-Pass/portals/student/portalA.html" class="inline-block px-6 py-2 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 shadow transition">
+            <a href="portalA.html" class="inline-block px-6 py-2 bg-brand-600 text-white font-medium rounded-lg hover:bg-brand-700 shadow transition">
                 Create New Request
             </a>
         </div>
@@ -129,14 +129,14 @@
         </div>
 
     </main>
-    <script type="module" src="https://harsha-e.github.io/UNI-Pass/assets/js/permission-pdf.js"></script>
+    <script type="module" src="../../assets/js/permission-pdf.js"></script>
     <script type="module">
-    import { db, auth } from 'https://harsha-e.github.io/UNI-Pass/assets/js/firebase-init.js';
+    import { db, auth } from '../../assets/js/firebase-init.js';
     
     let currentPermissionData = null; // Holds data for PDF generation
 
     auth.onAuthStateChanged(user => {
-        if (!user) window.location.href = 'https://harsha-e.github.io/UNI-Pass/public/login.html';
+        if (!user) window.location.href = '../../public/login.html';
         listenToRequests(user.uid);
     });
 
@@ -147,7 +147,7 @@ document.getElementById('logout-btn').addEventListener('click', () => {
     
     // 2. Sign out of Firebase
     auth.signOut().then(() => {
-        window.location.href = 'https://harsha-e.github.io/UNI-Pass/public/login.html';
+        window.location.href = '../../public/login.html';
     });
 });
     function listenToRequests(uid) {
@@ -336,7 +336,4 @@ document.getElementById('logout-btn').addEventListener('click', () => {
     }
     </script>
 </body>
-
 </html>
-
-
