@@ -3,396 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UNI-PASS | Master Admin</title>
-    
+    <title>Admin Dashboard | UNI-PASS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="stylesheet" href="../assets/css/style.css">
+    <script src="../assets/js/ui.js" defer></script>
+    <script type="module" src="../assets/js/route-guard.js"></script>
     
     <script>
         tailwind.config = {
             theme: {
-                extend: {
-                    colors: {
-                        dark: { 800: '#1f2937', 900: '#111827' },
-                        brand: { 500: '#3b82f6', 600: '#2563eb' }
-                    }
-                }
+                extend: { colors: { brand: { 500: '#3b82f6', 600: '#2563eb', 900: '#1e3a8a' } } }
             }
         }
     </script>
 </head>
-<body class="bg-gray-100 font-sans text-gray-800 flex h-screen overflow-hidden">
-
-    <aside class="w-64 bg-dark-900 text-gray-300 flex flex-col flex-shrink-0 transition-all duration-300 z-20 shadow-2xl">
-        <div class="h-16 flex items-center px-6 bg-dark-800 border-b border-gray-700">
-            <i class="fas fa-shield-alt text-brand-500 text-xl mr-3"></i>
-            <span class="font-bold text-lg text-white tracking-wider">ADMIN PANEL</span>
-        </div>
-
-        <nav class="flex-1 px-2 py-4 space-y-2 overflow-y-auto">
-            <p class="px-4 text-xs font-bold text-gray-500 uppercase mb-2">Main</p>
-            
-            <a href="#" onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-item flex items-center px-4 py-3 bg-gray-800 text-white rounded-lg transition group shadow-inner">
-                <i class="fas fa-th-large w-6 text-brand-500"></i> Dashboard
-            </a>
-            
-            <a href="#" onclick="switchTab('users')" id="nav-users" class="nav-item flex items-center px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition group">
-                <i class="fas fa-users w-6 group-hover:text-brand-500 transition-colors"></i> User Management
-            </a>
-
-            <div class="pt-4 border-t border-gray-700 mt-2">
-                <p class="px-4 text-xs font-bold text-gray-500 uppercase mb-2">Tools</p>
-                <a href="analytics.html" class="nav-item flex items-center px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition group">
-                    <i class="fas fa-chart-line w-6 group-hover:text-purple-400 transition-colors"></i> Analytics
+<body class="bg-gray-100 font-sans">
+    <div class="flex h-screen overflow-hidden">
+        
+        <aside class="w-64 bg-brand-900 text-white flex flex-col">
+            <div class="h-16 flex items-center justify-center border-b border-brand-700">
+                <h1 class="text-2xl font-bold tracking-wider">ADMIN</h1>
+            </div>
+            <nav class="flex-1 px-4 py-6 space-y-2">
+                <a href="#" class="block px-4 py-3 rounded bg-brand-700 text-white font-medium">
+                    <i class="fas fa-chart-line w-6"></i> Dashboard
                 </a>
+                <a href="#" class="block px-4 py-3 rounded hover:bg-brand-700 text-gray-300 transition">
+                    <i class="fas fa-users w-6"></i> Manage Users
+                </a>
+                <a href="#" class="block px-4 py-3 rounded hover:bg-brand-700 text-gray-300 transition">
+                    <i class="fas fa-file-alt w-6"></i> All Reports
+                </a>
+            </nav>
+            <div class="p-4 border-t border-brand-700">
+                <button id="logout-btn" class="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded transition">
+                    Logout
+                </button>
             </div>
-        </nav>
+        </aside>
 
-        <div class="p-4 bg-dark-800 border-t border-gray-700">
-            <button id="logout-btn" class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-600 rounded-lg text-sm font-medium hover:bg-red-500 hover:text-white hover:border-red-500 transition-all">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
-        </div>
-    </aside>
-
-    <main class="flex-1 flex flex-col overflow-hidden relative">
-        <header class="h-16 bg-white shadow-sm flex items-center justify-between px-8 z-10">
-            <h2 class="text-xl font-bold text-gray-800" id="page-title">Dashboard Overview</h2>
-            <div class="flex items-center gap-4">
-                <div class="text-right hidden md:block">
-                    <p class="text-sm font-bold text-gray-900">Administrator</p>
-                    <p class="text-xs text-brand-600">IT Department</p>
+        <main class="flex-1 overflow-y-auto p-8">
+            <header class="flex justify-between items-center mb-8">
+                <div>
+                    <h2 class="text-3xl font-bold text-gray-800">Overview</h2>
+                    <p class="text-gray-500">Welcome back, Administrator.</p>
                 </div>
-                <div class="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center text-brand-600 font-bold border border-brand-200 shadow-sm">
-                    A
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-blue-500">
+                    <p class="text-gray-500 text-sm font-bold uppercase">Total Students</p>
+                    <h3 class="text-3xl font-bold text-gray-800" id="total-students">--</h3>
                 </div>
-            </div>
-        </header>
-            <header class="h-16 bg-white ... flex items-center ...">
-    <button id="sidebar-toggle" class="mr-4 text-gray-500 focus:outline-none md:hidden">
-        <i class="fas fa-bars text-2xl"></i>
-    </button>
-    
-    <h2 class="text-xl font-bold ...">Dashboard</h2>
-    </header>
-
-        <div class="flex-1 overflow-auto p-8 relative">
-            
-            <div id="view-dashboard" class="space-y-6">
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                    
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Total Users</p>
-                                <h3 class="text-3xl font-extrabold text-gray-900 mt-2" id="stat-users">--</h3>
-                            </div>
-                            <div class="p-3 bg-blue-50 text-blue-600 rounded-lg"><i class="fas fa-users"></i></div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition border-l-4 border-green-500">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Active Passes</p>
-                                <h3 class="text-3xl font-extrabold text-gray-900 mt-2" id="stat-active">--</h3>
-                            </div>
-                            <div class="p-3 bg-green-50 text-green-600 rounded-lg"><i class="fas fa-ticket-alt"></i></div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition border-l-4 border-red-500">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Blocked Users</p>
-                                <h3 class="text-3xl font-extrabold text-gray-900 mt-2" id="stat-blocked">--</h3>
-                            </div>
-                            <div class="p-3 bg-red-50 text-red-600 rounded-lg"><i class="fas fa-ban"></i></div>
-                        </div>
-                    </div>
-
-                    <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition border-l-4 border-yellow-500">
-                        <div class="flex justify-between items-start">
-                            <div>
-                                <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Pending Action</p>
-                                <h3 class="text-3xl font-extrabold text-gray-900 mt-2" id="stat-pending">--</h3>
-                            </div>
-                            <div class="p-3 bg-yellow-50 text-yellow-600 rounded-lg"><i class="fas fa-clock"></i></div>
-                        </div>
-                    </div>
-
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-green-500">
+                    <p class="text-gray-500 text-sm font-bold uppercase">Passes Issued</p>
+                    <h3 class="text-3xl font-bold text-gray-800" id="total-passes">--</h3>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm border-l-4 border-yellow-500">
+                    <p class="text-gray-500 text-sm font-bold uppercase">Pending Review</p>
+                    <h3 class="text-3xl font-bold text-gray-800" id="pending-count">--</h3>
                 </div>
             </div>
 
-            <div id="view-users" class="hidden space-y-6">
-                <div class="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-gray-200">
-                    <h3 class="font-bold text-gray-800 text-lg">Directory</h3>
-                    <div class="flex gap-3">
-                        <button onclick="window.toggleModal(true)" class="px-4 py-2 bg-brand-600 text-white rounded-lg font-bold shadow hover:bg-brand-700 transition flex items-center gap-2">
-                            <i class="fas fa-plus"></i> Add User
-                        </button>
-                    </div>
+            <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                    <h3 class="font-bold text-gray-700">Recent System Activity</h3>
                 </div>
-
-                <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-                    <table class="w-full text-left border-collapse">
-                        <thead class="bg-gray-50 text-gray-500 text-xs uppercase font-bold tracking-wider">
-                            <tr>
-                                <th class="px-6 py-4">User Details</th>
-                                <th class="px-6 py-4">Role</th>
-                                <th class="px-6 py-4">Attendance</th>
-                                <th class="px-6 py-4">Status</th>
-                                <th class="px-6 py-4 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody id="user-list" class="divide-y divide-gray-100 text-sm text-gray-700">
-                            </tbody>
-                    </table>
+                <div class="p-6 text-center text-gray-500 italic">
+                    (Table data loading...)
                 </div>
             </div>
-
-        </div>
-    </main>
-
-    <div id="user-modal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" onclick="window.toggleModal(false)"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-xl shadow-2xl p-8 w-full max-w-md">
-            <h3 class="text-xl font-bold mb-4">Add New User</h3>
-            
-            <form id="add-user-form" onsubmit="window.saveUser(event)">
-                <div class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Full Name</label>
-                        <input type="text" id="new-name" required class="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-brand-500 outline-none">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Email</label>
-                        <input type="email" id="new-email" required class="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-brand-500 outline-none">
-                    </div>
-                    <div class="grid grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Role</label>
-                            <select id="new-role" class="w-full border border-gray-300 rounded p-2">
-                                <option value="student">Student</option>
-                                <option value="teacher">Teacher</option>
-                                <option value="hod">HOD</option>
-                            </select>
-                        </div>
-                        <div>
-                            <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Department</label>
-                            <select id="new-dept" class="w-full border border-gray-300 rounded p-2">
-                                <option value="Computer Science">CSE</option>
-                                <option value="Mechanical">Mechanical</option>
-                                <option value="Civil">Civil</option>
-                                <option value="ECE">ECE</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div id="roll-field">
-                        <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Roll Number</label>
-                        <input type="text" id="new-roll" class="w-full border border-gray-300 rounded p-2">
-                    </div>
-                </div>
-<div id="mobile-overlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden"></div>
-
-<aside class="w-64 bg-gray-900 ... fixed inset-y-0 left-0 transform -translate-x-full md:relative md:translate-x-0 transition duration-200 ease-in-out z-40">
-    </aside>
-                <div class="mt-6 flex justify-end gap-3">
-                    <button type="button" onclick="window.toggleModal(false)" class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg">Cancel</button>
-                    <button type="submit" class="px-6 py-2 bg-brand-600 text-white font-bold rounded-lg hover:bg-brand-700">Save User</button>
-                </div>
-            </form>
-            
-            <div class="mt-4 p-3 bg-yellow-50 text-yellow-700 text-xs rounded border border-yellow-200">
-                <i class="fas fa-exclamation-triangle mr-1"></i> 
-                <strong>Note:</strong> This adds the profile to the DB. Don't forget to create the Auth credentials (Email/Pass) in the Firebase Console if you aren't using the Signup page.
-            </div>
-        </div>
+        </main>
     </div>
 
     <script type="module">
-// FORCE the full path to avoid relative link errors
-import { db, auth } from 'https://harsha-e.github.io/UNI-Pass/assets/js/firebase-init.js';
-        // --- 1. GLOBAL FUNCTIONS (Attached to Window) ---
-        
-        window.switchTab = function(tabName) {
-            ['dashboard', 'users'].forEach(t => {
-                const el = document.getElementById(`view-${t}`);
-                if(el) el.classList.add('hidden');
-                
-                const nav = document.getElementById(`nav-${t}`);
-                if(nav) {
-                    nav.classList.remove('bg-gray-800', 'text-white');
-                    nav.classList.add('text-gray-400');
-                }
-            });
+        // --- FIXED IMPORT PATH FOR GITHUB PAGES ---
+        import { db, auth } from 'https://harsha-e.github.io/UNI-Pass/assets/js/firebase-init.js';
 
-            const target = document.getElementById(`view-${tabName}`);
-            if(target) target.classList.remove('hidden');
-
-            const activeNav = document.getElementById(`nav-${tabName}`);
-            if(activeNav) {
-                activeNav.classList.remove('text-gray-400');
-                activeNav.classList.add('bg-gray-800', 'text-white');
-            }
-
-            if (tabName === 'users') loadUsers();
-            if (tabName === 'dashboard') initDashboard(); // Refresh stats on switch
-        };
-
-        window.toggleModal = function(show) {
-            const modal = document.getElementById('user-modal');
-            if (show) modal.classList.remove('hidden');
-            else modal.classList.add('hidden');
-        };
-
-        // --- 2. AUTH GUARD ---
+        // 1. Check Admin Role
         auth.onAuthStateChanged(async (user) => {
             if (!user) {
-                window.location.href = '../../public/login.html';
-                return;
+                window.location.href = '../public/login.html';
+            } else {
+                // Ideally, check if user.email is an admin email here
+                loadStats();
             }
-            initDashboard();
         });
 
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            auth.signOut().then(() => window.location.href = '../../public/login.html');
-        });
+        // 2. Load Dashboard Stats
+        async function loadStats() {
+            try {
+                // Note: Getting 'size' of a collection reads all docs (costs reads).
+                // For a real app, use aggregation queries or counters.
+                const studentsSnap = await db.collection('users').where('role', '==', 'student').get();
+                document.getElementById('total-students').innerText = studentsSnap.size;
 
-        // --- 3. DASHBOARD LOGIC (Updated for Blocked Counts) ---
-        async function initDashboard() {
-            // 1. Pending Approvals
-            const pendingSnap = await db.collection('permissions').where('status', 'in', ['PENDING_TEACHER', 'PENDING_HOD']).get();
-            document.getElementById('stat-pending').innerText = pendingSnap.size;
+                const passesSnap = await db.collection('permissions').where('status', '==', 'APPROVED').get();
+                document.getElementById('total-passes').innerText = passesSnap.size;
+                
+                const pendingSnap = await db.collection('permissions').where('status', 'in', ['PENDING_TEACHER', 'PENDING_HOD']).get();
+                document.getElementById('pending-count').innerText = pendingSnap.size;
 
-            // 2. Active Passes (Approved)
-            const approvedSnap = await db.collection('permissions').where('status', '==', 'APPROVED').get();
-            document.getElementById('stat-active').innerText = approvedSnap.size;
-
-            // 3. User Stats (Total & Blocked)
-            const usersSnap = await db.collection('users').get();
-            let total = 0;
-            let blocked = 0;
-
-            usersSnap.forEach(doc => {
-                total++;
-                if (doc.data().isBlocked === true) blocked++;
-            });
-
-            document.getElementById('stat-users').innerText = total;
-            document.getElementById('stat-blocked').innerText = blocked;
+            } catch (err) {
+                console.error("Error loading stats:", err);
+            }
         }
 
-        // --- 4. USER MANAGEMENT LOGIC (With Attendance & Blocking) ---
-        window.loadUsers = async function() {
-            const tbody = document.getElementById('user-list');
-            tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-center">Loading...</td></tr>';
-
-            // Get students primarily (since they have attendance/blocking)
-            const snap = await db.collection('users').orderBy('createdAt', 'desc').limit(50).get(); 
-            
-            tbody.innerHTML = '';
-            if (snap.empty) {
-                tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-gray-400">No users found.</td></tr>';
-                return;
-            }
-
-            snap.forEach(doc => {
-                const data = doc.data();
-                const isBlocked = data.isBlocked || false;
-                const attendance = data.attendance !== undefined ? data.attendance : 75; // Default 75
-                
-                // Styling based on status
-                const rowClass = isBlocked ? "bg-red-50" : "hover:bg-gray-50";
-                const statusBadge = isBlocked 
-                    ? `<span class="bg-red-100 text-red-800 text-xs font-bold px-2 py-1 rounded">BLOCKED</span>`
-                    : `<span class="bg-green-100 text-green-800 text-xs font-bold px-2 py-1 rounded">ACTIVE</span>`;
-
-                tbody.innerHTML += `
-                    <tr class="${rowClass} border-b border-gray-100 transition">
-                        <td class="px-6 py-4">
-                            <div class="flex flex-col">
-                                <span class="font-bold text-gray-900">${data.displayName || 'Unknown'}</span>
-                                <span class="text-xs text-gray-500">${data.email}</span>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4"><span class="bg-blue-50 text-blue-700 text-xs font-bold px-2 py-1 rounded uppercase">${data.role}</span></td>
-                        
-                        <td class="px-6 py-4">
-                            ${data.role === 'student' ? `
-                            <div class="flex items-center gap-2">
-                                <input type="number" 
-                                       value="${attendance}" 
-                                       onchange="updateUserStat('${doc.id}', 'attendance', this.value)"
-                                       class="w-16 border rounded px-1 text-center text-sm font-mono ${attendance < 60 ? 'text-red-600 font-bold border-red-300' : 'border-gray-300'}">
-                                <span class="text-xs text-gray-400">%</span>
-                            </div>` : '<span class="text-gray-300">-</span>'}
-                        </td>
-
-                        <td class="px-6 py-4">${statusBadge}</td>
-                        
-                        <td class="px-6 py-4 text-right">
-                            <button onclick="toggleBlockUser('${doc.id}', ${!isBlocked})" 
-                                    class="text-xs font-bold px-3 py-1 rounded border transition ${isBlocked ? 'border-green-200 text-green-600 hover:bg-green-50' : 'border-red-200 text-red-600 hover:bg-red-50'}">
-                                ${isBlocked ? 'Unblock' : 'Block Access'}
-                            </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        };
-
-        window.updateUserStat = async (uid, field, value) => {
-            try {
-                await db.collection('users').doc(uid).update({ [field]: Number(value) });
-            } catch(err) { alert("Save failed: " + err.message); }
-        };
-
-        window.toggleBlockUser = async (uid, shouldBlock) => {
-            if(confirm(`Are you sure you want to ${shouldBlock ? 'BLOCK' : 'UNBLOCK'} this user?`)) {
-                await db.collection('users').doc(uid).update({ isBlocked: shouldBlock });
-                loadUsers(); // Refresh list immediately
-                initDashboard(); // Update stats
-            }
-        };
-
-        window.saveUser = async function(e) {
-            e.preventDefault();
-            const btn = e.target.querySelector('button[type="submit"]');
-            btn.innerText = "Saving...";
-            btn.disabled = true;
-
-            const name = document.getElementById('new-name').value;
-            const email = document.getElementById('new-email').value;
-            const role = document.getElementById('new-role').value;
-            const dept = document.getElementById('new-dept').value;
-            const roll = document.getElementById('new-roll').value;
-
-            try {
-                await db.collection('users').add({
-                    displayName: name,
-                    email: email,
-                    role: role,
-                    department: dept,
-                    rollNumber: roll || null,
-                    attendance: 75,
-                    isBlocked: false,
-                    createdAt: new Date().toISOString()
-                });
-
-                alert("User added to Database!");
-                window.toggleModal(false);
-                loadUsers();
-                initDashboard();
-            } catch (err) {
-                alert("Error: " + err.message);
-            } finally {
-                btn.innerText = "Save User";
-                btn.disabled = false;
-            }
-        };
+        // 3. Logout
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            auth.signOut().then(() => window.location.href = '../public/login.html');
+        });
     </script>
 </body>
-
 </html>
-
