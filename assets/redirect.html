@@ -4,9 +4,9 @@
   <meta charset="UTF-8" />
   <title>Uni Pass • Redirecting</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="https://harsha-e.github.io/UNI-Pass/assets/css/main.css" />
-  <link rel="stylesheet" href="https://harsha-e.github.io/UNI-Pass/assets/css/style.css">
-<script src="https://harsha-e.github.io/UNI-Pass/assets/js/ui.js" defer></script>
+  <link rel="stylesheet" href="/assets/css/main.css" />
+  <link rel="stylesheet" href="../../assets/css/style.css">
+<script src="../../assets/js/ui.js" defer></script>
 </head>
 
 <body class="redirect-page">
@@ -19,13 +19,13 @@
   </main>
 
   <script type="module">
-    import { authenticate } from "https://harsha-e.github.io/UNI-Pass/assets/js/firebase-init.js";
+    import { authenticate } from "/assets/js/firebase-init.js";
 
     const email = sessionStorage.getItem("identity");
     const password = sessionStorage.getItem("password");
 
     if (!email || !password) {
-      location.replace("https://harsha-e.github.io/UNI-Pass/public/login.html");
+      location.replace("/public/login.html");
       throw "";
     }
 
@@ -33,24 +33,23 @@
       const user = await authenticate(email, password);
 
       if (user.firstLogin) {
-        location.replace("https://harsha-e.github.io/UNI-Pass/public/reset-password.html");
+        location.replace("/public/reset-password.html");
       } else if (user.role === "student") {
-        location.replace("https://harsha-e.github.io/UNI-Pass/portals/student/portalA.html");
+        location.replace("/portals/student/portalA.html");
       } else if (user.role === "teacher") {
-        location.replace("https://harsha-e.github.io/UNI-Pass/portals/teacher/portalA.html");
+        location.replace("/portals/teacher/portalA.html");
       } else if (user.role === "hod") {
-        location.replace("https://harsha-e.github.io/UNI-Pass/portals/hod/portalA.html");
+        location.replace("/portals/hod/portalA.html");
       } else if (user.role === "admin") {
-        location.replace("https://harsha-e.github.io/UNI-Pass/admin/admin.html");
+        location.replace("/admin/admin.html");
       } else {
-        location.replace("https://harsha-e.github.io/UNI-Pass/public/error-404.html");
+        location.replace("/public/error-404.html");
       }
 
     } catch {
-      location.replace("https://harsha-e.github.io/UNI-Pass/public/error-404.html");
+      location.replace("/public/error-404.html");
     }
   </script>
 
 </body>
 </html>
-
