@@ -4,8 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Verify Pass | Official Campus Validator</title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <script>
         tailwind.config = {
             theme: {
@@ -15,38 +17,61 @@
                         success: { 50: '#f0fdf4', 600: '#16a34a', 700: '#15803d' },
                         error: { 50: '#fef2f2', 600: '#dc2626', 700: '#b91c1c' }
                     },
-                    animation: { 'slide-up': 'slideUp 0.5s ease-out' },
-                    keyframes: { slideUp: { '0%': { transform: 'translateY(10px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } } }
+                    animation: {
+                        'slide-up': 'slideUp 0.5s ease-out'
+                    },
+                    keyframes: {
+                        slideUp: { '0%': { transform: 'translateY(10px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
+                    }
                 }
             }
         }
     </script>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-800">
+
     <nav class="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div class="max-w-3xl mx-auto px-4 h-16 flex items-center justify-between">
+        <div class="max-w-3xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-brand-600 rounded flex items-center justify-center text-white"><i class="fas fa-shield-alt"></i></div>
+                <div class="w-8 h-8 bg-brand-600 rounded flex items-center justify-center text-white">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
                 <span class="font-bold text-lg tracking-tight text-slate-900">UNI-VERIFY</span>
             </div>
-            <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">Official Portal</div>
+            <div class="text-xs font-medium text-slate-400 uppercase tracking-wider">
+                Official Security Portal
+            </div>
         </div>
     </nav>
 
     <main class="max-w-xl mx-auto p-4 md:pt-10">
+        
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-6">
             <h1 class="text-xl font-bold text-center mb-1">Verify Gate Pass</h1>
-            <p class="text-slate-500 text-center text-sm mb-6">Enter Pass ID or scan QR code.</p>
+            <p class="text-slate-500 text-center text-sm mb-6">Enter the Pass ID manually or scan the QR code.</p>
+
             <div class="relative">
-                <input type="text" id="hashInput" class="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-600 outline-none font-mono text-center tracking-widest text-lg uppercase" placeholder="ENTER ID" autocomplete="off">
+                <input type="text" id="hashInput" 
+                    class="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-600 focus:border-transparent outline-none font-mono text-center tracking-widest text-lg uppercase transition-all"
+                    placeholder="ENTER ID HERE" 
+                    autocomplete="off">
                 <i class="fas fa-qrcode absolute left-4 top-4 text-slate-400 text-lg"></i>
             </div>
+
             <button id="checkBtn" class="w-full mt-4 bg-brand-900 text-white font-bold py-3 rounded-xl hover:bg-brand-600 transition-all shadow-lg active:scale-95 flex items-center justify-center gap-2">
                 <i class="fas fa-search"></i> Verify Authenticity
             </button>
         </div>
-        <div id="resultContainer" class="hidden"></div>
-        <div class="text-center mt-12 pb-6"><p class="text-xs text-slate-400"><i class="fas fa-lock mr-1"></i> Secured by SHA-256 Signature</p></div>
+
+        <div id="resultContainer" class="hidden">
+            </div>
+
+        <div class="text-center mt-12 pb-6">
+            <p class="text-xs text-slate-400">
+                <i class="fas fa-lock mr-1"></i> Secured by SHA-256 Digital Signature
+            </p>
+        </div>
+
     </main>
 
     <script type="module">
@@ -56,81 +81,145 @@
         const btn = document.getElementById("checkBtn");
         const container = document.getElementById("resultContainer");
 
+        // 1. Auto-Check URL Parameters (e.g. ?id=XYZ)
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const passId = urlParams.get('id');
-            if (passId) { input.value = passId; verifyPass(passId); }
+            if (passId) {
+                input.value = passId;
+                verifyPass(passId);
+            }
         });
 
-        btn.onclick = () => { const id = input.value.trim(); if (id) verifyPass(id); };
+        // 2. Button Click Event
+        btn.onclick = () => {
+            const id = input.value.trim();
+            if (id) verifyPass(id);
+        };
 
         async function verifyPass(docId) {
-            btn.disabled = true; btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Verifying...';
-            container.innerHTML = ''; container.classList.remove('hidden');
+            // UI Loading State
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Verifying...';
+            container.innerHTML = ''; // Clear previous
+            container.classList.remove('hidden');
 
             try {
+                // Fetch from Firestore
                 const docRef = await db.collection('permissions').doc(docId).get();
-                if (!docRef.exists) { showError("Pass ID Not Found", "This ID does not exist in the institutional registry."); return; }
-                renderResult(docId, docRef.data());
+
+                if (!docRef.exists) {
+                    showError("Pass ID Not Found", "This ID does not exist in the institutional registry.");
+                    return;
+                }
+
+                const data = docRef.data();
+                renderResult(docId, data);
+
             } catch (err) {
                 console.error(err);
-                showError("System Error", "Could not connect to database. Check internet.");
+                showError("System Error", "Could not connect to the database. Check internet.");
             } finally {
-                btn.disabled = false; btn.innerHTML = '<i class="fas fa-search"></i> Verify Authenticity';
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-search"></i> Verify Authenticity';
             }
         }
 
         function renderResult(id, data) {
             const isValid = data.status === 'APPROVED';
             const isExpired = new Date(data.endDate) < new Date();
+            
+            // Logic for status visual
             let statusColor = isValid ? (isExpired ? 'orange' : 'green') : 'red';
             let statusIcon = isValid ? (isExpired ? 'fa-history' : 'fa-check-circle') : 'fa-times-circle';
             let statusText = isValid ? (isExpired ? 'EXPIRED' : 'VALID PASS') : data.status.replace('_', ' ');
 
-            // Fix Pending Logic: If Approved, assume verified even if name missing
+            // Approver Names Logic
             let teacherName = data.approvals?.teacher?.name;
             if (!teacherName && data.status === 'APPROVED') teacherName = "Verified Faculty";
             if (!teacherName) teacherName = "Pending";
 
             let hodName = data.approvals?.hod?.name;
-            if (data.approvalType === 'TEACHER_ONLY') hodName = "Not Required";
-            else {
+            if (data.approvalType === 'TEACHER_ONLY') {
+                hodName = "Not Required";
+            } else {
                 if (!hodName && data.status === 'APPROVED') hodName = "Verified HOD";
                 if (!hodName) hodName = "Pending";
             }
 
             const html = `
                 <div class="bg-white rounded-2xl shadow-xl border-t-8 border-${statusColor}-600 overflow-hidden animate-slide-up">
+                    
                     <div class="bg-${statusColor}-50 p-6 text-center border-b border-${statusColor}-100">
-                        <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm text-${statusColor}-600 text-4xl"><i class="fas ${statusIcon}"></i></div>
+                        <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-3 shadow-sm text-${statusColor}-600 text-4xl">
+                            <i class="fas ${statusIcon}"></i>
+                        </div>
                         <h2 class="text-2xl font-black text-${statusColor}-700 uppercase tracking-wide">${statusText}</h2>
-                        <p class="text-${statusColor}-600 text-sm font-medium mt-1">${isValid ? 'Authorized Entry/Exit' : 'Entry Denied'}</p>
+                        <p class="text-${statusColor}-600 text-sm font-medium mt-1">
+                            ${isValid ? 'Authorized Entry/Exit' : 'Entry Denied'}
+                        </p>
                     </div>
+
                     <div class="p-6 space-y-6">
+                        
                         <div class="flex items-center gap-4">
-                            <div class="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 text-xl font-bold">${data.studentName.charAt(0)}</div>
+                            <div class="w-14 h-14 bg-slate-100 rounded-full flex items-center justify-center text-slate-400 text-xl font-bold">
+                                ${data.studentName.charAt(0)}
+                            </div>
                             <div>
                                 <h3 class="font-bold text-lg text-slate-900">${data.studentName}</h3>
                                 <p class="text-slate-500 font-mono text-sm">${data.rollNumber || 'ID N/A'}</p>
+                                <p class="text-xs font-bold text-brand-600 uppercase mt-0.5">${data.department || 'Student'}</p>
                             </div>
                         </div>
+
                         <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-100">
-                            <div><p class="text-xs text-slate-400 font-bold uppercase">Valid From</p><p class="font-medium text-slate-800">${new Date(data.startDate).toLocaleDateString()}</p></div>
-                            <div><p class="text-xs text-slate-400 font-bold uppercase">Valid To</p><p class="font-medium text-slate-800">${new Date(data.endDate).toLocaleDateString()}</p></div>
-                            <div class="col-span-2 pt-2 border-t border-slate-200 mt-2"><p class="text-xs text-slate-400 font-bold uppercase">Reason</p><p class="font-medium text-slate-800 italic">"${data.reason}"</p></div>
+                            <div>
+                                <p class="text-xs text-slate-400 font-bold uppercase">Valid From</p>
+                                <p class="font-medium text-slate-800">${new Date(data.startDate).toLocaleDateString()}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-slate-400 font-bold uppercase">Valid To</p>
+                                <p class="font-medium text-slate-800">${new Date(data.endDate).toLocaleDateString()}</p>
+                            </div>
+                            <div class="col-span-2 pt-2 border-t border-slate-200 mt-2">
+                                <p class="text-xs text-slate-400 font-bold uppercase">Reason / Destination</p>
+                                <p class="font-medium text-slate-800 italic">"${data.reason}"</p>
+                            </div>
                         </div>
+
                         <div class="space-y-3">
-                            <div class="flex items-center justify-between text-sm"><span class="text-slate-500">Class Teacher</span><span class="font-bold text-slate-700">${teacherName}</span></div>
-                            <div class="flex items-center justify-between text-sm"><span class="text-slate-500">Head of Dept</span><span class="font-bold text-slate-700">${hodName}</span></div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-slate-500"><i class="fas fa-chalkboard-teacher w-5"></i> Class Teacher</span>
+                                <span class="font-bold text-slate-700">${teacherName}</span>
+                            </div>
+                            <div class="flex items-center justify-between text-sm">
+                                <span class="text-slate-500"><i class="fas fa-user-tie w-5"></i> Head of Dept</span>
+                                <span class="font-bold text-slate-700">${hodName}</span>
+                            </div>
                         </div>
+
                     </div>
-                    <div class="bg-slate-50 p-3 text-center border-t border-slate-100"><p class="text-[10px] text-slate-400 font-mono break-all">PASS ID: ${id}</p></div>
-                </div>`;
+
+                    <div class="bg-slate-50 p-3 text-center border-t border-slate-100">
+                        <p class="text-[10px] text-slate-400 font-mono break-all">ID: ${id}</p>
+                    </div>
+                </div>
+            `;
+
             container.innerHTML = html;
         }
 
         function showError(title, msg) {
-            container.innerHTML = `<div class="bg-white rounded-2xl shadow-xl border-t-8 border-red-600 p-8 text-center animate-slide-up"><div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 text-3xl"><i class="fas fa-ban"></i></div><h2 class="text-xl font-bold text-gray-900">${title}</h2><p class="text-gray-500 mt-2">${msg}</p></div>`;
+            container.innerHTML = `
+                <div class="bg-white rounded-2xl shadow-xl border-t-8 border-red-600 p-8 text-center animate-slide-up">
+                    <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4 text-red-600 text-3xl">
+                        <i class="fas fa-ban"></i>
+                    </div>
+                    <h2 class="text-xl font-bold text-gray-900">${title}</h2>
+                    <p class="text-gray-500 mt-2">${msg}</p>
+                </div>
+            `;
         }
     </script>
 </body>
