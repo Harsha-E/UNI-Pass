@@ -4,200 +4,141 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register | UNI-PASS System</title>
-    
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        /* Deep Blue Brand Colors */
-        .bg-brand-900 { background-color: #1e3a8a !important; }
-        .bg-brand-600 { background-color: #2563eb !important; }
-        .text-brand-600 { color: #2563eb !important; }
-        .focus\:ring-brand-600:focus { --tw-ring-opacity: 1; --tw-ring-color: rgba(37, 99, 235, 0.5); }
-
-        /* Glassmorphism Effect */
-        .glass {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        /* Background Gradient */
-        .premium-bg {
-            background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%);
-        }
-        
-        /* Custom Radio Button Style */
-        input[type="radio"]:checked + div {
-            background-color: #2563eb;
-            color: white;
-            border-color: #2563eb;
-        }
-    </style>
+    <script type="module" src="../assets/js/firebase-init.js"></script>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+<script src="../../assets/js/ui.js" defer></script>
 </head>
-<body class="premium-bg min-h-screen flex items-center justify-center p-4 font-sans">
+<body class="bg-gray-50 flex items-center justify-center min-h-screen font-sans">
 
-    <div class="max-w-md w-full glass rounded-2xl shadow-2xl overflow-hidden transform transition-all hover:scale-[1.01]">
-        
-        <div class="p-8 pb-4 text-center border-b border-gray-100">
-            <h2 class="text-2xl font-bold text-gray-800 tracking-tight">Create Account</h2>
-            <p class="text-gray-500 text-sm mt-1">Institutional Access Portal</p>
+    <div class="max-w-md w-full bg-white rounded-xl shadow-2xl overflow-hidden">
+        <div class="bg-blue-900 p-6 text-center">
+            <h2 class="text-2xl font-bold text-white">Create Account</h2>
+            <p class="text-blue-200 text-sm mt-1">Institutional Access Portal</p>
         </div>
 
-        <form id="signup-form" class="p-8 pt-6 space-y-5">
+        <form id="signup-form" class="p-8 space-y-5">
             
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Full Name</label>
-                <div class="relative group">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                        <i class="fas fa-user"></i>
-                    </span>
-                    <input type="text" id="reg-name" required 
-                        class="w-full pl-10 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-brand-600 outline-none transition" 
-                        placeholder="e.g. Arjun Reddy">
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Full Name</label>
+                <div class="relative">
+                    <i class="fas fa-user absolute left-3 top-3 text-gray-400"></i>
+                    <input type="text" id="reg-name" required class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Arjun Reddy">
                 </div>
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">College Email</label>
-                <div class="relative group">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                        <i class="fas fa-envelope"></i>
-                    </span>
-                    <input type="email" id="reg-email" required 
-                        class="w-full pl-10 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-brand-600 outline-none transition" 
-                        placeholder="id@mvgrce.edu.in">
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">College Email</label>
+                <div class="relative">
+                    <i class="fas fa-envelope absolute left-3 top-3 text-gray-400"></i>
+                    <input type="email" id="reg-email" required class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="id@mvgrce.edu.in">
                 </div>
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Password</label>
-                <div class="relative group">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                        <i class="fas fa-lock"></i>
-                    </span>
-                    <input type="password" id="reg-pass" required 
-                        class="w-full pl-10 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-brand-600 outline-none transition" 
-                        placeholder="••••••••">
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Password</label>
+                <div class="relative">
+                    <i class="fas fa-lock absolute left-3 top-3 text-gray-400"></i>
+                    <input type="password" id="reg-pass" required class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="••••••••">
                 </div>
             </div>
 
             <div>
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">I am a...</label>
-                <div class="flex gap-3">
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">I am a...</label>
+                <div class="flex gap-4">
                     <label class="flex-1 cursor-pointer">
                         <input type="radio" name="role" value="student" checked class="peer sr-only" onchange="window.toggleRollField(true)">
-                        <div class="text-center py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition">Student</div>
+                        <div class="text-center py-2 border rounded-lg peer-checked:bg-blue-600 peer-checked:text-white transition">Student</div>
                     </label>
                     <label class="flex-1 cursor-pointer">
                         <input type="radio" name="role" value="teacher" class="peer sr-only" onchange="window.toggleRollField(false)">
-                        <div class="text-center py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 transition">Faculty</div>
+                        <div class="text-center py-2 border rounded-lg peer-checked:bg-blue-600 peer-checked:text-white transition">Faculty</div>
                     </label>
                 </div>
             </div>
 
-            <div id="roll-container" class="animate-fade-in">
-                <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Roll Number</label>
+            <div id="roll-container">
+                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Roll Number</label>
                 <div class="relative">
-                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                        <i class="fas fa-id-card"></i>
-                    </span>
-                    <input type="text" id="reg-roll" 
-                        class="w-full pl-10 pr-3 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:bg-white focus:ring-2 focus:ring-brand-600 outline-none transition font-mono uppercase" 
-                        placeholder="e.g. 24331A4201">
+                    <i class="fas fa-id-card absolute left-3 top-3 text-gray-400"></i>
+                    <input type="text" id="reg-roll" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. 24331A4201">
                 </div>
-                <p class="text-[10px] text-gray-400 mt-1 ml-1">Section and Department will be auto-assigned.</p>
+                <p class="text-xs text-gray-400 mt-1">Section and Counselor will be assigned automatically based on this ID.</p>
             </div>
 
-            <button type="submit" id="btn-signup" 
-                class="w-full bg-brand-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-500/30 transform active:scale-95 mt-4">
-                Register Account
+            <button type="submit" id="btn-signup" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-lg transform hover:-translate-y-0.5">
+                Register
             </button>
 
-            <p id="status-msg" class="text-center text-xs text-brand-600 font-bold hidden"></p>
-
-            <div class="text-center pt-2 border-t border-gray-100">
-                <p class="text-sm text-gray-500">
-                    Already have an account? <a href="login.html" class="text-brand-600 font-bold hover:underline">Login</a>
-                </p>
-            </div>
+            <p class="text-center text-sm text-gray-500 mt-4">
+                Already have an account? <a href="login.html" class="text-blue-600 font-bold hover:underline">Login</a>
+            </p>
         </form>
     </div>
 
     <script type="module">
         import { db, auth } from '../assets/js/firebase-init.js';
-        import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // Helper: Toggle Roll Number Input
+        // Helper to toggle visibility
         window.toggleRollField = (isStudent) => {
             const el = document.getElementById('roll-container');
-            const input = document.getElementById('reg-roll');
-            if(isStudent) {
-                el.classList.remove('hidden');
-                input.required = true;
-            } else {
-                el.classList.add('hidden');
-                input.required = false;
-            }
+            if(isStudent) el.classList.remove('hidden');
+            else el.classList.add('hidden');
         };
 
-        const form = document.getElementById('signup-form');
-        const statusMsg = document.getElementById('status-msg');
-
-        form.addEventListener('submit', async (e) => {
+        document.getElementById('signup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-signup');
             
-            // 1. UI Loading
+            // Add status message element
+            let statusMsg = document.getElementById('status-msg');
+            if(!statusMsg) {
+                statusMsg = document.createElement('p');
+                statusMsg.id = 'status-msg';
+                statusMsg.className = "text-center text-xs text-blue-600 mt-2 animate-pulse";
+                btn.parentNode.appendChild(statusMsg);
+            }
+
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing...';
-            statusMsg.classList.remove('hidden');
-            statusMsg.className = "text-center text-xs text-blue-600 font-bold animate-pulse";
-            statusMsg.innerText = "Connecting to Firebase...";
+            btn.innerText = "Processing...";
 
             const email = document.getElementById('reg-email').value;
             const pass = document.getElementById('reg-pass').value;
             const name = document.getElementById('reg-name').value;
             const role = document.querySelector('input[name="role"]:checked').value;
-            const roll = document.getElementById('reg-roll').value.trim();
+            const roll = document.getElementById('reg-roll').value;
 
             try {
-                // 2. Create User
-                statusMsg.innerText = "Creating User Account...";
-                console.log("Attempting to create user...");
-                
-                const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
+                // 1. Create User in Auth System
+                statusMsg.innerText = "Creating secure credentials...";
+                const userCredential = await auth.createUserWithEmailAndPassword(email, pass);
                 const user = userCredential.user;
-                console.log("User Created:", user.uid);
 
-                // 3. Send Verification Email
-                statusMsg.innerText = "Sending Verification Email...";
-                console.log("Attempting to send email...");
-                
-                await sendEmailVerification(user)
-                    .then(() => console.log("Email Sent Successfully"))
-                    .catch((err) => {
-                        console.error("Email Error:", err);
-                        throw new Error("Could not send email: " + err.message);
-                    });
+                // 2. Send Verification Email
+                statusMsg.innerText = "Sending verification email...";
+                await user.sendEmailVerification();
 
-                // 4. Auto-Assign Logic
+                // 3. Determine Auto-Assignment Logic (Realistic)
                 let section = 'N/A';
                 let department = 'General';
                 
                 if (role === 'student' && roll) {
-                    if (roll.includes('42')) department = 'CSE';
+                    // Dept Code extraction (e.g. 42 = CSE)
+                    if (roll.includes('42')) department = 'Computer Science';
                     else if (roll.includes('01')) department = 'Civil';
-                    else if (roll.includes('03')) department = 'Mech';
+                    else if (roll.includes('03')) department = 'Mechanical';
                     else if (roll.includes('04')) department = 'ECE';
-                    else if (roll.includes('05')) department = 'IT';
                     
+                    // Section Logic (Last 2 digits)
                     const lastTwo = parseInt(roll.slice(-2));
-                    if (!isNaN(lastTwo)) section = (lastTwo <= 66) ? 'A' : 'B';
+                    if (!isNaN(lastTwo)) {
+                        section = (lastTwo <= 66) ? 'A' : 'B';
+                    }
                 }
 
-                // 5. Save to Firestore
-                statusMsg.innerText = "Saving Profile Data...";
+                // 4. Save Extended Profile to Database
+                statusMsg.innerText = "Finalizing profile...";
                 await db.collection('users').doc(user.uid).set({
                     displayName: name,
                     email: email,
@@ -205,26 +146,26 @@
                     rollNumber: role === 'student' ? roll.toUpperCase() : null,
                     department: department,
                     section: section,
-                    attendance: 75,
-                    isBlocked: false,
+                    attendance: 75, // Default safe attendance
+                    isBlocked: false, // Default allowed
                     createdAt: new Date().toISOString()
                 });
 
-                // 6. Success
-                alert(`SUCCESS!\n\nUser created for: ${email}\n\nWe have sent a verification email. Please check your SPAM folder if not found.`);
-                await signOut(auth);
+                // 5. Success
+                alert(`Account Created Successfully!\n\nIMPORTANT: We have sent a verification link to ${email}.\n\nYou MUST verify your email before logging in.`);
+                
+                // Force logout so they verify first
+                await auth.signOut();
                 window.location.href = 'login.html';
 
             } catch (err) {
-                console.error("FULL ERROR:", err);
-                statusMsg.className = "text-center text-xs text-red-500 font-bold";
-                statusMsg.innerText = err.message.replace("Firebase: ", "");
-                btn.disabled = false;
-                btn.innerText = "Try Again";
+                console.error(err);
                 alert("Error: " + err.message);
+                btn.disabled = false;
+                btn.innerText = "Register";
+                statusMsg.innerText = "";
             }
         });
     </script>
 </body>
 </html>
-

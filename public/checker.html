@@ -3,35 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UNI-PASS</title>
+    <title>Verify Pass | Official Campus Validator</title>
     
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <style>
-        /* Custom Brand Colors that were lost when removing the script */
-        .bg-brand-600 { background-color: #2563eb !important; }
-        .bg-brand-700 { background-color: #1d4ed8 !important; }
-        .bg-brand-900 { background-color: #1e3a8a !important; }
-        
-        .text-brand-600 { color: #2563eb !important; }
-        .text-brand-900 { color: #1e3a8a !important; }
-        
-        .border-brand-600 { border-color: #2563eb !important; }
-        
-        /* Hover States */
-        .hover\:bg-brand-600:hover { background-color: #2563eb !important; }
-        .hover\:bg-brand-700:hover { background-color: #1d4ed8 !important; }
-        
-        /* Focus Rings */
-        .focus\:ring-brand-600:focus { --tw-ring-color: #2563eb !important; }
-        
-        /* Animations */
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .animate-fade-in { animation: fadeIn 0.5s ease-out; }
-        @keyframes slideUp { from { transform: translateY(10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
-        .animate-slide-up { animation: slideUp 0.5s ease-out; }
-    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 600: '#2563eb', 900: '#1e3a8a' },
+                        success: { 50: '#f0fdf4', 600: '#16a34a', 700: '#15803d' },
+                        error: { 50: '#fef2f2', 600: '#dc2626', 700: '#b91c1c' }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 0.5s ease-out',
+                        'slide-up': 'slideUp 0.5s ease-out'
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0' }, '100%': { opacity: '1' } },
+                        slideUp: { '0%': { transform: 'translateY(10px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } }
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-800">
 
@@ -139,18 +136,9 @@
             let statusIcon = isValid ? (isExpired ? 'fa-history' : 'fa-check-circle') : 'fa-times-circle';
             let statusText = isValid ? (isExpired ? 'EXPIRED' : 'VALID PASS') : data.status.replace('_', ' ');
 
-            // Approver Names Logic
-            let teacherName = data.approvals?.teacher?.name;
-            if (!teacherName && data.status === 'APPROVED') teacherName = "Verified Faculty";
-            if (!teacherName) teacherName = "Pending";
-
-            let hodName = data.approvals?.hod?.name;
-            if (data.approvalType === 'TEACHER_ONLY') {
-                hodName = "Not Required";
-            } else {
-                if (!hodName && data.status === 'APPROVED') hodName = "Verified HOD";
-                if (!hodName) hodName = "Pending";
-            }
+            // Approver Names
+            const teacherName = data.approvals?.teacher?.name || "Pending";
+            const hodName = data.approvals?.hod?.name || (data.approvalType === 'TEACHER_ONLY' ? "Not Required" : "Pending");
 
             const html = `
                 <div class="bg-white rounded-2xl shadow-xl border-t-8 border-${statusColor}-600 overflow-hidden animate-slide-up">
@@ -229,4 +217,3 @@
     </script>
 </body>
 </html>
-
