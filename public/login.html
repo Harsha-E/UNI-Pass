@@ -3,120 +3,125 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | UNI-PASS System</title>
+    <title>Login | UNI-PASS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://harsha-e.github.io/UNI-Pass/assets/css/style.css">
-<script src="https://harsha-e.github.io/UNI-Pass/assets/js/ui.js" defer></script>
-    <script type="module" src="https://harsha-e.github.io/UNI-Pass/assets/js/firebase-init.js"></script>
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: { colors: { brand: { 600: '#2563eb', 900: '#1e3a8a' } } }
+            }
+        }
+    </script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen font-sans">
+<body class="bg-slate-50 h-screen flex items-center justify-center p-4">
 
-    <div class="max-w-md w-full bg-white rounded-xl shadow-lg overflow-hidden">
-        <div class="p-8">
-            <div class="text-center mb-8">
-                <div class="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-lg text-white text-3xl">
-                    <i class="fas fa-university"></i>
-                </div>
-                <h2 class="text-2xl font-bold text-gray-800">Welcome Back</h2>
-                <p class="text-gray-500 text-sm">Sign in to access the campus permission portal.</p>
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
+        <div class="bg-brand-900 p-8 text-center">
+            <div class="w-16 h-16 bg-white/10 rounded-full flex items-center justify-center mx-auto mb-4 backdrop-blur-sm text-white text-2xl">
+                <i class="fas fa-user-circle"></i>
             </div>
+            <h2 class="text-2xl font-bold text-white">Welcome Back</h2>
+            <p class="text-blue-200 text-sm mt-1">Sign in to access your portal</p>
+        </div>
 
-            <form id="login-form" class="space-y-6">
+        <div class="p-8">
+            <form id="loginForm" class="space-y-6">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                    <input type="email" id="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="you@mvgrce.edu.in">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Email Address</label>
+                    <div class="relative">
+                        <i class="fas fa-envelope absolute left-4 top-3.5 text-gray-400"></i>
+                        <input type="email" id="email" required 
+                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-600 focus:border-transparent outline-none transition"
+                            placeholder="student@college.edu">
+                    </div>
                 </div>
 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                    <input type="password" id="password" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="••••••••">
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Password</label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-4 top-3.5 text-gray-400"></i>
+                        <input type="password" id="password" required 
+                            class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-brand-600 focus:border-transparent outline-none transition"
+                            placeholder="••••••••">
+                    </div>
                 </div>
 
-                <button type="submit" id="login-btn" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-md hover:shadow-lg transform hover:-translate-y-0.5">
+                <div class="flex items-center justify-between text-sm">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" class="rounded text-brand-600 focus:ring-brand-600">
+                        <span class="text-gray-600">Remember me</span>
+                    </label>
+                    <a href="#" class="text-brand-600 font-bold hover:underline">Forgot password?</a>
+                </div>
+
+                <button type="submit" id="loginBtn" 
+                    class="w-full bg-brand-600 text-white font-bold py-3.5 rounded-xl hover:bg-brand-900 transition shadow-lg active:scale-95">
                     Sign In
                 </button>
-            </form>
 
-            <div class="mt-6 text-center text-sm text-gray-500">
-                Don't have an account? <a href="signup.html" class="text-blue-600 font-bold hover:underline">Register Here</a>
-            </div>
+                <p id="error-msg" class="text-red-500 text-center text-sm font-bold hidden"></p>
+            </form>
         </div>
         
         <div class="bg-gray-50 p-4 text-center border-t border-gray-100">
-            <p class="text-xs text-gray-400">Need help? Contact the IT Department.</p>
+            <a href="../index.html" class="text-sm text-gray-500 hover:text-brand-600 font-medium">
+                <i class="fas fa-arrow-left mr-1"></i> Back to Home
+            </a>
         </div>
     </div>
 
-<script type="module">
-        import { db, auth } from 'https://harsha-e.github.io/UNI-Pass/assets/js/firebase-init.js';
+    <script type="module">
+        import { auth, db } from '../assets/js/firebase-init.js';
+        import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // --- 1. AUTO-CLEANUP ON LOAD ---
-        // This fixes the "Stuck as Student" bug.
-        // Whenever this page loads, we wipe previous session data.
-        sessionStorage.clear();
-        localStorage.removeItem('uni_pass_role');
-        localStorage.removeItem('uni_pass_uid');
-        
-        // Also force Firebase to sign out just in case
-        auth.signOut().catch(() => {}); 
+        const loginForm = document.getElementById('loginForm');
+        const errorMsg = document.getElementById('error-msg');
+        const loginBtn = document.getElementById('loginBtn');
 
-        document.getElementById('login-form').addEventListener('submit', async (e) => {
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value.trim();
+            const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
-            const loginBtn = document.getElementById('login-btn');
 
-            const originalBtnText = loginBtn.innerText;
-            loginBtn.innerText = "Verifying...";
+            // UI Loading
             loginBtn.disabled = true;
-            loginBtn.classList.add('opacity-75');
+            loginBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Authenticating...';
+            errorMsg.classList.add('hidden');
 
             try {
-                // 2. Authenticate
-                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                // 1. Firebase Login
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
 
-                // 3. Skip Verification for Test Accounts
-                if (!user.emailVerified && !email.endsWith('@test.com')) {
-                    await auth.signOut();
-                    throw new Error("Email not verified.");
-                }
-
-                // 4. Get Role
+                // 2. Check User Role in Firestore
                 const doc = await db.collection('users').doc(user.uid).get();
-
+                
                 if (doc.exists) {
-                    const data = doc.data();
-                    const role = data.role;
-
-                    // 5. SET FRESH SESSION
-                    sessionStorage.setItem('uni_pass_role', role);
-                    sessionStorage.setItem('uni_pass_uid', user.uid);
-
-                    const routes = {
-                        'student': '../portals/student/portalA.html',
-                        'teacher': '../portals/teacher/portalA.html',
-                        'hod': '../portals/hod/portalA.html',
-                        'admin': '../admin/admin.html'
-                    };
-
-                    if(routes[role]) window.location.href = routes[role];
-                    else throw new Error("Unknown Role: " + role);
-
+                    const role = doc.data().role;
+                    
+                    // 3. Redirect based on Role
+                    if (role === 'student') window.location.href = '../portals/student/portalA.html';
+                    else if (role === 'teacher') window.location.href = '../portals/staff/teacher-dashboard.html'; // Assuming this exists
+                    else if (role === 'hod') window.location.href = '../portals/staff/hod-dashboard.html';
+                    else if (role === 'admin') window.location.href = '../admin/admin.html';
+                    else {
+                        throw new Error("Role not assigned. Contact Admin.");
+                    }
                 } else {
-                    throw new Error("User profile missing in database.");
+                    // Fallback if user exists in Auth but not in DB (rare)
+                    throw new Error("User profile not found.");
                 }
 
             } catch (error) {
                 console.error(error);
-                alert("Login Failed: " + error.message);
-                loginBtn.innerText = originalBtnText;
+                errorMsg.innerText = error.message.replace("Firebase: ", "");
+                errorMsg.classList.remove('hidden');
                 loginBtn.disabled = false;
-                loginBtn.classList.remove('opacity-75');
+                loginBtn.innerText = "Sign In";
             }
         });
     </script>
 </body>
 </html>
-
