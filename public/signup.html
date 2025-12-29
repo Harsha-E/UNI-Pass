@@ -125,19 +125,19 @@
     </div>
 
     <script type="module">
-        // Using Relative Path for better local/production compatibility
         import { db, auth } from '../assets/js/firebase-init.js';
         import { createUserWithEmailAndPassword, sendEmailVerification, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-        // Toggle Field Helper
+        // Helper: Toggle Roll Number Input
         window.toggleRollField = (isStudent) => {
             const el = document.getElementById('roll-container');
+            const input = document.getElementById('reg-roll');
             if(isStudent) {
                 el.classList.remove('hidden');
-                document.getElementById('reg-roll').required = true;
+                input.required = true;
             } else {
                 el.classList.add('hidden');
-                document.getElementById('reg-roll').required = false;
+                input.required = false;
             }
         };
 
@@ -148,11 +148,12 @@
             e.preventDefault();
             const btn = document.getElementById('btn-signup');
             
+            // 1. UI Loading
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing...';
             statusMsg.classList.remove('hidden');
-            statusMsg.innerText = "Creating secure credentials...";
             statusMsg.className = "text-center text-xs text-blue-600 font-bold animate-pulse";
+            statusMsg.innerText = "Connecting to Firebase...";
 
             const email = document.getElementById('reg-email').value;
             const pass = document.getElementById('reg-pass').value;
@@ -161,15 +162,26 @@
             const roll = document.getElementById('reg-roll').value.trim();
 
             try {
-                // 1. Create User
+                // 2. Create User
+                statusMsg.innerText = "Creating User Account...";
+                console.log("Attempting to create user...");
+                
                 const userCredential = await createUserWithEmailAndPassword(auth, email, pass);
                 const user = userCredential.user;
+                console.log("User Created:", user.uid);
 
-                // 2. Send Verification
-                statusMsg.innerText = "Sending verification email...";
-                await sendEmailVerification(user);
+                // 3. Send Verification Email
+                statusMsg.innerText = "Sending Verification Email...";
+                console.log("Attempting to send email...");
+                
+                await sendEmailVerification(user)
+                    .then(() => console.log("Email Sent Successfully"))
+                    .catch((err) => {
+                        console.error("Email Error:", err);
+                        throw new Error("Could not send email: " + err.message);
+                    });
 
-                // 3. Auto-Assign Logic
+                // 4. Auto-Assign Logic
                 let section = 'N/A';
                 let department = 'General';
                 
@@ -179,14 +191,13 @@
                     else if (roll.includes('03')) department = 'Mech';
                     else if (roll.includes('04')) department = 'ECE';
                     else if (roll.includes('05')) department = 'IT';
-                    else if (roll.includes('12')) department = 'AI & DS';
-
+                    
                     const lastTwo = parseInt(roll.slice(-2));
                     if (!isNaN(lastTwo)) section = (lastTwo <= 66) ? 'A' : 'B';
                 }
 
-                // 4. Save Profile
-                statusMsg.innerText = "Finalizing profile setup...";
+                // 5. Save to Firestore
+                statusMsg.innerText = "Saving Profile Data...";
                 await db.collection('users').doc(user.uid).set({
                     displayName: name,
                     email: email,
@@ -199,19 +210,21 @@
                     createdAt: new Date().toISOString()
                 });
 
-                // 5. Success
-                alert(`Account Created Successfully!\n\nPlease check ${email} for a verification link before logging in.`);
+                // 6. Success
+                alert(`SUCCESS!\n\nUser created for: ${email}\n\nWe have sent a verification email. Please check your SPAM folder if not found.`);
                 await signOut(auth);
                 window.location.href = 'login.html';
 
             } catch (err) {
-                console.error(err);
+                console.error("FULL ERROR:", err);
                 statusMsg.className = "text-center text-xs text-red-500 font-bold";
                 statusMsg.innerText = err.message.replace("Firebase: ", "");
                 btn.disabled = false;
-                btn.innerText = "Register Account";
+                btn.innerText = "Try Again";
+                alert("Error: " + err.message);
             }
         });
     </script>
 </body>
 </html>
+
