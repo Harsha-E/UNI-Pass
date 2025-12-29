@@ -3,101 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UNI-Pass</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-
+    <title>UNI-PASS | Digital Gate Pass System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
-        /** * FIXED: Wrapped in a check to prevent "Uncaught ReferenceError: tailwind is not defined"
-         * This ensures your site logic doesn't break even if the CDN takes a second to load.
-         */
-        function initializeTailwind() {
-            if (typeof tailwind !== 'undefined') {
-                tailwind.config = {
-                    theme: {
-                        extend: {
-                            colors: {
-                                primary: {
-                                    50: '#eff6ff',
-                                    100: '#dbeafe',
-                                    200: '#bfdbfe',
-                                    300: '#93c5fd',
-                                    400: '#60a5fa',
-                                    500: '#3b82f6',
-                                    600: '#2563eb',
-                                    700: '#1d4ed8',
-                                    800: '#1e40af',
-                                    900: '#1e3a8a',
-                                },
-                            }
-                        }
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: { 600: '#2563eb', 900: '#1e3a8a' }
+                    },
+                    animation: {
+                        'fade-in': 'fadeIn 1s ease-out',
+                        'bounce-slow': 'bounce 3s infinite'
+                    },
+                    keyframes: {
+                        fadeIn: { '0%': { opacity: '0', transform: 'translateY(20px)' }, '100%': { opacity: '1', transform: 'translateY(0)' } }
                     }
                 }
             }
         }
-
-        // Run the config immediately
-        initializeTailwind();
-        // Also run on load just in case of slow connection
-        window.addEventListener('load', initializeTailwind);
     </script>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <style>
-        body {
-            font-family: 'Inter', sans-serif;
-        }
-        /* Custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #f1f1f1;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #3b82f6;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #2563eb;
-        }
-    </style>
 </head>
-<body class="bg-gray-50 text-gray-900 antialiased">
-    <nav class="bg-white border-b border-gray-200 fixed w-full z-30 top-0">
-        <div class="px-3 py-3 lg:px-5 lg:pl-3">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center justify-start">
-                    <span class="self-center text-xl font-bold sm:text-2xl whitespace-nowrap text-primary-600">UNI-Pass</span>
+<body class="bg-gradient-to-br from-slate-50 to-slate-200 min-h-screen flex flex-col font-sans text-slate-800">
+
+    <nav class="bg-white/80 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-brand-600 rounded-lg flex items-center justify-center text-white text-xl shadow-lg shadow-brand-600/30">
+                    <i class="fas fa-university"></i>
                 </div>
+                <span class="font-bold text-2xl tracking-tight text-slate-900">UNI-PASS</span>
+            </div>
+            <div>
+                <a href="public/login.html" class="text-brand-600 font-bold hover:text-brand-900 transition mr-6 hidden sm:inline-block">Staff Login</a>
+                <a href="public/checker.html" class="bg-slate-900 text-white px-5 py-2.5 rounded-full font-bold hover:bg-slate-700 transition shadow-lg">
+                    <i class="fas fa-qrcode mr-2"></i> Verify Pass
+                </a>
             </div>
         </div>
     </nav>
 
-    <div class="flex pt-16 overflow-hidden bg-gray-50">
-        <div id="main-content" class="relative w-full h-full overflow-y-auto bg-gray-50 min-h-screen">
-            <main>
-                <div class="px-4 pt-6">
-                    <div class="grid w-full grid-cols-1 gap-4 mt-4 xl:grid-cols-2 2xl:grid-cols-3">
-                        <div class="p-4 bg-white border border-gray-200 rounded-lg shadow-sm sm:p-6">
-                            <h3 class="text-base font-semibold text-gray-900 mb-4">Verification Status</h3>
-                            <div class="flex items-center justify-center p-8 bg-green-50 rounded-lg border-2 border-dashed border-green-200">
-                                <div class="text-center">
-                                    <div class="inline-flex items-center justify-center w-12 h-12 mb-4 rounded-full bg-green-100 text-green-600">
-                                        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                                        </svg>
-                                    </div>
-                                    <h4 class="text-lg font-medium text-green-800">Verification Complete</h4>
-                                    <p class="mt-1 text-sm text-green-600">Your identity has been successfully verified.</p>
-                                </div>
-                            </div>
-                        </div>
+    <main class="flex-1 flex items-center justify-center p-6">
+        <div class="max-w-4xl w-full text-center space-y-8 animate-fade-in">
+            
+            <div class="inline-block bg-blue-100 text-brand-600 px-4 py-1.5 rounded-full text-sm font-bold tracking-wide mb-2 border border-blue-200">
+                <i class="fas fa-bolt mr-2 text-yellow-500"></i> FAST &middot; SECURE &middot; PAPERLESS
+            </div>
+
+            <h1 class="text-5xl md:text-7xl font-black text-slate-900 leading-tight tracking-tight">
+                Campus Permissions <br>
+                <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-cyan-500">Reimagined.</span>
+            </h1>
+
+            <p class="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
+                Streamline gate passes, leave requests, and lab bookings with an automated, QR-verified digital workflow.
+            </p>
+
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-4">
+                <a href="public/login.html" class="w-full sm:w-auto px-8 py-4 bg-brand-600 text-white rounded-xl font-bold text-lg hover:bg-brand-700 transition shadow-xl shadow-brand-600/30 transform hover:-translate-y-1">
+                    Student / Staff Login
+                </a>
+                <a href="public/checker.html" class="w-full sm:w-auto px-8 py-4 bg-white text-slate-700 border border-slate-300 rounded-xl font-bold text-lg hover:bg-slate-50 transition shadow-sm hover:shadow-md">
+                    Security Scanner
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-left mt-16 border-t border-slate-200 pt-12">
+                <div class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition border border-slate-100">
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center text-green-600 text-xl mb-4">
+                        <i class="fas fa-check-circle"></i>
                     </div>
+                    <h3 class="font-bold text-lg text-slate-900">Instant Approvals</h3>
+                    <p class="text-slate-500 text-sm mt-2">Automated routing to Class Teachers and HODs ensures rapid decision-making.</p>
                 </div>
-            </main>
+                <div class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition border border-slate-100">
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600 text-xl mb-4">
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900">QR Verification</h3>
+                    <p class="text-slate-500 text-sm mt-2">Tamper-proof digital gate passes signed with SHA-256 cryptography.</p>
+                </div>
+                <div class="bg-white p-6 rounded-2xl shadow-sm hover:shadow-md transition border border-slate-100">
+                    <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center text-orange-600 text-xl mb-4">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <h3 class="font-bold text-lg text-slate-900">Mobile First</h3>
+                    <p class="text-slate-500 text-sm mt-2">Fully responsive design for Students, Faculty, and Security Staff.</p>
+                </div>
+            </div>
+
         </div>
-    </div>
+    </main>
+
+    <footer class="bg-white border-t border-slate-200 py-8 text-center text-slate-400 text-sm">
+        <p>&copy; 2024 UNI-PASS System. All rights reserved.</p>
+        <div class="mt-2 space-x-4">
+            <a href="#" class="hover:text-brand-600">Privacy</a>
+            <a href="#" class="hover:text-brand-600">Terms</a>
+            <a href="admin/admin.html" class="hover:text-brand-600">Admin</a>
+        </div>
+    </footer>
+
 </body>
 </html>
