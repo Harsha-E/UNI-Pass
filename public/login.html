@@ -9,22 +9,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        /* Restoring the specific 'Brand' colors you liked */
-        .bg-brand-900 { background-color: #1e3a8a !important; } /* Deep Blue */
-        .bg-brand-600 { background-color: #2563eb !important; } /* Bright Blue */
+        .bg-brand-900 { background-color: #1e3a8a !important; }
+        .bg-brand-600 { background-color: #2563eb !important; }
         .text-brand-600 { color: #2563eb !important; }
         .border-brand-600 { border-color: #2563eb !important; }
-        
         .hover\:bg-brand-700:hover { background-color: #1d4ed8 !important; }
 
-        /* Glassmorphism Effect */
         .glass {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(10px);
             border: 1px solid rgba(255, 255, 255, 0.2);
         }
         
-        /* Background Gradient */
         .premium-bg {
             background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #172554 100%);
         }
@@ -115,7 +111,6 @@
             const email = document.getElementById('email').value;
             const password = document.getElementById('password').value;
 
-            // Loading State
             loginBtn.disabled = true;
             loginBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Authenticating...';
             errorMsg.classList.add('hidden');
@@ -124,6 +119,16 @@
                 // 1. Firebase Login
                 const userCredential = await signInWithEmailAndPassword(auth, email, password);
                 const user = userCredential.user;
+
+                // ----------------------------------------------------
+                // NEW: CHECK EMAIL VERIFICATION
+                // ----------------------------------------------------
+                if (!user.emailVerified) {
+                    // Force logout immediately
+                    await auth.signOut();
+                    throw new Error("Email not verified. Please check your inbox and verify your email before logging in.");
+                }
+                // ----------------------------------------------------
 
                 // 2. Fetch Role
                 const doc = await db.collection('users').doc(user.uid).get();
@@ -148,9 +153,13 @@
 
             } catch (error) {
                 console.error(error);
-                let message = "Invalid email or password.";
-                if (error.code === 'auth/network-request-failed') message = "Network Error. Check your internet connection.";
+                let message = error.message;
+
+                // Friendly Firebase Error Messages
+                if (error.code === 'auth/invalid-credential') message = "Incorrect email or password.";
+                if (error.code === 'auth/network-request-failed') message = "Network Error. Check internet connection.";
                 if (error.code === 'auth/user-not-found') message = "No account found with this email.";
+                if (message.includes("Firebase:")) message = message.replace("Firebase: ", "");
                 
                 errorText.innerText = message;
                 errorMsg.classList.remove('hidden');
