@@ -136,7 +136,7 @@
     let currentPermissionData = null; // Holds data for PDF generation
 
     auth.onAuthStateChanged(user => {
-        if (!user) window.location.href = '../../public/login.html';
+        if (!user) window.location.href = 'https://harsha-e.github.io/UNI-Pass/public/login.html';
         listenToRequests(user.uid);
     });
 
@@ -147,7 +147,7 @@ document.getElementById('logout-btn').addEventListener('click', () => {
     
     // 2. Sign out of Firebase
     auth.signOut().then(() => {
-        window.location.href = '../../public/login.html';
+        window.location.href = 'https://harsha-e.github.io/UNI-Pass/public/login.html';
     });
 });
     function listenToRequests(uid) {
@@ -338,3 +338,4 @@ document.getElementById('logout-btn').addEventListener('click', () => {
 </body>
 
 </html>
+
