@@ -218,14 +218,30 @@
     <script type="module">
         import { db, auth } from '../assets/js/firebase-init.js';
 
-        // --- 1. AUTH GUARD ---
+        // --- 1. AUTH GUARD (SECURED) ---
         auth.onAuthStateChanged(async (user) => {
             if (!user) {
                 window.location.href = '../public/login.html';
                 return;
             }
-            // Add custom role check here if needed
-            window.loadAnalytics();
+
+            // SECURITY CHECK: Verify Admin Role
+            try {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                
+                if (!userDoc.exists || userDoc.data().role !== 'admin') {
+                    alert("SECURITY ALERT: Access Denied.");
+                    window.location.href = '../public/login.html';
+                    return;
+                }
+
+                // If role is confirmed, load data
+                window.loadAnalytics();
+
+            } catch (error) {
+                console.error("Auth Check Failed", error);
+                window.location.href = '../public/login.html';
+            }
         });
 
         // --- 2. ANALYTICS LOGIC ---
