@@ -102,25 +102,45 @@
         async function verifyPass(docId) {
             // UI Loading State
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Verifying...';
-            container.innerHTML = ''; // Clear previous
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Verifying Digital Signature...';
+            container.innerHTML = ''; 
             container.classList.remove('hidden');
 
             try {
-                // Fetch from Firestore
+                // 1. Get the Hash from the URL (The one scanned from QR)
+                const urlParams = new URLSearchParams(window.location.search);
+                const qrHash = urlParams.get('sig'); // This comes from the PDF
+
+                // 2. Fetch from Firestore
                 const docRef = await db.collection('permissions').doc(docId).get();
 
                 if (!docRef.exists) {
-                    showError("Pass ID Not Found", "This ID does not exist in the institutional registry.");
+                    showError("Pass Not Found", "ID does not exist in the registry.");
                     return;
                 }
 
                 const data = docRef.data();
+                
+                // 3. STRICT ANTI-FORGERY CHECK
+                // We compare the Hash in the Database vs. The Hash in the QR Code
+                if (qrHash && data.digitalSignature) {
+                    if (qrHash !== data.digitalSignature) {
+                         // CRITICAL: The QR code was altered or belongs to an old version
+                         showError("Forgery Detected", "The Digital Signature in this QR code does not match the official record.");
+                         return; // STOP execution
+                    }
+                } else if (!qrHash) {
+                    console.warn("Legacy QR Code scanned (no hash). Proceeding with ID check only.");
+                }
+
+                // Artificial delay for effect
+                await new Promise(r => setTimeout(r, 600));
+
                 renderResult(docId, data);
 
             } catch (err) {
                 console.error(err);
-                showError("System Error", "Could not connect to the database. Check internet.");
+                showError("System Error", "Verification failed. Please retry.");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-search"></i> Verify Authenticity';
