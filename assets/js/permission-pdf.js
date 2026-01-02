@@ -77,19 +77,23 @@ window.generateOfficialPDF = async function(docId, data) {
     doc.setTextColor(50); doc.setFont("helvetica", "italic");
     const splitText = doc.splitTextToSize(data.reason || "N/A", width - 50);
     doc.text(splitText, 25, y+12);
-
-    // --- 6. FOOTER & QR CODE (CRITICAL FIX) ---
+// --- 6. FOOTER & QR CODE (UPDATED FOR CORS FIX) ---
     const footerY = 250;
     
-    // We use 'finalSignature' here. It is GUARANTEED to match the text below.
+    // The Verification URL
     const checkUrl = `https://harsha-e.github.io/UNI-Pass/public/checker.html?id=${docId}&sig=${finalSignature}`;
     
-    // Generate QR
-    doc.addImage(
-        "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=" + encodeURIComponent(checkUrl), 
-        "PNG", 
-        20, footerY-10, 25, 25
-    );
+    // FIX: Use QuickChart.io instead of QRServer (Better CORS support)
+    // We use a timestamp to prevent caching issues
+    const qrApiUrl = `https://quickchart.io/qr?text=${encodeURIComponent(checkUrl)}&size=200&dark=000000&margin=0&t=${Date.now()}`;
+
+    try {
+        doc.addImage(qrApiUrl, "PNG", 20, footerY-10, 25, 25);
+    } catch (e) {
+        console.warn("QR Generation blocked by network. Adding fallback text.");
+        doc.setFontSize(8);
+        doc.text("[QR LOAD FAILED - CHECK CONSOLE]", 20, footerY);
+    }
 
     // Print Hash Text
     doc.setFont("courier", "normal"); doc.setFontSize(8); doc.setTextColor(80);
@@ -103,3 +107,4 @@ window.generateOfficialPDF = async function(docId, data) {
     
     doc.save(`PASS_${rollNo}.pdf`);
 };
+
