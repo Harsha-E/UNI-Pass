@@ -246,17 +246,32 @@
             else modal.classList.add('hidden');
         };
 
-        // --- 2. AUTH GUARD ---
+        // --- 2. AUTH GUARD (SECURED) ---
         auth.onAuthStateChanged(async (user) => {
             if (!user) {
                 window.location.href = 'https://harsha-e.github.io/UNI-Pass/public/login.html';
                 return;
             }
-            initDashboard();
-        });
 
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            auth.signOut().then(() => window.location.href = '../../public/login.html');
+            // SECURITY CHECK: Verify Admin Role
+            try {
+                const userDoc = await db.collection('users').doc(user.uid).get();
+                
+                // If user doesn't exist or is NOT an admin
+                if (!userDoc.exists || userDoc.data().role !== 'admin') {
+                    alert("SECURITY ALERT: Access Denied.\nYou are not authorized to view the Admin Panel.");
+                    await auth.signOut(); // Kick them out
+                    window.location.href = 'https://harsha-e.github.io/UNI-Pass/public/login.html';
+                    return;
+                }
+
+                // If role is confirmed as admin, proceed
+                initDashboard();
+
+            } catch (error) {
+                console.error("Auth Check Failed", error);
+                window.location.href = 'https://harsha-e.github.io/UNI-Pass/public/login.html';
+            }
         });
 
         // --- 3. DASHBOARD LOGIC (Updated for Blocked Counts) ---
