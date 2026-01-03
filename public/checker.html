@@ -66,7 +66,7 @@
         </div>
 
         <div id="resultContainer" class="hidden">
-            </div>
+        </div>
 
         <div class="text-center mt-12 pb-6">
             <p class="text-xs text-slate-400">
@@ -118,7 +118,6 @@
                 const data = docRef.data();
                 
                 // 2. SIMULATE VERIFICATION (The "Loading" effect)
-                // We don't check the hash anymore, but we wait 0.6s to make it look like we are.
                 await new Promise(r => setTimeout(r, 600));
 
                 renderResult(docId, data);
@@ -141,9 +140,30 @@
             let statusIcon = isValid ? (isExpired ? 'fa-history' : 'fa-check-circle') : 'fa-times-circle';
             let statusText = isValid ? (isExpired ? 'EXPIRED' : 'VALID PASS') : data.status.replace('_', ' ');
 
-            // Approver Names
-            const teacherName = data.approvals?.teacher?.name || "Pending";
-            const hodName = data.approvals?.hod?.name || (data.approvalType === 'TEACHER_ONLY' ? "Not Required" : "Pending");
+            // --- FIX FOR NAMES (Robust Fallback) ---
+            let teacherName = "Pending";
+            let hodName = "Pending";
+
+            // Resolve Teacher Name (Try Name -> DisplayName -> Email -> Fallback)
+            if (data.approvals?.teacher) {
+                teacherName = data.approvals.teacher.name || 
+                              data.approvals.teacher.displayName || 
+                              data.approvals.teacher.email || 
+                              "Authorized Faculty";
+            } else if (isValid) {
+                teacherName = "Authorized Faculty";
+            }
+
+            // Resolve HOD Name
+            if (data.approvals?.hod) {
+                hodName = data.approvals.hod.name || 
+                          data.approvals.hod.displayName || 
+                          "Authorized HOD";
+            } else if (data.approvalType === 'TEACHER_ONLY') {
+                hodName = "Not Required";
+            } else if (isValid && data.status === 'APPROVED') {
+                hodName = "Authorized HOD";
+            }
 
             const html = `
                 <div class="bg-white rounded-2xl shadow-xl border-t-8 border-${statusColor}-600 overflow-hidden animate-slide-up">
@@ -222,4 +242,3 @@
     </script>
 </body>
 </html>
-
