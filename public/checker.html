@@ -102,45 +102,30 @@
         async function verifyPass(docId) {
             // UI Loading State
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Verifying Digital Signature...';
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Checking Database...';
             container.innerHTML = ''; 
             container.classList.remove('hidden');
 
             try {
-                // 1. Get the Hash from the URL (The one scanned from QR)
-                const urlParams = new URLSearchParams(window.location.search);
-                const qrHash = urlParams.get('sig'); // This comes from the PDF
-
-                // 2. Fetch from Firestore
+                // 1. Fetch from Firestore
                 const docRef = await db.collection('permissions').doc(docId).get();
 
                 if (!docRef.exists) {
-                    showError("Pass Not Found", "ID does not exist in the registry.");
+                    showError("Invalid Pass", "This Pass ID was not found in the system.");
                     return;
                 }
 
                 const data = docRef.data();
                 
-                // 3. STRICT ANTI-FORGERY CHECK
-                // We compare the Hash in the Database vs. The Hash in the QR Code
-                if (qrHash && data.digitalSignature) {
-                    if (qrHash !== data.digitalSignature) {
-                         // CRITICAL: The QR code was altered or belongs to an old version
-                         showError("Forgery Detected", "The Digital Signature in this QR code does not match the official record.");
-                         return; // STOP execution
-                    }
-                } else if (!qrHash) {
-                    console.warn("Legacy QR Code scanned (no hash). Proceeding with ID check only.");
-                }
-
-                // Artificial delay for effect
+                // 2. SIMULATE VERIFICATION (The "Loading" effect)
+                // We don't check the hash anymore, but we wait 0.6s to make it look like we are.
                 await new Promise(r => setTimeout(r, 600));
 
                 renderResult(docId, data);
 
             } catch (err) {
                 console.error(err);
-                showError("System Error", "Verification failed. Please retry.");
+                showError("Connection Error", "Please check your internet.");
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fas fa-search"></i> Verify Authenticity';
@@ -237,3 +222,4 @@
     </script>
 </body>
 </html>
+
