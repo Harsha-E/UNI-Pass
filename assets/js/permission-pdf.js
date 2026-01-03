@@ -11,7 +11,8 @@ async function generateDigitalSignature(data) {
     const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
     return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
-// REPLACE THE ENTIRE window.generateOfficialPDF FUNCTION WITH THIS:
+
+
 window.generateOfficialPDF = async function(docId, data) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
@@ -21,15 +22,14 @@ window.generateOfficialPDF = async function(docId, data) {
     const rollNo = data.rollNumber || (data.studentID ? data.studentID.substring(0,10).toUpperCase() : "UNKNOWN");
     const dept = data.department ? data.department.toUpperCase() : "ENGINEERING";
 
-    // --- 2. SECURITY: ENSURE HASH CONSISTENCY ---
+    // --- 2. ENSURE SIGNATURE EXISTS (For the text at the bottom) ---
     let finalSignature = data.digitalSignature;
     if (!finalSignature) {
         finalSignature = await generateDigitalSignature(data);
-        // Save to DB so Checker can verify it
         await db.collection('permissions').doc(docId).update({ digitalSignature: finalSignature });
     }
 
-    // --- 3. HEADER & DESIGN ---
+    // --- 3. HEADER ---
     doc.setFillColor(30, 58, 138); 
     doc.rect(0, 0, width, 45, 'F');
     doc.setTextColor(255);
@@ -38,7 +38,7 @@ window.generateOfficialPDF = async function(docId, data) {
     doc.setFontSize(12); doc.setFont("helvetica", "normal");
     doc.text("OFFICIAL CAMPUS GATE PASS", width/2, 35, {align: 'center'});
 
-    // Status Banner
+    // --- 4. STATUS ---
     const approverEvent = data.workflowHistory?.find(e => e.step === 'APPROVED');
     const approverName = approverEvent ? approverEvent.actor.toUpperCase() : "AUTHORIZED FACULTY";
 
@@ -47,7 +47,7 @@ window.generateOfficialPDF = async function(docId, data) {
     doc.setTextColor(22, 163, 74); doc.setFontSize(12); doc.setFont("helvetica", "bold");
     doc.text(`STATUS: APPROVED BY ${approverName}`, width/2, 68, {align: 'center'});
 
-    // --- 4. DETAILS ---
+    // --- 5. DETAILS ---
     doc.setDrawColor(200); doc.setFillColor(250, 250, 250);
     doc.rect(15, 85, width - 30, 100, 'FD');
 
@@ -67,29 +67,28 @@ window.generateOfficialPDF = async function(docId, data) {
     addRow("Valid To", new Date(data.endDate).toDateString());
     addRow("Reason Type", data.reasonType);
 
-    // Reason Note
+    // Reason
     doc.setTextColor(100); doc.setFontSize(10); doc.text("NOTE / DESTINATION:", 25, y+5);
     doc.setTextColor(50); doc.setFont("helvetica", "italic");
     const splitText = doc.splitTextToSize(data.reason || "N/A", width - 50);
     doc.text(splitText, 25, y+12);
 
-    // --- 5. QR CODE (LOCAL GENERATION) ---
+    // --- 6. FOOTER & QR CODE (SIMPLIFIED) ---
     const footerY = 250;
-    const checkUrl = `https://harsha-e.github.io/UNI-Pass/public/checker.html?id=${docId}&sig=${finalSignature}`;
+    
+    // SIMPLE URL: Just the ID. No hash key.
+    const checkUrl = `https://harsha-e.github.io/UNI-Pass/public/checker.html?id=${docId}`;
+    
+    // Use QuickChart with the SHORT URL (High Reliability)
+    const qrApiUrl = `https://quickchart.io/qr?text=${encodeURIComponent(checkUrl)}&size=200&ecLevel=L&margin=1`;
 
     try {
-        // Generate QR as Data URL (Base64) locally
-        const qrDataUrl = await QRCode.toDataURL(checkUrl, { errorCorrectionLevel: 'M' });
-        
-        // Add Base64 Image to PDF
-        doc.addImage(qrDataUrl, "PNG", 20, footerY-10, 25, 25);
-    } catch (err) {
-        console.error("Local QR Gen Failed:", err);
-        doc.setFontSize(10); doc.setTextColor(255, 0, 0);
+        doc.addImage(qrApiUrl, "PNG", 20, footerY-10, 25, 25);
+    } catch (e) {
         doc.text("QR ERROR", 25, footerY);
     }
 
-    // Print Hash
+    // Print Hash Text (For looks only)
     doc.setFont("courier", "normal"); doc.setFontSize(8); doc.setTextColor(80);
     doc.text("DIGITAL HASH:", 50, footerY);
     doc.text(finalSignature.substring(0, 60), 50, footerY+5);
