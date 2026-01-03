@@ -1,72 +1,93 @@
-import { db } from './firebase-init.js';
+import { db, auth } from './firebase-init.js'; // FIXED: Added auth
 
 // Configuration Rules
 const RULES = {
-    requiresHOD: ['Medical', 'On-Duty'], // Reasons that trigger escalation
-    maxDaysForTeacher: 2 // If > 2 days, escalation is automatic
+    requiresHOD: ['Medical', 'On-Duty'],
+    maxDaysForTeacher: 2 
 };
 
 /**
  * CORE WORKFLOW ENGINE
- * Handles the logic of moving a request from STUDENT -> TEACHER -> HOD -> APPROVED*/
+ * Handles the logic of moving a request from STUDENT -> TEACHER -> HOD -> APPROVED
+ */
 export async function processApproval(docId, action, role, currentData) {
+    // 1. Safety Check
     if (!auth.currentUser) throw new Error("You must be logged in.");
 
     const user = auth.currentUser;
     
-    // 1. FETCH APPROVER DETAILS (The missing link!)
-    // We fetch the latest profile to get the official name (e.g., "Dr. K. Srinivas")
-    const userProfileSnap = await db.collection('users').doc(user.uid).get();
-    const userProfile = userProfileSnap.exists ? userProfileSnap.data() : {};
+    // 2. FETCH APPROVER DETAILS
+    // We fetch the real name (e.g., "Dr. K. Srinivas") from the 'users' collection
+    // instead of just using the login email.
+    let approverName = user.displayName;
+    let approverEmail = user.email;
+
+    try {
+        const userProfileSnap = await db.collection('users').doc(user.uid).get();
+        if (userProfileSnap.exists) {
+            const profile = userProfileSnap.data();
+            approverName = profile.displayName || approverName;
+            approverEmail = profile.email || approverEmail;
+        }
+    } catch (e) {
+        console.warn("Profile fetch failed, using default auth name.");
+    }
     
-    // Use profile name first, then auth name, then fallback
-    const approverName = userProfile.displayName || user.displayName || (role === 'hod' ? "Head of Dept" : "Faculty Member");
-    const approverEmail = userProfile.email || user.email;
+    // Fallback if name is still empty
+    if (!approverName) {
+        approverName = (role === 'hod' ? "Head of Dept" : "Faculty Member");
+    }
 
     const timestamp = new Date().toISOString();
     let updates = {};
 
+    // 3. GET FIRESTORE FIELDVALUE (Safe Access)
+    // This handles cases where 'firebase' global might be accessed differently
+    const FieldValue = window.firebase ? window.firebase.firestore.FieldValue : null;
+    if (!FieldValue) throw new Error("Firebase SDK not fully loaded. Refresh page.");
+
     // --- LOGIC FOR TEACHER ---
     if (role === 'teacher') {
         if (action === 'approve') {
-            // Check for auto-escalation (Duration > 2 days)
             const d1 = new Date(currentData.startDate);
             const d2 = new Date(currentData.endDate);
             const days = (d2 - d1) / (1000 * 60 * 60 * 24);
+            const isMedical = currentData.reasonType === 'Medical';
 
-            if (days > 2) {
+            // Auto-Escalation Logic
+            if (days > 2 || isMedical) {
                 updates = {
                     status: 'PENDING_HOD',
                     'approvals.teacher': { 
-                        name: approverName, // SAVING NAME HERE
+                        name: approverName, // SAVES "Dr. Name"
                         email: approverEmail,
                         uid: user.uid,
                         timestamp: timestamp,
-                        action: 'APPROVED'
+                        action: 'APPROVED (ESCALATED)'
                     },
-                    workflowHistory: firebase.firestore.FieldValue.arrayUnion({
+                    workflowHistory: FieldValue.arrayUnion({
                         step: 'TEACHER_APPROVED',
-                        actor: approverName, // AND HERE
-                        timestamp: new Date(),
-                        note: 'Escalated to HOD (Duration > 2 days)'
+                        actor: approverName,
+                        timestamp: new Date().toISOString(),
+                        note: `Escalated to HOD (${isMedical ? 'Medical' : '> 2 Days'})`
                     })
                 };
             } else {
                 // Final Approval
                 updates = {
                     status: 'APPROVED',
-                    approvalType: 'TEACHER_ONLY', // Mark that HOD wasn't needed
+                    approvalType: 'TEACHER_ONLY',
                     'approvals.teacher': { 
-                        name: approverName, // SAVING NAME HERE
+                        name: approverName, 
                         email: approverEmail,
                         uid: user.uid,
                         timestamp: timestamp,
                         action: 'APPROVED'
                     },
-                    workflowHistory: firebase.firestore.FieldValue.arrayUnion({
+                    workflowHistory: FieldValue.arrayUnion({
                         step: 'APPROVED',
                         actor: approverName,
-                        timestamp: new Date(),
+                        timestamp: new Date().toISOString(),
                         note: 'Final Approval Granted'
                     })
                 };
@@ -81,11 +102,11 @@ export async function processApproval(docId, action, role, currentData) {
                     timestamp: timestamp,
                     action: 'REJECTED'
                 },
-                workflowHistory: firebase.firestore.FieldValue.arrayUnion({
+                workflowHistory: FieldValue.arrayUnion({
                     step: 'REJECTED',
                     actor: approverName,
-                    timestamp: new Date(),
-                    note: 'Request Rejected by Teacher'
+                    timestamp: new Date().toISOString(),
+                    note: currentData.rejectReason || 'Request Rejected by Teacher'
                 })
             };
         }
@@ -97,16 +118,16 @@ export async function processApproval(docId, action, role, currentData) {
             updates = {
                 status: 'APPROVED',
                 'approvals.hod': { 
-                    name: approverName, // SAVING HOD NAME HERE
+                    name: approverName, // SAVES HOD NAME
                     email: approverEmail,
                     uid: user.uid,
                     timestamp: timestamp,
                     action: 'APPROVED'
                 },
-                workflowHistory: firebase.firestore.FieldValue.arrayUnion({
+                workflowHistory: FieldValue.arrayUnion({
                     step: 'APPROVED',
                     actor: approverName,
-                    timestamp: new Date(),
+                    timestamp: new Date().toISOString(),
                     note: 'Final Approval by HOD'
                 })
             };
@@ -119,11 +140,11 @@ export async function processApproval(docId, action, role, currentData) {
                     timestamp: timestamp,
                     action: 'REJECTED'
                 },
-                workflowHistory: firebase.firestore.FieldValue.arrayUnion({
+                workflowHistory: FieldValue.arrayUnion({
                     step: 'REJECTED',
                     actor: approverName,
-                    timestamp: new Date(),
-                    note: 'Rejected by HOD'
+                    timestamp: new Date().toISOString(),
+                    note: currentData.rejectReason || 'Rejected by HOD'
                 })
             };
         }
