@@ -274,28 +274,42 @@
             }
         });
 
-        // --- 3. DASHBOARD LOGIC (Updated for Blocked Counts) ---
+        // --- 3. DASHBOARD LOGIC (OPTIMIZED: Prevents Crashing) ---
         async function initDashboard() {
-            // 1. Pending Approvals
-            const pendingSnap = await db.collection('permissions').where('status', 'in', ['PENDING_TEACHER', 'PENDING_HOD']).get();
-            document.getElementById('stat-pending').innerText = pendingSnap.size;
+            try {
+                // 1. Pending Approvals (Limit to 100 to prevent overload)
+                const pendingSnap = await db.collection('permissions')
+                    .where('status', 'in', ['PENDING_TEACHER', 'PENDING_HOD'])
+                    .limit(100)
+                    .get();
+                // Add a "+" if we hit the limit to show there are more
+                document.getElementById('stat-pending').innerText = pendingSnap.size + (pendingSnap.size === 100 ? '+' : '');
 
-            // 2. Active Passes (Approved)
-            const approvedSnap = await db.collection('permissions').where('status', '==', 'APPROVED').get();
-            document.getElementById('stat-active').innerText = approvedSnap.size;
+                // 2. Active Passes (Approved)
+                const approvedSnap = await db.collection('permissions')
+                    .where('status', '==', 'APPROVED')
+                    .limit(100)
+                    .get();
+                document.getElementById('stat-active').innerText = approvedSnap.size + (approvedSnap.size === 100 ? '+' : '');
 
-            // 3. User Stats (Total & Blocked)
-            const usersSnap = await db.collection('users').get();
-            let total = 0;
-            let blocked = 0;
+                // 3. User Stats
+                // CRITICAL FIX: Do NOT download all users just to count. 
+                // We limit the fetch to prevent browser freezing.
+                
+                // Total Users Estimate
+                const usersSnap = await db.collection('users').limit(100).get();
+                document.getElementById('stat-users').innerText = usersSnap.size + (usersSnap.size === 100 ? '+' : '');
 
-            usersSnap.forEach(doc => {
-                total++;
-                if (doc.data().isBlocked === true) blocked++;
-            });
+                // Blocked Users (Specific Query instead of client-side loop)
+                const blockedSnap = await db.collection('users')
+                    .where('isBlocked', '==', true)
+                    .limit(100)
+                    .get();
+                document.getElementById('stat-blocked').innerText = blockedSnap.size + (blockedSnap.size === 100 ? '+' : '');
 
-            document.getElementById('stat-users').innerText = total;
-            document.getElementById('stat-blocked').innerText = blocked;
+            } catch (err) {
+                console.error("Dashboard Stats Error:", err);
+            }
         }
 
         // --- 4. USER MANAGEMENT LOGIC (With Attendance & Blocking) ---
@@ -410,4 +424,5 @@
 </body>
 
 </html>
+
 
