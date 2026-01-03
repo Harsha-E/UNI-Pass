@@ -12,7 +12,6 @@ async function generateDigitalSignature(data) {
     return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 }
 // REPLACE THE ENTIRE window.generateOfficialPDF FUNCTION WITH THIS:
-
 window.generateOfficialPDF = async function(docId, data) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
@@ -23,17 +22,14 @@ window.generateOfficialPDF = async function(docId, data) {
     const dept = data.department ? data.department.toUpperCase() : "ENGINEERING";
 
     // --- 2. SECURITY: ENSURE HASH CONSISTENCY ---
-    // We try to use the existing signature. If missing, we generate it.
     let finalSignature = data.digitalSignature;
-    
     if (!finalSignature) {
-        // Generate new hash if missing
         finalSignature = await generateDigitalSignature(data);
-        // Save to DB immediately so Checker can verify it
+        // Save to DB so Checker can verify it
         await db.collection('permissions').doc(docId).update({ digitalSignature: finalSignature });
     }
 
-    // --- 3. HEADER DESIGN ---
+    // --- 3. HEADER & DESIGN ---
     doc.setFillColor(30, 58, 138); 
     doc.rect(0, 0, width, 45, 'F');
     doc.setTextColor(255);
@@ -42,8 +38,7 @@ window.generateOfficialPDF = async function(docId, data) {
     doc.setFontSize(12); doc.setFont("helvetica", "normal");
     doc.text("OFFICIAL CAMPUS GATE PASS", width/2, 35, {align: 'center'});
 
-    // --- 4. STATUS BANNER ---
-    // Find Approver Name
+    // Status Banner
     const approverEvent = data.workflowHistory?.find(e => e.step === 'APPROVED');
     const approverName = approverEvent ? approverEvent.actor.toUpperCase() : "AUTHORIZED FACULTY";
 
@@ -52,7 +47,7 @@ window.generateOfficialPDF = async function(docId, data) {
     doc.setTextColor(22, 163, 74); doc.setFontSize(12); doc.setFont("helvetica", "bold");
     doc.text(`STATUS: APPROVED BY ${approverName}`, width/2, 68, {align: 'center'});
 
-    // --- 5. DETAILS TABLE ---
+    // --- 4. DETAILS ---
     doc.setDrawColor(200); doc.setFillColor(250, 250, 250);
     doc.rect(15, 85, width - 30, 100, 'FD');
 
@@ -77,28 +72,26 @@ window.generateOfficialPDF = async function(docId, data) {
     doc.setTextColor(50); doc.setFont("helvetica", "italic");
     const splitText = doc.splitTextToSize(data.reason || "N/A", width - 50);
     doc.text(splitText, 25, y+12);
-// --- 6. FOOTER & QR CODE (UPDATED FOR CORS FIX) ---
+
+    // --- 5. QR CODE (LOCAL GENERATION) ---
     const footerY = 250;
-    
-    // The Verification URL
     const checkUrl = `https://harsha-e.github.io/UNI-Pass/public/checker.html?id=${docId}&sig=${finalSignature}`;
-    
-    // FIX: Use QuickChart.io instead of QRServer (Better CORS support)
-    // We use a timestamp to prevent caching issues
-    const qrApiUrl = `https://quickchart.io/qr?text=${encodeURIComponent(checkUrl)}&size=200&dark=000000&margin=0&t=${Date.now()}`;
 
     try {
-        doc.addImage(qrApiUrl, "PNG", 20, footerY-10, 25, 25);
-    } catch (e) {
-        console.warn("QR Generation blocked by network. Adding fallback text.");
-        doc.setFontSize(8);
-        doc.text("[QR LOAD FAILED - CHECK CONSOLE]", 20, footerY);
+        // Generate QR as Data URL (Base64) locally
+        const qrDataUrl = await QRCode.toDataURL(checkUrl, { errorCorrectionLevel: 'M' });
+        
+        // Add Base64 Image to PDF
+        doc.addImage(qrDataUrl, "PNG", 20, footerY-10, 25, 25);
+    } catch (err) {
+        console.error("Local QR Gen Failed:", err);
+        doc.setFontSize(10); doc.setTextColor(255, 0, 0);
+        doc.text("QR ERROR", 25, footerY);
     }
 
-    // Print Hash Text
+    // Print Hash
     doc.setFont("courier", "normal"); doc.setFontSize(8); doc.setTextColor(80);
     doc.text("DIGITAL HASH:", 50, footerY);
-    // Print the EXACT SAME variable
     doc.text(finalSignature.substring(0, 60), 50, footerY+5);
     doc.text(finalSignature.substring(60), 50, footerY+10);
     
@@ -107,4 +100,3 @@ window.generateOfficialPDF = async function(docId, data) {
     
     doc.save(`PASS_${rollNo}.pdf`);
 };
-
