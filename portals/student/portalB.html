@@ -306,7 +306,7 @@ document.getElementById('logout-btn').addEventListener('click', () => {
         }
     }
 
-    function createHistoryRow(id, data) {
+        function createHistoryRow(id, data) {
         const div = document.createElement('div');
         div.id = `row-${id}`;
         div.className = "history-row p-4 border-b border-gray-100 flex justify-between items-center hover:bg-gray-50 transition cursor-pointer";
@@ -320,10 +320,18 @@ document.getElementById('logout-btn').addEventListener('click', () => {
         if (data.status === 'REJECTED') badgeClass = 'bg-red-100 text-red-700';
         if (data.status.includes('PENDING')) badgeClass = 'bg-yellow-100 text-yellow-700';
 
+        // Truncate long reasons
+        const reasonText = data.reason && data.reason.length > 25 
+            ? data.reason.substring(0, 25) + '...' 
+            : (data.reason || 'No details');
+
         div.innerHTML = `
-            <div>
-                <p class="text-sm font-bold text-gray-800">${data.reasonType}</p>
-                <p class="text-xs text-gray-500">${new Date(data.timestamp).toLocaleDateString()}</p>
+            <div class="flex-1">
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="font-bold text-gray-800 text-sm">${data.reasonType}</span>
+                    <span class="text-xs text-gray-400">• ${new Date(data.timestamp).toLocaleDateString()}</span>
+                </div>
+                <p class="text-xs text-gray-500 italic">"${reasonText}"</p>
             </div>
             <div class="flex items-center gap-3">
                 <span class="px-2 py-1 rounded text-xs font-bold ${badgeClass}">
@@ -336,4 +344,5 @@ document.getElementById('logout-btn').addEventListener('click', () => {
     }
     </script>
 </body>
+
 </html>
