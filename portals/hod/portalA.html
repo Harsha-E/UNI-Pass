@@ -212,9 +212,15 @@ document.getElementById('logout-btn').addEventListener('click', () => {
             nav.classList.add('bg-brand-600', 'text-white');
         };
 
-        // --- DASHBOARD ANALYTICS ---
+        // --- DASHBOARD ANALYTICS (OPTIMIZED) ---
         async function loadDashboardData() {
-            const snap = await db.collection('users').where('role', '==', 'student').get();
+            // FIX: Limit student fetch to 100 to prevent crash
+            const snap = await db.collection('users')
+                .where('role', '==', 'student')
+                .orderBy('createdAt', 'desc') // Get newest students first
+                .limit(100)
+                .get();
+                
             allStudents = [];
             
             let stats = { total: 0, critical: 0, warning: 0, safe: 0 };
@@ -222,7 +228,7 @@ document.getElementById('logout-btn').addEventListener('click', () => {
             snap.forEach(doc => {
                 const data = doc.data();
                 const att = data.attendance || 0;
-                data.id = doc.id; // Save ID for actions
+                data.id = doc.id; 
                 allStudents.push(data);
 
                 stats.total++;
@@ -231,14 +237,15 @@ document.getElementById('logout-btn').addEventListener('click', () => {
                 else stats.safe++;
             });
 
-            // Update DOM Numbers
-            document.getElementById('stat-total').innerText = stats.total;
-            document.getElementById('stat-critical').innerText = stats.critical;
-            document.getElementById('stat-warning').innerText = stats.warning;
-            document.getElementById('stat-safe').innerText = stats.safe;
+            // If we hit limit, show "+", otherwise show count
+            const suffix = snap.size === 100 ? '+' : '';
+            document.getElementById('stat-total').innerText = stats.total + suffix;
+            document.getElementById('stat-critical').innerText = stats.critical + suffix;
+            document.getElementById('stat-warning').innerText = stats.warning + suffix;
+            document.getElementById('stat-safe').innerText = stats.safe + suffix;
 
             renderCharts(stats);
-            renderStudentList(allStudents); // Default: Show all
+            renderStudentList(allStudents); 
         }
 
         function renderCharts(stats) {
@@ -250,7 +257,7 @@ document.getElementById('logout-btn').addEventListener('click', () => {
                 data: {
                     labels: ['Safe (>75%)', 'Warning (60-75%)', 'Critical (<60%)'],
                     datasets: [{
-                        label: 'Students',
+                        label: 'Students (Sample)',
                         data: [stats.safe, stats.warning, stats.critical],
                         backgroundColor: ['#16a34a', '#d97706', '#dc2626'],
                         borderRadius: 6
@@ -259,29 +266,34 @@ document.getElementById('logout-btn').addEventListener('click', () => {
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: {display: false} } }
             });
 
-            // Chart 2: Permission Reasons (Fetch separately for accuracy)
+            // Chart 2: Permission Reasons (OPTIMIZED: Only fetch last 100)
             const ctx2 = document.getElementById('reasonChart').getContext('2d');
-            db.collection('permissions').get().then(snap => {
-                let reasons = {};
-                snap.forEach(d => {
-                    const r = d.data().reasonType || 'Other';
-                    reasons[r] = (reasons[r] || 0) + 1;
+            
+            db.collection('permissions')
+                .orderBy('timestamp', 'desc')
+                .limit(100) // FIX: Don't load 10,000 permissions
+                .get()
+                .then(snap => {
+                    let reasons = {};
+                    snap.forEach(d => {
+                        const r = d.data().reasonType || 'Other';
+                        reasons[r] = (reasons[r] || 0) + 1;
+                    });
+                    
+                    if(charts.reason) charts.reason.destroy();
+                    charts.reason = new Chart(ctx2, {
+                        type: 'doughnut',
+                        data: {
+                            labels: Object.keys(reasons),
+                            datasets: [{
+                                data: Object.values(reasons),
+                                backgroundColor: ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981'],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: { cutout: '70%', responsive: true, maintainAspectRatio: false, plugins: { legend: {position: 'right'} } }
+                    });
                 });
-                
-                if(charts.reason) charts.reason.destroy();
-                charts.reason = new Chart(ctx2, {
-                    type: 'doughnut',
-                    data: {
-                        labels: Object.keys(reasons),
-                        datasets: [{
-                            data: Object.values(reasons),
-                            backgroundColor: ['#3b82f6', '#8b5cf6', '#f59e0b', '#10b981'],
-                            borderWidth: 0
-                        }]
-                    },
-                    options: { cutout: '70%', responsive: true, maintainAspectRatio: false, plugins: { legend: {position: 'right'} } }
-                });
-            });
         }
 
         // --- FILTER LOGIC ---
@@ -328,11 +340,12 @@ document.getElementById('logout-btn').addEventListener('click', () => {
             });
         }
 
-        // --- ESCALATIONS (WORKFLOW) ---
+        // --- ESCALATIONS (WORKFLOW - OPTIMIZED) ---
         function loadEscalations() {
             db.collection('permissions')
                 .where('status', '==', 'PENDING_HOD')
                 .orderBy('timestamp', 'desc')
+                .limit(50) // FIX: Limit real-time listener to 50 items
                 .onSnapshot(snap => {
                     const feed = document.getElementById('escalation-feed');
                     const empty = document.getElementById('empty-escalation');
@@ -408,4 +421,5 @@ document.getElementById('logout-btn').addEventListener('click', () => {
         };
     </script>
 </body>
+
 </html>
