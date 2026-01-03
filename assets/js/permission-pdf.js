@@ -22,14 +22,7 @@ window.generateOfficialPDF = async function(docId, data) {
     const rollNo = data.rollNumber || (data.studentID ? data.studentID.substring(0,10).toUpperCase() : "UNKNOWN");
     const dept = data.department ? data.department.toUpperCase() : "ENGINEERING";
 
-    // --- 2. ENSURE SIGNATURE EXISTS (For the text at the bottom) ---
-    let finalSignature = data.digitalSignature;
-    if (!finalSignature) {
-        finalSignature = await generateDigitalSignature(data);
-        await db.collection('permissions').doc(docId).update({ digitalSignature: finalSignature });
-    }
-
-    // --- 3. HEADER ---
+    // --- 2. HEADER ---
     doc.setFillColor(30, 58, 138); 
     doc.rect(0, 0, width, 45, 'F');
     doc.setTextColor(255);
@@ -38,7 +31,8 @@ window.generateOfficialPDF = async function(docId, data) {
     doc.setFontSize(12); doc.setFont("helvetica", "normal");
     doc.text("OFFICIAL CAMPUS GATE PASS", width/2, 35, {align: 'center'});
 
-    // --- 4. STATUS ---
+    // --- 3. STATUS ---
+    // Get the name of who approved it
     const approverEvent = data.workflowHistory?.find(e => e.step === 'APPROVED');
     const approverName = approverEvent ? approverEvent.actor.toUpperCase() : "AUTHORIZED FACULTY";
 
@@ -47,7 +41,7 @@ window.generateOfficialPDF = async function(docId, data) {
     doc.setTextColor(22, 163, 74); doc.setFontSize(12); doc.setFont("helvetica", "bold");
     doc.text(`STATUS: APPROVED BY ${approverName}`, width/2, 68, {align: 'center'});
 
-    // --- 5. DETAILS ---
+    // --- 4. DETAILS TABLE ---
     doc.setDrawColor(200); doc.setFillColor(250, 250, 250);
     doc.rect(15, 85, width - 30, 100, 'FD');
 
@@ -67,35 +61,38 @@ window.generateOfficialPDF = async function(docId, data) {
     addRow("Valid To", new Date(data.endDate).toDateString());
     addRow("Reason Type", data.reasonType);
 
-    // Reason
+    // Reason Note
     doc.setTextColor(100); doc.setFontSize(10); doc.text("NOTE / DESTINATION:", 25, y+5);
     doc.setTextColor(50); doc.setFont("helvetica", "italic");
     const splitText = doc.splitTextToSize(data.reason || "N/A", width - 50);
     doc.text(splitText, 25, y+12);
 
-    // --- 6. FOOTER & QR CODE (SIMPLIFIED) ---
+    // --- 5. QR CODE (CLEAN ID ONLY) ---
     const footerY = 250;
     
-    // SIMPLE URL: Just the ID. No hash key.
+    // The URL just has the ID (Simple & Fast)
     const checkUrl = `https://harsha-e.github.io/UNI-Pass/public/checker.html?id=${docId}`;
     
-    // Use QuickChart with the SHORT URL (High Reliability)
+    // QuickChart API (Reliable)
     const qrApiUrl = `https://quickchart.io/qr?text=${encodeURIComponent(checkUrl)}&size=200&ecLevel=L&margin=1`;
 
     try {
-        doc.addImage(qrApiUrl, "PNG", 20, footerY-10, 25, 25);
+        // Add QR Image
+        doc.addImage(qrApiUrl, "PNG", width/2 - 15, footerY - 20, 30, 30);
     } catch (e) {
-        doc.text("QR ERROR", 25, footerY);
+        // Fallback text if network fails
+        doc.setFontSize(10); doc.setTextColor(255, 0, 0);
+        doc.text("SCAN VERIFICATION ID:", width/2, footerY, {align:'center'});
+        doc.text(docId, width/2, footerY+5, {align:'center'});
     }
 
-    // Print Hash Text (For looks only)
-    doc.setFont("courier", "normal"); doc.setFontSize(8); doc.setTextColor(80);
-    doc.text("DIGITAL HASH:", 50, footerY);
-    doc.text(finalSignature.substring(0, 60), 50, footerY+5);
-    doc.text(finalSignature.substring(60), 50, footerY+10);
+    // --- 6. FOOTER TEXT ---
+    // No Hash, just official looking text
+    doc.setFont("courier", "normal"); doc.setFontSize(10); doc.setTextColor(80);
+    doc.text(`PASS ID: ${docId}`, width/2, footerY + 15, {align:'center'});
     
-    doc.setFont("helvetica", "italic"); doc.setFontSize(10); doc.setTextColor(0);
-    doc.text("Signed Electronically", width-60, footerY, {align:'center'});
+    doc.setFont("helvetica", "italic"); doc.setFontSize(9); doc.setTextColor(150);
+    doc.text("This document is digitally verified. Scan to authenticate.", width/2, footerY + 25, {align:'center'});
     
     doc.save(`PASS_${rollNo}.pdf`);
 };
