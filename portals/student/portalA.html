@@ -208,8 +208,7 @@
             `;
         }
 
-        // --- 2. REAL-TIME UI UPDATER ---
-        // This runs on EVERY change (click, type, date pick)
+// --- 2. REAL-TIME UI UPDATER (FIXED: Date Validation) ---
         function updateFormState() {
             const reason = document.querySelector('input[name="reasonType"]:checked');
             const start = document.getElementById('start-date').value;
@@ -217,71 +216,108 @@
             const note = document.getElementById('custom-reason').value.trim();
             
             // Calculate Progress
-            let progress = 5; // Base
+            let progress = 5; 
             if(reason) progress += 30;
             if(start && end) progress += 30;
-            if(note.length > 5) progress += 35; // Finish only if note has content
+            if(note.length > 5) progress += 35; 
 
-            // Update Bar
             document.getElementById('form-progress').style.width = `${progress}%`;
+
+            let isDateValid = false;
 
             // Calculate Duration Logic
             if (start && end) {
-                const d1 = new Date(start); const d2 = new Date(end);
+                const d1 = new Date(start); 
+                const d2 = new Date(end);
                 
+                // FIX: Check for Invalid Date Range
                 if (d2 < d1) { 
-                    // Invalid date, don't show duration, maybe show error?
-                    // For now, simple fallback
-                } else {
-                    const days = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
-                    document.getElementById('day-count').innerText = days;
                     document.getElementById('duration-feedback').classList.remove('hidden');
-
-                    const warn = document.getElementById('escalation-warning');
-                    if (days > 2) warn.classList.remove('hidden');
-                    else warn.classList.add('hidden');
+                    document.getElementById('duration-feedback').className = "bg-red-50 text-red-700 p-3 rounded-lg text-sm font-bold animate-pulse border border-red-200";
+                    document.getElementById('duration-feedback').innerHTML = '<i class="fas fa-exclamation-circle"></i> Error: Return date cannot be before Start date.';
+                    isDateValid = false;
+                } else {
+                    isDateValid = true;
+                    // Reset styling
+                    document.getElementById('duration-feedback').className = "bg-blue-50 text-blue-700 p-3 rounded-lg text-sm flex items-center justify-between animate-fade-in";
+                    
+                    const days = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
+                    
+                    let html = `<span>Duration: <strong>${days}</strong> Days</span>`;
+                    
+                    if (days > 2) {
+                        html += `<span class="text-orange-600 text-xs font-bold bg-orange-100 px-2 py-1 rounded border border-orange-200"><i class="fas fa-exclamation-triangle"></i> Requires HOD</span>`;
+                    }
+                    
+                    document.getElementById('duration-feedback').innerHTML = html;
+                    document.getElementById('duration-feedback').classList.remove('hidden');
                 }
+            } else {
+                document.getElementById('duration-feedback').classList.add('hidden');
             }
 
             // Enable/Disable Button
             const btn = document.getElementById('submit-btn');
-            if (reason && start && end && note.length > 3) {
+            // FIX: Added isDateValid check to prevent submission of bad dates
+            if (reason && start && end && note.length > 3 && isDateValid) {
                 btn.disabled = false;
                 btn.className = "w-full bg-brand-600 text-white font-bold py-4 rounded-xl hover:bg-brand-700 transition shadow-lg text-lg transform hover:-translate-y-1";
                 btn.innerText = "Submit Request";
             } else {
                 btn.disabled = true;
                 btn.className = "w-full bg-gray-200 text-gray-400 font-bold py-4 rounded-xl transition cursor-not-allowed";
-                btn.innerText = "Complete Details to Submit";
+                btn.innerText = isDateValid ? "Complete Details to Submit" : "Fix Date Error to Submit";
             }
         }
 
-        // Attach Listeners to EVERYTHING
+        // Attach Listeners
         document.getElementById('request-form').addEventListener('change', updateFormState);
-        document.getElementById('request-form').addEventListener('input', updateFormState); // For text typing
+        document.getElementById('request-form').addEventListener('input', updateFormState);
 
-        // --- 3. SUBMIT LOGIC ---
+        // --- 3. SUBMIT LOGIC (FIXED: Security Double Check) ---
         document.getElementById('request-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
+            const user = auth.currentUser;
             
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing...';
-
-            const reasonEl = document.querySelector('input[name="reasonType"]:checked');
-            const start = document.getElementById('start-date').value;
-            const end = document.getElementById('end-date').value;
-            const note = document.getElementById('custom-reason').value;
-            const user = auth.currentUser;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Verifying Policy...';
 
             try {
+                // --- CRITICAL SECURITY PATCH (Step 1 of Fix) ---
+                // Re-fetch user profile to prevent UI manipulation bypass
+                // This ensures that even if they hacked the UI to enable the button, the server data stops them.
+                const freshSnap = await db.collection('users').doc(user.uid).get();
+                if (!freshSnap.exists) throw new Error("User profile missing.");
+                
+                const freshData = freshSnap.data();
+                
+                // 1. Check Block Status
+                if (freshData.isBlocked) {
+                    throw new Error("SECURITY BLOCK: Your account is restricted. You cannot submit requests.");
+                }
+
+                // 2. Check Attendance
+                const freshAtt = freshData.attendance !== undefined ? freshData.attendance : 0;
+                if (freshAtt < 60) {
+                    throw new Error(`POLICY VIOLATION: Attendance is ${freshAtt}%. Minimum 60% required.`);
+                }
+                // --- END SECURITY PATCH ---
+
+                btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Submitting...';
+
+                const reasonEl = document.querySelector('input[name="reasonType"]:checked');
+                const start = document.getElementById('start-date').value;
+                const end = document.getElementById('end-date').value;
+                const note = document.getElementById('custom-reason').value;
+
                 await db.collection('permissions').add({
                     studentID: user.uid,
-                    studentName: user.displayName || "Student",
+                    studentName: freshData.displayName || user.displayName || "Student",
                     email: user.email,
-                    rollNumber: userProfile.rollNumber,
-                    department: userProfile.department,
-                    section: userProfile.section,
+                    rollNumber: freshData.rollNumber || userProfile.rollNumber,
+                    department: freshData.department || userProfile.department,
+                    section: freshData.section || userProfile.section,
                     
                     reasonType: reasonEl.value,
                     reason: note,
@@ -296,12 +332,19 @@
 
                 window.location.href = 'portalB.html';
             } catch (err) {
-                alert("Error: " + err.message);
-                btn.disabled = false;
-                btn.innerText = "Submit Request";
+                // Show security alert if caught
+                if (err.message.includes("SECURITY") || err.message.includes("POLICY")) {
+                    alert("⚠️ " + err.message);
+                    window.location.reload(); // Force reload to re-lock UI
+                } else {
+                    alert("Error: " + err.message);
+                    btn.disabled = false;
+                    btn.innerText = "Submit Request";
+                }
             }
         });
     </script>
 </body>
 
 </html>
+
