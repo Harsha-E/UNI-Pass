@@ -8,67 +8,127 @@ const RULES = {
 
 /**
  * CORE WORKFLOW ENGINE
- * Handles the logic of moving a request from STUDENT -> TEACHER -> HOD -> APPROVED
- */
-export async function processApproval(docId, action, userRole, currentData) {
-    
-    let newStatus = currentData.status;
-    let auditLog = `Action: ${action.toUpperCase()} by ${userRole}`;
-    let historyEntry = {
-        step: action === 'approve' ? 'APPROVED' : 'REJECTED',
-        actor: userRole,
-        timestamp: new Date(),
-        note: ''
-    };
+ * Handles the logic of moving a request from STUDENT -> TEACHER -> HOD -> APPROVED*/
+export async function processApproval(docId, action, role, currentData) {
+    if (!auth.currentUser) throw new Error("You must be logged in.");
 
-    // --- 1. TEACHER LOGIC ---
-    if (userRole === 'teacher') {
+    const user = auth.currentUser;
+    
+    // 1. FETCH APPROVER DETAILS (The missing link!)
+    // We fetch the latest profile to get the official name (e.g., "Dr. K. Srinivas")
+    const userProfileSnap = await db.collection('users').doc(user.uid).get();
+    const userProfile = userProfileSnap.exists ? userProfileSnap.data() : {};
+    
+    // Use profile name first, then auth name, then fallback
+    const approverName = userProfile.displayName || user.displayName || (role === 'hod' ? "Head of Dept" : "Faculty Member");
+    const approverEmail = userProfile.email || user.email;
+
+    const timestamp = new Date().toISOString();
+    let updates = {};
+
+    // --- LOGIC FOR TEACHER ---
+    if (role === 'teacher') {
         if (action === 'approve') {
-            // Calculate Duration
+            // Check for auto-escalation (Duration > 2 days)
             const d1 = new Date(currentData.startDate);
             const d2 = new Date(currentData.endDate);
-            const days = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
+            const days = (d2 - d1) / (1000 * 60 * 60 * 24);
 
-            // Check Rules
-            const isLongLeave = days > RULES.maxDaysForTeacher;
-            const isSensitive = RULES.requiresHOD.includes(currentData.reasonType);
-
-            if (isLongLeave || isSensitive) {
-                newStatus = 'PENDING_HOD';
-                historyEntry.step = 'ESCALATED';
-                historyEntry.note = `Escalated: Duration (${days} days) or Reason (${currentData.reasonType}) requires HOD.`;
-                auditLog = "Escalated to HOD";
+            if (days > 2) {
+                updates = {
+                    status: 'PENDING_HOD',
+                    'approvals.teacher': { 
+                        name: approverName, // SAVING NAME HERE
+                        email: approverEmail,
+                        uid: user.uid,
+                        timestamp: timestamp,
+                        action: 'APPROVED'
+                    },
+                    workflowHistory: firebase.firestore.FieldValue.arrayUnion({
+                        step: 'TEACHER_APPROVED',
+                        actor: approverName, // AND HERE
+                        timestamp: new Date(),
+                        note: 'Escalated to HOD (Duration > 2 days)'
+                    })
+                };
             } else {
-                newStatus = 'APPROVED';
-                historyEntry.note = "Final Approval Granted by Class Teacher.";
+                // Final Approval
+                updates = {
+                    status: 'APPROVED',
+                    approvalType: 'TEACHER_ONLY', // Mark that HOD wasn't needed
+                    'approvals.teacher': { 
+                        name: approverName, // SAVING NAME HERE
+                        email: approverEmail,
+                        uid: user.uid,
+                        timestamp: timestamp,
+                        action: 'APPROVED'
+                    },
+                    workflowHistory: firebase.firestore.FieldValue.arrayUnion({
+                        step: 'APPROVED',
+                        actor: approverName,
+                        timestamp: new Date(),
+                        note: 'Final Approval Granted'
+                    })
+                };
             }
-        } else if (action === 'reject') {
-            newStatus = 'REJECTED';
-            historyEntry.note = currentData.rejectReason || "Rejected by Class Teacher.";
+        } else {
+            // REJECT
+            updates = {
+                status: 'REJECTED',
+                'approvals.teacher': { 
+                    name: approverName,
+                    uid: user.uid,
+                    timestamp: timestamp,
+                    action: 'REJECTED'
+                },
+                workflowHistory: firebase.firestore.FieldValue.arrayUnion({
+                    step: 'REJECTED',
+                    actor: approverName,
+                    timestamp: new Date(),
+                    note: 'Request Rejected by Teacher'
+                })
+            };
         }
     }
 
-    // --- 2. HOD LOGIC ---
-    if (userRole === 'hod') {
+    // --- LOGIC FOR HOD ---
+    if (role === 'hod') {
         if (action === 'approve') {
-            newStatus = 'APPROVED';
-            historyEntry.note = "Final Approval Granted by HOD.";
-        } else if (action === 'reject') {
-            newStatus = 'REJECTED';
-            historyEntry.note = currentData.rejectReason || "Rejected by HOD.";
+            updates = {
+                status: 'APPROVED',
+                'approvals.hod': { 
+                    name: approverName, // SAVING HOD NAME HERE
+                    email: approverEmail,
+                    uid: user.uid,
+                    timestamp: timestamp,
+                    action: 'APPROVED'
+                },
+                workflowHistory: firebase.firestore.FieldValue.arrayUnion({
+                    step: 'APPROVED',
+                    actor: approverName,
+                    timestamp: new Date(),
+                    note: 'Final Approval by HOD'
+                })
+            };
+        } else {
+            updates = {
+                status: 'REJECTED',
+                'approvals.hod': { 
+                    name: approverName,
+                    uid: user.uid,
+                    timestamp: timestamp,
+                    action: 'REJECTED'
+                },
+                workflowHistory: firebase.firestore.FieldValue.arrayUnion({
+                    step: 'REJECTED',
+                    actor: approverName,
+                    timestamp: new Date(),
+                    note: 'Rejected by HOD'
+                })
+            };
         }
     }
 
-    // --- 3. EXECUTE DB UPDATE ---
-    try {
-        await db.collection('permissions').doc(docId).update({
-            status: newStatus,
-            // We append to the array of history events
-            workflowHistory: firebase.firestore.FieldValue.arrayUnion(historyEntry)
-        });
-        console.log(`Workflow Updated: ${docId} -> ${newStatus}`);
-    } catch (error) {
-        console.error("Workflow Error:", error);
-        throw error;
-    }
+    // EXECUTE UPDATE
+    await db.collection('permissions').doc(docId).update(updates);
 }
