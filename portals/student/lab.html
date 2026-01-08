@@ -2,134 +2,121 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Lab Search | UNI-PASS Student</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Inventory | UNI-PASS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script type="module" src="../../assets/js/firebase-init.js"></script>
-    <style>
-        .filter-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
-    </style>
+    <link rel="stylesheet" href="../../assets/css/style.css">
+    <script type="module" src="../../assets/js/route-guard.js"></script>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+<body class="bg-gray-50 font-sans pb-24">
 
-    <nav class="bg-white shadow-sm z-50 sticky top-0">
-        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <a href="portalA.html" class="text-slate-400 hover:text-blue-600 transition"><i class="fas fa-arrow-left text-xl"></i></a>
-                <span class="font-bold text-xl text-slate-900">Lab Search</span>
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
+        <div class="max-w-2xl mx-auto px-4 h-16 flex items-center justify-between">
+            <h1 class="font-bold text-lg text-gray-800">Lab Inventory</h1>
+            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600">
+                <i class="fas fa-flask text-sm"></i>
             </div>
-            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">L</div>
+        </div>
+        <div class="max-w-2xl mx-auto px-4 pb-4">
+            <div class="relative">
+                <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
+                <input type="text" id="search-input" placeholder="Search chemicals, equipment..." class="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-xl border-none focus:ring-2 focus:ring-blue-500 outline-none transition text-sm font-medium">
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-2xl mx-auto px-4 pt-4 overflow-x-auto no-scrollbar flex gap-3 mb-4" id="category-filters">
+        <button class="px-4 py-2 bg-blue-600 text-white rounded-full text-xs font-bold whitespace-nowrap shadow-md">All</button>
+        <button class="px-4 py-2 bg-white text-gray-500 border border-gray-200 rounded-full text-xs font-bold whitespace-nowrap">Chemicals</button>
+        <button class="px-4 py-2 bg-white text-gray-500 border border-gray-200 rounded-full text-xs font-bold whitespace-nowrap">Electronics</button>
+        <button class="px-4 py-2 bg-white text-gray-500 border border-gray-200 rounded-full text-xs font-bold whitespace-nowrap">Instruments</button>
+    </div>
+
+    <main class="max-w-2xl mx-auto p-4 space-y-3" id="inventory-list">
+        <div class="text-center py-12 text-gray-400">
+            <i class="fas fa-circle-notch fa-spin text-2xl"></i>
+        </div>
+    </main>
+
+    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 pb-safe z-40">
+        <div class="max-w-md mx-auto grid grid-cols-3 h-16">
+            <a href="portalA.html" class="flex flex-col items-center justify-center text-gray-400 hover:text-blue-600 transition">
+                <i class="fas fa-plus-circle text-xl mb-1"></i>
+                <span class="text-[10px] font-bold uppercase">Request</span>
+            </a>
+            <a href="lab.html" class="flex flex-col items-center justify-center text-blue-600">
+                <i class="fas fa-flask text-xl mb-1"></i>
+                <span class="text-[10px] font-bold uppercase">Lab</span>
+            </a>
+            <a href="portalB.html" class="flex flex-col items-center justify-center text-gray-400 hover:text-blue-600 transition">
+                <i class="fas fa-history text-xl mb-1"></i>
+                <span class="text-[10px] font-bold uppercase">History</span>
+            </a>
         </div>
     </nav>
 
-    <main class="flex-1 max-w-4xl w-full mx-auto p-4 space-y-6">
-
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <div class="relative mb-6">
-                <i class="fas fa-search absolute left-4 top-3.5 text-slate-400"></i>
-                <input type="text" id="lab-search" placeholder="Search for chemicals, components, tools..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition shadow-inner">
-            </div>
-
-            <div class="flex flex-wrap gap-2" id="filters">
-                <button onclick="filter('All')" class="filter-btn active px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-500 hover:bg-slate-50 transition">All</button>
-                <button onclick="filter('Chemistry')" class="filter-btn px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-500 hover:bg-slate-50 transition">Chemistry</button>
-                <button onclick="filter('Physics')" class="filter-btn px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-500 hover:bg-slate-50 transition">Physics</button>
-                <button onclick="filter('EEE')" class="filter-btn px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-500 hover:bg-slate-50 transition">EEE</button>
-                <button onclick="filter('CSE')" class="filter-btn px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-500 hover:bg-slate-50 transition">IoT/CSE</button>
-            </div>
-        </div>
-
-        <div id="results-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            </div>
-
-    </main>
-
     <script type="module">
-        import { db, auth } from '../../assets/js/firebase-init.js';
+        import { db } from '../../assets/js/firebase-init.js';
 
+        const list = document.getElementById('inventory-list');
+        const searchInput = document.getElementById('search-input');
         let allItems = [];
-        let currentFilter = 'All';
 
-        // Load Inventory
+        // Load Data
         db.collection('inventory').onSnapshot(snap => {
             allItems = [];
-            snap.forEach(doc => allItems.push({id: doc.id, ...doc.data()}));
-            render();
+            snap.forEach(doc => allItems.push({ id: doc.id, ...doc.data() }));
+            renderItems(allItems);
         });
 
-        // Filter Logic
-        window.filter = (cat) => {
-            currentFilter = cat;
-            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
-            event.target.classList.add('active');
-            render();
-        };
+        // Search Filter
+        searchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase();
+            const filtered = allItems.filter(item => 
+                item.itemName.toLowerCase().includes(term) || 
+                item.category.toLowerCase().includes(term)
+            );
+            renderItems(filtered);
+        });
 
-        // Render Logic
-        function render() {
-            const grid = document.getElementById('results-grid');
-            const term = document.getElementById('lab-search').value.toLowerCase();
-            
-            grid.innerHTML = '';
-            
-            const filtered = allItems.filter(item => {
-                const matchesCat = currentFilter === 'All' || item.department === currentFilter;
-                const matchesSearch = item.name.toLowerCase().includes(term);
-                return matchesCat && matchesSearch;
-            });
-
-            if(filtered.length === 0) {
-                grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">No items found matching criteria.</div>`;
+        function renderItems(items) {
+            list.innerHTML = '';
+            if(items.length === 0) {
+                list.innerHTML = `<div class="text-center py-10 text-gray-400"><p>No items found.</p></div>`;
                 return;
             }
 
-            filtered.forEach(item => {
-                const isAvail = item.quantity > 0;
-                const card = document.createElement('div');
-                card.className = `bg-white p-5 rounded-2xl shadow-sm border ${isAvail ? 'border-slate-200' : 'border-red-100'} hover:shadow-md transition relative overflow-hidden`;
+            items.forEach(item => {
+                const isLow = item.status === 'Low Stock' || (item.quantity < 5 && item.quantity > 0);
+                const isOut = item.quantity <= 0;
                 
+                let badgeClass = 'bg-green-100 text-green-700';
+                let badgeText = 'Available';
+
+                if(isLow) { badgeClass = 'bg-orange-100 text-orange-700'; badgeText = 'Low Stock'; }
+                if(isOut) { badgeClass = 'bg-red-100 text-red-700'; badgeText = 'Out of Stock'; }
+
+                const card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center";
                 card.innerHTML = `
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <span class="text-[10px] font-bold uppercase tracking-wider ${isAvail ? 'text-blue-500' : 'text-red-400'}">${item.department}</span>
-                            <h3 class="text-lg font-bold text-slate-800 leading-tight mt-1">${item.name}</h3>
-                            <p class="text-xs text-slate-500 mt-2"><i class="fas fa-map-marker-alt mr-1"></i> ${item.location}</p>
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500 text-lg font-bold">
+                            ${item.itemName.charAt(0)}
                         </div>
-                        <div class="text-right">
-                            <span class="block text-2xl font-black ${isAvail ? 'text-slate-800' : 'text-red-400'}">${item.quantity}</span>
-                            <span class="text-[10px] text-slate-400 font-bold uppercase">Available</span>
+                        <div>
+                            <h3 class="font-bold text-gray-800 text-sm">${item.itemName}</h3>
+                            <p class="text-xs text-gray-400">${item.category} • ${item.location}</p>
                         </div>
                     </div>
-                    <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
-                        <span class="text-xs font-bold text-slate-400">${isAvail ? 'Ready to Issue' : 'Out of Stock'}</span>
-                        <button onclick="requestItem('${item.id}', '${item.name}')" ${!isAvail ? 'disabled' : ''} class="px-4 py-2 ${isAvail ? 'bg-slate-900 hover:bg-slate-800' : 'bg-slate-200 cursor-not-allowed'} text-white rounded-lg text-sm font-bold transition">
-                            Request
-                        </button>
+                    <div class="text-right">
+                        <span class="block px-2 py-1 rounded-md text-[10px] font-bold uppercase ${badgeClass} mb-1">${badgeText}</span>
+                        <p class="text-xs font-bold text-gray-600">${item.quantity} ${item.unit}</p>
                     </div>
                 `;
-                grid.appendChild(card);
+                list.appendChild(card);
             });
         }
-
-        document.getElementById('lab-search').addEventListener('keyup', render);
-
-        // Request Logic
-        window.requestItem = async (id, name) => {
-            if(!confirm(`Request 1 unit of ${name}?`)) return;
-            const user = auth.currentUser;
-            if(!user) return;
-            
-            try {
-                await db.collection('lab_requests').add({
-                    studentId: user.uid,
-                    itemId: id,
-                    itemName: name,
-                    status: 'PENDING',
-                    timestamp: new Date().toISOString()
-                });
-                alert("Request Sent! Check status with Lab Assistant.");
-            } catch(e) { alert(e.message); }
-        };
     </script>
 </body>
 </html>
