@@ -4,347 +4,285 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Apply Permission | UNI-PASS Student</title>
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
     <link rel="stylesheet" href="../../assets/css/style.css">
     <script src="../../assets/js/ui.js" defer></script>
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: { colors: { brand: { 500: '#3b82f6', 600: '#2563eb', 900: '#1e3a8a' } } }
-            }
-        }
-    </script>
     <script type="module" src="../../assets/js/route-guard.js"></script>
-
     <style>
-        /* Highlight selected radio option */
-        input[type="radio"]:checked + div {
-            background-color: #eff6ff; /* brand-50 */
-            border-color: #3b82f6; /* brand-500 */
-            border-width: 2px;
-            color: #1e3a8a; /* brand-900 */
-            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1);
-            transform: translateY(-2px);
-        }
-        /* Smooth transition for the box */
-        .reason-box {
-            transition: all 0.2s ease-in-out;
-        }
+        input[type="radio"]:checked + div { background-color: #eff6ff; border-color: #3b82f6; border-width: 2px; color: #1e3a8a; transform: translateY(-2px); box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1); }
+        .reason-box { transition: all 0.2s ease-in-out; }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
 
     <nav class="bg-white shadow-sm z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div class="max-w-3xl mx-auto px-4">
             <div class="flex justify-between h-16">
                 <div class="flex items-center gap-2">
-                    <div class="w-8 h-8 bg-brand-600 rounded flex items-center justify-center text-white">
-                        <i class="fas fa-university"></i>
-                    </div>
+                    <i class="fas fa-university text-blue-600 text-2xl"></i>
                     <span class="font-bold text-xl tracking-tight text-gray-900">UNI-PASS</span>
                 </div>
                 <div class="flex items-center gap-4">
-                     <a href="portalB.html" class="text-sm font-medium text-gray-500 hover:text-brand-600">My History</a>
-                    <button id="logout-btn" class="text-sm text-red-500 font-medium hover:text-red-700">Logout</button>
+                     <a href="portalB.html" class="text-sm font-bold text-gray-500 hover:text-blue-600 transition"><i class="fas fa-history"></i> History</a>
+                    <button id="logout-btn" class="text-sm text-red-500 font-bold hover:text-red-700">Logout</button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <main class="flex-1 max-w-2xl w-full mx-auto p-6">
-        
-        <div class="bg-white rounded-2xl shadow-sm p-6 mb-6 flex items-center gap-4 border border-gray-100">
-            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-2xl text-gray-400">
-                <i class="fas fa-user"></i>
+    <main class="flex-1 max-w-2xl w-full mx-auto p-6" id="main-content">
+        <div id="blocked-screen" class="hidden text-center py-12">
+            <div class="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6 text-red-500 text-4xl">
+                <i class="fas fa-ban"></i>
             </div>
-            <div>
-                <input type="text" id="display-name" disabled class="block font-bold text-lg text-gray-900 bg-transparent border-none p-0" value="Loading...">
-                <input type="text" id="display-id" disabled class="block text-sm text-gray-500 bg-transparent border-none p-0" value="...">
-            </div>
-            <div class="ml-auto text-right">
-                <p class="text-xs text-gray-400 uppercase font-bold">Attendance</p>
-                <p class="text-xl font-bold text-green-600" id="attendance-display">--%</p>
-            </div>
+            <h2 class="text-2xl font-bold text-gray-900">Account Suspended</h2>
+            <p class="text-gray-500 mt-2 max-w-md mx-auto">Your access to the permission portal has been revoked by a faculty member. Please report to the HOD office.</p>
         </div>
 
-        <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden" id="form-container">
-            <div class="bg-brand-600 p-4">
-                <h2 class="text-white font-bold text-lg flex items-center gap-2">
-                    <i class="fas fa-paper-plane"></i> New Permission Request
-                </h2>
-                <div class="w-full bg-brand-900/30 h-1 mt-3 rounded-full overflow-hidden">
-                    <div class="bg-white h-full transition-all duration-300 w-5" id="form-progress"></div>
+        <div id="active-screen">
+            <div class="bg-white rounded-2xl shadow-sm p-6 mb-6 flex items-center gap-4 border border-gray-100">
+                <div class="w-14 h-14 bg-blue-50 rounded-full flex items-center justify-center text-xl text-blue-600 font-bold">
+                    <span id="initials">U</span>
+                </div>
+                <div>
+                    <h3 class="font-bold text-lg text-gray-900 leading-tight" id="display-name">Loading...</h3>
+                    <p class="text-sm text-gray-500 font-mono" id="display-id">...</p>
+                </div>
+                <div class="ml-auto text-right">
+                    <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Attendance</p>
+                    <p class="text-xl font-black text-green-600" id="attendance-display">--%</p>
                 </div>
             </div>
 
-            <form id="request-form" class="p-6 space-y-6">
-                
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-3">Reason Type <span class="text-red-500">*</span></label>
-                    <div class="grid grid-cols-4 gap-3">
-                        <label class="cursor-pointer group">
-                            <input type="radio" name="reasonType" value="Medical" class="peer sr-only">
-                            <div class="reason-box p-4 border rounded-xl hover:bg-gray-50 text-center">
-                                <div class="text-2xl mb-2">💊</div>
-                                <span class="font-bold text-sm">Medical</span>
-                            </div>
-                        </label>
-                        <label class="cursor-pointer group">
-                            <input type="radio" name="reasonType" value="Personal" class="peer sr-only">
-                            <div class="reason-box p-4 border rounded-xl hover:bg-gray-50 text-center">
-                                <div class="text-2xl mb-2">🏠</div>
-                                <span class="font-bold text-sm">Personal</span>
-                            </div>
-                        </label>
-                        <label class="cursor-pointer group">
-                            <input type="radio" name="reasonType" value="On-Duty" class="peer sr-only">
-                            <div class="reason-box p-4 border rounded-xl hover:bg-gray-50 text-center">
-                                <div class="text-2xl mb-2">🎓</div>
-                                <span class="font-bold text-sm">On-Duty</span>
-                            </div>
-                        </label>
-                        <label class="cursor-pointer group">
-                            <input type="radio" name="reasonType" value="Other" class="peer sr-only">
-                            <div class="reason-box p-4 border rounded-xl hover:bg-gray-50 text-center">
-                                <div class="text-2xl mb-2">⚡</div>
-                                <span class="font-bold text-sm">Other</span>
-                            </div>
-                        </label>
+            <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+                <div class="bg-blue-600 p-4">
+                    <h2 class="text-white font-bold text-lg flex items-center gap-2">
+                        <i class="fas fa-paper-plane"></i> New Request
+                    </h2>
+                    <div class="w-full bg-blue-900/30 h-1.5 mt-3 rounded-full overflow-hidden">
+                        <div class="bg-white h-full transition-all duration-300 w-5" id="form-progress"></div>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-2 gap-4">
+                <form id="request-form" class="p-6 space-y-6">
+                    
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-1">From Date <span class="text-red-500">*</span></label>
-                        <input type="text" id="start-date" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Select Date">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Select Category</label>
+                        <div class="grid grid-cols-4 gap-3">
+                            <label class="cursor-pointer group">
+                                <input type="radio" name="reasonType" value="Medical" class="peer sr-only">
+                                <div class="reason-box p-3 border border-gray-200 rounded-xl hover:bg-gray-50 text-center">
+                                    <div class="text-xl mb-1">💊</div>
+                                    <span class="font-bold text-xs">Medical</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer group">
+                                <input type="radio" name="reasonType" value="Personal" class="peer sr-only">
+                                <div class="reason-box p-3 border border-gray-200 rounded-xl hover:bg-gray-50 text-center">
+                                    <div class="text-xl mb-1">🏠</div>
+                                    <span class="font-bold text-xs">Personal</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer group">
+                                <input type="radio" name="reasonType" value="On-Duty" class="peer sr-only">
+                                <div class="reason-box p-3 border border-gray-200 rounded-xl hover:bg-gray-50 text-center">
+                                    <div class="text-xl mb-1">🎓</div>
+                                    <span class="font-bold text-xs">On-Duty</span>
+                                </div>
+                            </label>
+                            <label class="cursor-pointer group">
+                                <input type="radio" name="reasonType" value="Other" class="peer sr-only">
+                                <div class="reason-box p-3 border border-gray-200 rounded-xl hover:bg-gray-50 text-center">
+                                    <div class="text-xl mb-1">⚡</div>
+                                    <span class="font-bold text-xs">Other</span>
+                                </div>
+                            </label>
+                        </div>
                     </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">From Date</label>
+                            <input type="text" id="start-date" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium" placeholder="Select...">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">To Date</label>
+                            <input type="text" id="end-date" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium" placeholder="Select...">
+                        </div>
+                    </div>
+
+                    <div id="duration-feedback" class="hidden bg-blue-50 text-blue-800 p-3 rounded-lg text-sm flex items-center justify-between border border-blue-100">
+                        <span class="font-medium"><i class="fas fa-clock mr-2"></i> Duration: <strong id="day-count">0</strong> Days</span>
+                        <span id="escalation-warning" class="hidden bg-orange-100 text-orange-700 text-xs font-bold px-2 py-1 rounded border border-orange-200">
+                            <i class="fas fa-arrow-up"></i> Requires HOD
+                        </span>
+                    </div>
+
                     <div>
-                        <label class="block text-sm font-bold text-gray-700 mb-1">To Date <span class="text-red-500">*</span></label>
-                        <input type="text" id="end-date" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand-500 outline-none" placeholder="Select Date">
+                        <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Detailed Reason</label>
+                        <textarea id="custom-reason" rows="3" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm transition resize-none" placeholder="Please describe why you need this permission..."></textarea>
                     </div>
-                </div>
 
-                <div id="duration-feedback" class="hidden bg-blue-50 text-blue-700 p-3 rounded-lg text-sm flex items-center justify-between animate-fade-in">
-                    <span>Duration: <strong id="day-count">0</strong> Days</span>
-                    <span id="escalation-warning" class="hidden text-orange-600 text-xs font-bold bg-orange-100 px-2 py-1 rounded border border-orange-200">
-                        <i class="fas fa-exclamation-triangle"></i> Requires HOD
-                    </span>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-bold text-gray-700 mb-1">Detailed Reason <span class="text-red-500">*</span></label>
-                    <textarea id="custom-reason" rows="3" class="w-full border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-brand-500 outline-none transition" placeholder="Describe why you need this permission..."></textarea>
-                </div>
-
-                <button type="submit" id="submit-btn" disabled class="w-full bg-gray-300 text-gray-500 font-bold py-4 rounded-xl transition-all shadow-none text-lg cursor-not-allowed">
-                    Fill all details to Submit
-                </button>
-            </form>
+                    <button type="submit" id="submit-btn" disabled class="w-full bg-gray-200 text-gray-400 font-bold py-4 rounded-xl transition-all shadow-none text-lg cursor-not-allowed">
+                        Fill details to Proceed
+                    </button>
+                </form>
+            </div>
         </div>
     </main>
 
     <script type="module">
         import { db, auth } from '../../assets/js/firebase-init.js';
 
-        let userProfile = {
-            department: 'General',
-            rollNumber: '',
-            section: 'A'
-        };
-
-        // Date Pickers
+        let userProfile = {};
         const startPicker = flatpickr("#start-date", { minDate: "today", dateFormat: "Y-m-d", onChange: updateFormState });
         const endPicker = flatpickr("#end-date", { minDate: "today", dateFormat: "Y-m-d", onChange: updateFormState });
 
-        // --- 1. AUTH & PROFILE LOAD ---
         auth.onAuthStateChanged(async (user) => {
             if (!user) { window.location.href = '../../public/login.html'; return; }
 
             try {
+                // --- SECURITY: FETCH FRESH PROFILE ---
                 const doc = await db.collection('users').doc(user.uid).get();
-                if (doc.exists) {
-                    const data = doc.data();
-                    
-                    const isBlocked = data.isBlocked || false;
-                    const attendance = data.attendance !== undefined ? data.attendance : 75;
+                if (!doc.exists) { alert("Profile Error"); return; }
+                const data = doc.data();
 
-                    const attEl = document.getElementById('attendance-display');
-                    attEl.innerText = `${attendance}%`;
-                    if(attendance < 60) attEl.className = "text-xl font-bold text-red-600";
-
-                    if (isBlocked) { lockScreen("Your account is currently BLOCKED by the Administrator."); return; }
-                    if (attendance < 60) { lockScreen(`Attendance Low (${attendance}%). Minimum 60% required to apply.`); return; }
-
-                    userProfile.department = data.department || 'Engineering';
-                    userProfile.rollNumber = data.rollNumber || user.uid;
-                    userProfile.section = data.section || 'A';
-                    
-                    document.getElementById('display-name').value = data.displayName || user.displayName;
-                    document.getElementById('display-id').value = userProfile.rollNumber;
+                // 1. Check Block
+                if (data.isBlocked) {
+                    document.getElementById('active-screen').classList.add('hidden');
+                    document.getElementById('blocked-screen').classList.remove('hidden');
+                    return;
                 }
+
+                // 2. Populate Header
+                document.getElementById('display-name').innerText = data.displayName;
+                document.getElementById('display-id').innerText = data.rollNumber || user.email;
+                document.getElementById('initials').innerText = (data.displayName || 'U').charAt(0);
+                
+                const att = data.attendance || 0;
+                const attEl = document.getElementById('attendance-display');
+                attEl.innerText = `${att}%`;
+                if(att < 60) attEl.className = "text-xl font-black text-red-600";
+
+                userProfile = {
+                    rollNumber: data.rollNumber,
+                    department: data.department,
+                    section: data.section || 'A'
+                };
+
             } catch (err) { console.error(err); }
         });
 
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            sessionStorage.clear();
-            auth.signOut().then(() => window.location.href = '../../public/login.html');
-        });
-
-        function lockScreen(msg) {
-            document.getElementById('request-form').innerHTML = `
-                <div class="text-center py-12">
-                    <div class="w-20 h-20 bg-red-100 text-red-500 rounded-full flex items-center justify-center mx-auto mb-4 text-3xl">
-                        <i class="fas fa-ban"></i>
-                    </div>
-                    <h2 class="text-xl font-bold text-gray-800">Permission Denied</h2>
-                    <p class="text-red-600 font-medium mt-2 px-4">${msg}</p>
-                    <p class="text-gray-500 text-sm mt-4">Please meet your Class Counselor.</p>
-                </div>
-            `;
-        }
-
-// --- 2. REAL-TIME UI UPDATER (FIXED: Date Validation) ---
+        // --- DYNAMIC FORM LOGIC ---
         function updateFormState() {
             const reason = document.querySelector('input[name="reasonType"]:checked');
             const start = document.getElementById('start-date').value;
             const end = document.getElementById('end-date').value;
             const note = document.getElementById('custom-reason').value.trim();
             
-            // Calculate Progress
-            let progress = 5; 
-            if(reason) progress += 30;
-            if(start && end) progress += 30;
-            if(note.length > 5) progress += 35; 
-
+            // Progress Bar
+            let progress = 5;
+            if(reason) progress += 25;
+            if(start) progress += 20;
+            if(end) progress += 20;
+            if(note.length > 5) progress += 30;
             document.getElementById('form-progress').style.width = `${progress}%`;
 
+            // Logic
             let isDateValid = false;
-
-            // Calculate Duration Logic
+            const feedback = document.getElementById('duration-feedback');
+            
             if (start && end) {
-                const d1 = new Date(start); 
+                const d1 = new Date(start);
                 const d2 = new Date(end);
                 
-                // FIX: Check for Invalid Date Range
-                if (d2 < d1) { 
-                    document.getElementById('duration-feedback').classList.remove('hidden');
-                    document.getElementById('duration-feedback').className = "bg-red-50 text-red-700 p-3 rounded-lg text-sm font-bold animate-pulse border border-red-200";
-                    document.getElementById('duration-feedback').innerHTML = '<i class="fas fa-exclamation-circle"></i> Error: Return date cannot be before Start date.';
-                    isDateValid = false;
+                if (d2 < d1) {
+                    feedback.classList.remove('hidden');
+                    feedback.className = "bg-red-50 text-red-700 p-3 rounded-lg text-sm font-bold border border-red-200 animate-pulse";
+                    feedback.innerHTML = '<i class="fas fa-exclamation-circle"></i> Invalid: End date cannot be before Start date.';
                 } else {
                     isDateValid = true;
-                    // Reset styling
-                    document.getElementById('duration-feedback').className = "bg-blue-50 text-blue-700 p-3 rounded-lg text-sm flex items-center justify-between animate-fade-in";
+                    feedback.className = "bg-blue-50 text-blue-800 p-3 rounded-lg text-sm flex items-center justify-between border border-blue-100 animate-fade-in";
+                    feedback.classList.remove('hidden');
                     
-                    const days = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
+                    const days = Math.ceil(Math.abs(d2 - d1) / (86400000)) + 1;
                     
-                    let html = `<span>Duration: <strong>${days}</strong> Days</span>`;
-                    
-                    if (days > 2) {
-                        html += `<span class="text-orange-600 text-xs font-bold bg-orange-100 px-2 py-1 rounded border border-orange-200"><i class="fas fa-exclamation-triangle"></i> Requires HOD</span>`;
+                    let warningHtml = '';
+                    // Escalation Rules: > 2 days OR Medical
+                    if (days > 2 || (reason && reason.value === 'Medical')) {
+                        warningHtml = `<span class="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-1 rounded border border-orange-200"><i class="fas fa-arrow-up"></i> Requires HOD</span>`;
                     }
-                    
-                    document.getElementById('duration-feedback').innerHTML = html;
-                    document.getElementById('duration-feedback').classList.remove('hidden');
+
+                    feedback.innerHTML = `<span class="font-medium"><i class="fas fa-clock mr-2"></i> Duration: <strong>${days}</strong> Days</span> ${warningHtml}`;
                 }
             } else {
-                document.getElementById('duration-feedback').classList.add('hidden');
+                feedback.classList.add('hidden');
             }
 
-            // Enable/Disable Button
             const btn = document.getElementById('submit-btn');
-            // FIX: Added isDateValid check to prevent submission of bad dates
-            if (reason && start && end && note.length > 3 && isDateValid) {
+            if (reason && start && end && note.length > 5 && isDateValid) {
                 btn.disabled = false;
-                btn.className = "w-full bg-brand-600 text-white font-bold py-4 rounded-xl hover:bg-brand-700 transition shadow-lg text-lg transform hover:-translate-y-1";
+                btn.className = "w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200 text-lg transform hover:-translate-y-1";
                 btn.innerText = "Submit Request";
             } else {
                 btn.disabled = true;
                 btn.className = "w-full bg-gray-200 text-gray-400 font-bold py-4 rounded-xl transition cursor-not-allowed";
-                btn.innerText = isDateValid ? "Complete Details to Submit" : "Fix Date Error to Submit";
+                btn.innerText = "Complete Form to Submit";
             }
         }
 
-        // Attach Listeners
         document.getElementById('request-form').addEventListener('change', updateFormState);
         document.getElementById('request-form').addEventListener('input', updateFormState);
 
-        // --- 3. SUBMIT LOGIC (FIXED: Security Double Check) ---
         document.getElementById('request-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
-            const user = auth.currentUser;
-            
             btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Verifying Policy...';
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Submitting...';
+
+            const user = auth.currentUser;
+            const reasonType = document.querySelector('input[name="reasonType"]:checked').value;
+            const start = document.getElementById('start-date').value;
+            const end = document.getElementById('end-date').value;
+            const note = document.getElementById('custom-reason').value;
 
             try {
-                // --- CRITICAL SECURITY PATCH (Step 1 of Fix) ---
-                // Re-fetch user profile to prevent UI manipulation bypass
-                // This ensures that even if they hacked the UI to enable the button, the server data stops them.
-                const freshSnap = await db.collection('users').doc(user.uid).get();
-                if (!freshSnap.exists) throw new Error("User profile missing.");
-                
-                const freshData = freshSnap.data();
-                
-                // 1. Check Block Status
-                if (freshData.isBlocked) {
-                    throw new Error("SECURITY BLOCK: Your account is restricted. You cannot submit requests.");
-                }
-
-                // 2. Check Attendance
-                const freshAtt = freshData.attendance !== undefined ? freshData.attendance : 0;
-                if (freshAtt < 60) {
-                    throw new Error(`POLICY VIOLATION: Attendance is ${freshAtt}%. Minimum 60% required.`);
-                }
-                // --- END SECURITY PATCH ---
-
-                btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Submitting...';
-
-                const reasonEl = document.querySelector('input[name="reasonType"]:checked');
-                const start = document.getElementById('start-date').value;
-                const end = document.getElementById('end-date').value;
-                const note = document.getElementById('custom-reason').value;
+                // Double Check Block Status Server-Side
+                const freshDoc = await db.collection('users').doc(user.uid).get();
+                if(freshDoc.data().isBlocked) throw new Error("Security Block: Action Denied.");
 
                 await db.collection('permissions').add({
                     studentID: user.uid,
-                    studentName: freshData.displayName || user.displayName || "Student",
+                    studentName: freshDoc.data().displayName,
                     email: user.email,
-                    rollNumber: freshData.rollNumber || userProfile.rollNumber,
-                    department: freshData.department || userProfile.department,
-                    section: freshData.section || userProfile.section,
-                    
-                    reasonType: reasonEl.value,
+                    rollNumber: freshDoc.data().rollNumber,
+                    department: freshDoc.data().department,
+                    reasonType: reasonType,
                     reason: note,
                     startDate: start,
                     endDate: end,
                     status: 'PENDING_TEACHER',
                     timestamp: new Date().toISOString(),
                     workflowHistory: [{
-                        step: 'SUBMITTED', actor: 'student', timestamp: new Date(), note: 'Request initiated'
+                        step: 'SUBMITTED', actor: 'student', timestamp: new Date().toISOString(), note: 'Request initiated'
                     }]
                 });
 
                 window.location.href = 'portalB.html';
             } catch (err) {
-                // Show security alert if caught
-                if (err.message.includes("SECURITY") || err.message.includes("POLICY")) {
-                    alert("⚠️ " + err.message);
-                    window.location.reload(); // Force reload to re-lock UI
-                } else {
-                    alert("Error: " + err.message);
-                    btn.disabled = false;
-                    btn.innerText = "Submit Request";
-                }
+                alert(err.message);
+                btn.disabled = false;
+                btn.innerText = "Submit Request";
             }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            sessionStorage.clear();
+            auth.signOut().then(() => window.location.href = '../../public/login.html');
         });
     </script>
 </body>
-
 </html>
-
