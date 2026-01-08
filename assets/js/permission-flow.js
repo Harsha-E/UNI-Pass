@@ -1,155 +1,205 @@
-import { db, auth } from './firebase-init.js'; // FIXED: Added auth
-
-// Configuration Rules
-const RULES = {
-    requiresHOD: ['Medical', 'On-Duty'],
-    maxDaysForTeacher: 2 
-};
+import { db, auth } from './firebase-init.js';
 
 /**
- * CORE WORKFLOW ENGINE
- * Handles the logic of moving a request from STUDENT -> TEACHER -> HOD -> APPROVED
+ * ============================================================================
+ * UNI-PASS WORKFLOW ENGINE (Enterprise Grade)
+ * ============================================================================
+ * Handles state transitions, role-based authority, and automatic escalation policies.
  */
-export async function processApproval(docId, action, role, currentData) {
-    // 1. Safety Check
-    if (!auth.currentUser) throw new Error("You must be logged in.");
 
-    const user = auth.currentUser;
-    
-    // 2. FETCH APPROVER DETAILS
-    // We fetch the real name (e.g., "Dr. K. Srinivas") from the 'users' collection
-    // instead of just using the login email.
-    let approverName = user.displayName;
-    let approverEmail = user.email;
+const CONFIG = {
+    ESCALATION_THRESHOLD_DAYS: 2,
+    SENSITIVE_TYPES: ['Medical', 'On-Duty', 'Symposium']
+};
 
-    try {
-        const userProfileSnap = await db.collection('users').doc(user.uid).get();
-        if (userProfileSnap.exists) {
-            const profile = userProfileSnap.data();
-            approverName = profile.displayName || approverName;
-            approverEmail = profile.email || approverEmail;
-        }
-    } catch (e) {
-        console.warn("Profile fetch failed, using default auth name.");
-    }
-    
-    // Fallback if name is still empty
-    if (!approverName) {
-        approverName = (role === 'hod' ? "Head of Dept" : "Faculty Member");
+export class PermissionService {
+
+    /**
+     * Determines if a request requires HOD intervention.
+     * @private
+     */
+    static _checkEscalation(data) {
+        const d1 = new Date(data.startDate);
+        const d2 = new Date(data.endDate);
+        const duration = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24)) + 1; // Inclusive duration
+
+        const isLongLeave = duration > CONFIG.ESCALATION_THRESHOLD_DAYS;
+        const isSensitive = CONFIG.SENSITIVE_TYPES.includes(data.reasonType);
+
+        return {
+            requiresEscalation: isLongLeave || isSensitive,
+            reason: isLongLeave ? `Duration (${duration} days) exceeds limit` : `Sensitive Category (${data.reasonType})`
+        };
     }
 
-    const timestamp = new Date().toISOString();
-    let updates = {};
+    /**
+     * Fetches authenticated user profile to ensure data integrity.
+     * @private
+     */
+    static async _getActorProfile() {
+        const user = auth.currentUser;
+        if (!user) throw new Error("Session expired. Please log in.");
 
-    // 3. GET FIRESTORE FIELDVALUE (Safe Access)
-    // This handles cases where 'firebase' global might be accessed differently
-    const FieldValue = window.firebase ? window.firebase.firestore.FieldValue : null;
-    if (!FieldValue) throw new Error("Firebase SDK not fully loaded. Refresh page.");
+        const snap = await db.collection('users').doc(user.uid).get();
+        if (!snap.exists) throw new Error("User profile corrupted.");
 
-    // --- LOGIC FOR TEACHER ---
-    if (role === 'teacher') {
-        if (action === 'approve') {
-            const d1 = new Date(currentData.startDate);
-            const d2 = new Date(currentData.endDate);
-            const days = (d2 - d1) / (1000 * 60 * 60 * 24);
-            const isMedical = currentData.reasonType === 'Medical';
+        return {
+            uid: user.uid,
+            email: user.email,
+            displayName: snap.data().displayName || user.displayName || 'Staff Member',
+            role: snap.data().role,
+            isBlocked: snap.data().isBlocked
+        };
+    }
 
-            // Auto-Escalation Logic
-            if (days > 2 || isMedical) {
+    /**
+     * ACTION: APPROVE
+     * Handles Teacher -> HOD escalation automatically.
+     */
+    static async approveRequest(docId, currentData) {
+        const actor = await this._getActorProfile();
+        
+        if (actor.isBlocked) throw new Error("Security Restriction: Your account is blocked.");
+
+        const timestamp = new Date().toISOString();
+        const escalationCheck = this._checkEscalation(currentData);
+        let updates = {};
+
+        // --- TEACHER LOGIC ---
+        if (actor.role === 'teacher') {
+            if (escalationCheck.requiresEscalation) {
+                // ESCALATE
                 updates = {
                     status: 'PENDING_HOD',
-                    'approvals.teacher': { 
-                        name: approverName, // SAVES "Dr. Name"
-                        email: approverEmail,
-                        uid: user.uid,
-                        timestamp: timestamp,
-                        action: 'APPROVED (ESCALATED)'
+                    'approvals.teacher': {
+                        uid: actor.uid,
+                        name: actor.displayName,
+                        email: actor.email,
+                        action: 'ENDORSED',
+                        timestamp: timestamp
                     },
-                    workflowHistory: FieldValue.arrayUnion({
-                        step: 'TEACHER_APPROVED',
-                        actor: approverName,
-                        timestamp: new Date().toISOString(),
-                        note: `Escalated to HOD (${isMedical ? 'Medical' : '> 2 Days'})`
+                    workflowHistory: firebase.firestore.FieldValue.arrayUnion({
+                        step: 'TEACHER_ESCALATED',
+                        actor: actor.displayName,
+                        role: 'TEACHER',
+                        timestamp: timestamp,
+                        note: `Escalated: ${escalationCheck.reason}`
                     })
                 };
             } else {
-                // Final Approval
+                // FINALIZE
                 updates = {
                     status: 'APPROVED',
                     approvalType: 'TEACHER_ONLY',
-                    'approvals.teacher': { 
-                        name: approverName, 
-                        email: approverEmail,
-                        uid: user.uid,
-                        timestamp: timestamp,
-                        action: 'APPROVED'
+                    'approvals.teacher': {
+                        uid: actor.uid,
+                        name: actor.displayName,
+                        email: actor.email,
+                        action: 'APPROVED',
+                        timestamp: timestamp
                     },
-                    workflowHistory: FieldValue.arrayUnion({
+                    workflowHistory: firebase.firestore.FieldValue.arrayUnion({
                         step: 'APPROVED',
-                        actor: approverName,
-                        timestamp: new Date().toISOString(),
-                        note: 'Final Approval Granted'
+                        actor: actor.displayName,
+                        role: 'TEACHER',
+                        timestamp: timestamp,
+                        note: 'Request Approved (Standard)'
                     })
                 };
             }
-        } else {
-            // REJECT
-            updates = {
-                status: 'REJECTED',
-                'approvals.teacher': { 
-                    name: approverName,
-                    uid: user.uid,
-                    timestamp: timestamp,
-                    action: 'REJECTED'
-                },
-                workflowHistory: FieldValue.arrayUnion({
-                    step: 'REJECTED',
-                    actor: approverName,
-                    timestamp: new Date().toISOString(),
-                    note: currentData.rejectReason || 'Request Rejected by Teacher'
-                })
-            };
-        }
-    }
-
-    // --- LOGIC FOR HOD ---
-    if (role === 'hod') {
-        if (action === 'approve') {
+        } 
+        // --- HOD LOGIC ---
+        else if (actor.role === 'hod') {
             updates = {
                 status: 'APPROVED',
-                'approvals.hod': { 
-                    name: approverName, // SAVES HOD NAME
-                    email: approverEmail,
-                    uid: user.uid,
-                    timestamp: timestamp,
-                    action: 'APPROVED'
+                'approvals.hod': {
+                    uid: actor.uid,
+                    name: actor.displayName,
+                    email: actor.email,
+                    action: 'APPROVED',
+                    timestamp: timestamp
                 },
-                workflowHistory: FieldValue.arrayUnion({
+                workflowHistory: firebase.firestore.FieldValue.arrayUnion({
                     step: 'APPROVED',
-                    actor: approverName,
-                    timestamp: new Date().toISOString(),
-                    note: 'Final Approval by HOD'
+                    actor: actor.displayName,
+                    role: 'HOD',
+                    timestamp: timestamp,
+                    note: 'Final Approval Granted'
                 })
             };
         } else {
-            updates = {
-                status: 'REJECTED',
-                'approvals.hod': { 
-                    name: approverName,
-                    uid: user.uid,
-                    timestamp: timestamp,
-                    action: 'REJECTED'
-                },
-                workflowHistory: FieldValue.arrayUnion({
-                    step: 'REJECTED',
-                    actor: approverName,
-                    timestamp: new Date().toISOString(),
-                    note: currentData.rejectReason || 'Rejected by HOD'
-                })
-            };
+            throw new Error("Unauthorized Role for Approval");
         }
+
+        await db.collection('permissions').doc(docId).update(updates);
+        return { success: true, status: updates.status };
     }
 
-    // EXECUTE UPDATE
-    await db.collection('permissions').doc(docId).update(updates);
+    /**
+     * ACTION: REJECT
+     */
+    static async rejectRequest(docId, reason) {
+        const actor = await this._getActorProfile();
+        const timestamp = new Date().toISOString();
+
+        const updateKey = actor.role === 'teacher' ? 'approvals.teacher' : 'approvals.hod';
+
+        const updates = {
+            status: 'REJECTED',
+            [updateKey]: {
+                uid: actor.uid,
+                name: actor.displayName,
+                email: actor.email,
+                action: 'REJECTED',
+                timestamp: timestamp
+            },
+            workflowHistory: firebase.firestore.FieldValue.arrayUnion({
+                step: 'REJECTED',
+                actor: actor.displayName,
+                role: actor.role.toUpperCase(),
+                timestamp: timestamp,
+                note: reason || 'Request Declined'
+            })
+        };
+
+        await db.collection('permissions').doc(docId).update(updates);
+    }
+
+    /**
+     * ACTION: BLOCK USER (Teacher/Admin Power)
+     * Rejects the current request AND locks the student's account.
+     */
+    static async blockStudent(permissionId, studentId, reason) {
+        const actor = await this._getActorProfile();
+        if (!['teacher', 'hod', 'admin'].includes(actor.role)) {
+            throw new Error("Insufficient privileges to block users.");
+        }
+
+        const batch = db.batch();
+        const timestamp = new Date().toISOString();
+
+        // 1. Update Permission Doc (Reject)
+        const permRef = db.collection('permissions').doc(permissionId);
+        batch.update(permRef, {
+            status: 'REJECTED',
+            workflowHistory: firebase.firestore.FieldValue.arrayUnion({
+                step: 'BLOCKED',
+                actor: actor.displayName,
+                role: actor.role.toUpperCase(),
+                timestamp: timestamp,
+                note: `USER BLOCKED: ${reason}`
+            })
+        });
+
+        // 2. Update User Doc (Block)
+        const userRef = db.collection('users').doc(studentId);
+        batch.update(userRef, {
+            isBlocked: true,
+            blockedAt: timestamp,
+            blockedBy: actor.uid,
+            blockReason: reason
+        });
+
+        await batch.commit();
+    }
 }

@@ -3,319 +3,297 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Class Teacher Dashboard | UNI-PASS</title>
-    
+    <title>Faculty Dashboard | UNI-PASS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/style.css">
-<script src="../../assets/js/ui.js" defer></script>
+    <script src="../../assets/js/ui.js" defer></script>
     <script type="module" src="../../assets/js/route-guard.js"></script>
-
     <script>
         tailwind.config = {
             theme: {
-                extend: {
-                    colors: {
-                        brand: { 50: '#f0f9ff', 100: '#e0f2fe', 500: '#0ea5e9', 600: '#0284c7', 700: '#0369a1', 900: '#0c4a6e' },
-                        warning: { 50: '#fffbeb', 600: '#d97706' }
-                    }
-                }
+                extend: { colors: { brand: { 600: '#2563eb', 900: '#1e3a8a' } } }
             }
         }
     </script>
-    <style>
-        .custom-scroll::-webkit-scrollbar { width: 6px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-    </style>
 </head>
-<body class="bg-gray-50 text-gray-800 font-sans antialiased h-screen flex overflow-hidden">
+<body class="bg-gray-100 font-sans h-screen flex overflow-hidden">
 
-    <aside class="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col z-10">
-        <div class="h-16 flex items-center px-6 border-b border-gray-200">
-            <i class="fas fa-university text-brand-600 text-2xl mr-3"></i>
-            <span class="font-bold text-xl tracking-tight text-gray-800">UNI-PASS</span>
+    <aside class="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col z-20">
+        <div class="h-16 flex items-center px-6 border-b border-gray-100">
+            <span class="font-bold text-xl text-gray-800 tracking-tight">UNI-PASS</span>
+            <span class="ml-2 text-xs bg-brand-600 text-white px-2 py-0.5 rounded">FACULTY</span>
         </div>
-
-        <div class="p-6 border-b border-gray-100 bg-brand-50">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-brand-200 text-brand-700 flex items-center justify-center font-bold text-lg">T</div>
+        
+        <div class="p-6">
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-brand-600 to-brand-900 text-white flex items-center justify-center font-bold text-xl">
+                    <span id="avatar-initial">T</span>
+                </div>
                 <div>
-                    <h4 class="text-sm font-bold text-gray-900" id="sidebar-name">Loading...</h4>
-                    <p class="text-xs text-brand-600 font-medium">Class Advisor</p>
+                    <h4 class="text-sm font-bold text-gray-900" id="teacher-name">Loading...</h4>
+                    <p class="text-xs text-gray-500">Class Advisor</p>
                 </div>
             </div>
         </div>
 
-        <nav class="flex-1 p-4 space-y-1 overflow-y-auto custom-scroll">
-            <p class="px-2 text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2 mt-2">Workflow</p>
-            
-            <a href="#" onclick="switchTab('incoming')" id="tab-incoming" class="flex items-center px-3 py-2.5 bg-brand-50 text-brand-700 rounded-lg group font-medium shadow-sm ring-1 ring-brand-200">
-                <i class="fas fa-inbox w-6 text-brand-500"></i> Incoming Requests
-                <span class="ml-auto bg-brand-600 text-white py-0.5 px-2 rounded-full text-xs font-bold shadow-sm" id="sidebar-badge">0</span>
-            </a>
-
-            <a href="#" onclick="switchTab('escalated')" id="tab-escalated" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg group transition-colors">
-                <i class="fas fa-share w-6 text-gray-400 group-hover:text-gray-500"></i> Escalated (HOD)
-            </a>
-
-            <a href="#" onclick="switchTab('history')" id="tab-history" class="flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg group transition-colors">
-                <i class="fas fa-check-circle w-6 text-gray-400 group-hover:text-gray-500"></i> Approved History
-            </a>
+        <nav class="flex-1 px-4 space-y-1">
+            <button onclick="filterView('incoming')" id="tab-incoming" class="w-full flex items-center justify-between px-4 py-3 bg-brand-50 text-brand-900 rounded-xl font-bold transition">
+                <div class="flex items-center gap-3"><i class="fas fa-inbox"></i> Incoming</div>
+                <span id="badge-incoming" class="bg-brand-600 text-white text-xs px-2 py-0.5 rounded-full">0</span>
+            </button>
+            <button onclick="filterView('escalated')" id="tab-escalated" class="w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl font-medium transition">
+                <i class="fas fa-share"></i> Escalated
+            </button>
+            <button onclick="filterView('history')" id="tab-history" class="w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl font-medium transition">
+                <i class="fas fa-history"></i> History
+            </button>
         </nav>
 
-        <div class="p-4 border-t border-gray-200">
-            <button id="logout-btn" class="w-full flex items-center justify-center gap-2 px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 hover:text-red-600 transition-colors">
-                <i class="fas fa-sign-out-alt"></i> Sign Out
+        <div class="p-4 border-t border-gray-100">
+            <button id="logout-btn" class="flex items-center gap-2 text-gray-500 hover:text-red-600 transition text-sm font-bold px-2">
+                <i class="fas fa-sign-out-alt"></i> Log Out
             </button>
         </div>
     </aside>
 
     <main class="flex-1 flex flex-col h-full overflow-hidden relative">
-        <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-4 md:hidden z-20">
-            <span class="font-bold text-lg">Teacher Dashboard</span>
-            <button class="text-gray-500"><i class="fas fa-bars text-xl"></i></button>
+        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 z-10">
+            <h2 class="text-xl font-bold text-gray-800" id="view-title">Incoming Requests</h2>
+            <div class="flex items-center gap-3">
+                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                <span class="text-xs font-bold text-gray-400">LIVE SYSTEM</span>
+            </div>
         </header>
 
-        <div class="flex-1 overflow-y-auto custom-scroll p-4 md:p-8">
-            <div class="max-w-5xl mx-auto">
-                <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
-                    <div>
-                        <h1 class="text-2xl font-bold text-gray-900" id="page-title">Incoming Requests</h1>
-                        <p class="text-sm text-gray-500 mt-1">Manage leave applications for your assigned batch.</p>
-                    </div>
-                    <div class="flex gap-3">
-                        <button onclick="loadRequests()" class="p-2 text-gray-400 hover:text-brand-600 transition" title="Refresh">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                    </div>
+        <div class="flex-1 overflow-y-auto p-8" id="main-scroll">
+            <div id="request-feed" class="max-w-4xl mx-auto space-y-4">
                 </div>
-
-                <div id="requests-feed" class="space-y-4">
-                    </div>
-
-                <div id="empty-state" class="hidden flex flex-col items-center justify-center py-20 text-center">
-                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                        <i class="fas fa-clipboard-check text-3xl text-gray-400"></i>
-                    </div>
-                    <h3 class="text-lg font-medium text-gray-900">No records found</h3>
+            
+            <div id="empty-state" class="hidden flex flex-col items-center justify-center h-64 text-center">
+                <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-300 text-2xl mb-4">
+                    <i class="fas fa-check"></i>
                 </div>
+                <h3 class="text-gray-900 font-bold">All caught up!</h3>
+                <p class="text-gray-500 text-sm">No pending requests in this category.</p>
             </div>
         </div>
     </main>
 
     <div id="action-modal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm"></div>
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-md w-full z-10 p-6">
-                <div class="text-center mb-6">
-                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4" id="modal-icon-bg">
-                        <i class="fas fa-question text-blue-600 text-xl" id="modal-icon"></i>
-                    </div>
-                    <h3 class="text-lg font-bold text-gray-900" id="modal-title">Confirm Action</h3>
-                    <p class="text-sm text-gray-500 mt-2" id="modal-desc">Are you sure?</p>
-                </div>
-                
-                <div id="reject-reason-container" class="hidden mb-4">
-                    <label class="block text-xs font-bold text-gray-700 uppercase mb-1">Reason</label>
-                    <textarea id="reject-reason" class="w-full border border-gray-300 rounded p-2 text-sm" rows="2"></textarea>
-                </div>
+        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl p-6 w-full max-w-md scale-100 transition-transform">
+            <h3 class="text-lg font-bold text-gray-900 mb-2" id="modal-title">Confirm Action</h3>
+            <p class="text-sm text-gray-500 mb-4" id="modal-desc">Are you sure?</p>
+            
+            <div id="reject-controls" class="hidden space-y-3">
+                <textarea id="reason-input" class="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Reason for rejection..." rows="2"></textarea>
+                <label class="flex items-center gap-2 p-3 border border-red-100 bg-red-50 rounded-lg cursor-pointer">
+                    <input type="checkbox" id="block-check" class="text-red-600 focus:ring-red-500 rounded">
+                    <span class="text-sm font-bold text-red-700">Block Student (Spam/Disciplinary)</span>
+                </label>
+            </div>
 
-                <div class="flex gap-3 justify-center">
-                    <button onclick="closeModal()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200">Cancel</button>
-                    <button id="confirm-btn" class="px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 font-bold">Confirm</button>
-                </div>
+            <div class="flex gap-3 justify-end mt-6">
+                <button onclick="closeModal()" class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg font-medium transition">Cancel</button>
+                <button id="confirm-btn" class="px-6 py-2 bg-brand-600 text-white rounded-lg font-bold shadow-lg hover:bg-brand-700 transition">Confirm</button>
             </div>
         </div>
     </div>
+
     <script type="module">
         import { db, auth } from '../../assets/js/firebase-init.js';
-        import { processApproval } from '../../assets/js/permission-flow.js';
+        import { PermissionService } from '../../assets/js/permission-flow.js';
 
-        let currentActionId = null;
-        let currentActionType = null;
-        let currentRequestData = null;
-        let currentSubscription = null;
-        let currentTabMode = 'incoming';
+        let currentView = 'incoming';
+        let activeRequestId = null;
+        let activeStudentId = null;
+        let activeRequestData = null;
 
-        // --- AUTH ---
-        auth.onAuthStateChanged(user => {
-            if (!user) window.location.href = '../../public/login.html';
-            document.getElementById('sidebar-name').innerText = user.displayName || 'Teacher';
-            loadRequests('incoming');
+        // --- AUTH & INIT ---
+        auth.onAuthStateChanged(async user => {
+            if (!user) location.href = '../../public/login.html';
+            const profile = await db.collection('users').doc(user.uid).get();
+            const data = profile.data();
+            document.getElementById('teacher-name').innerText = data.displayName || "Faculty";
+            document.getElementById('avatar-initial').innerText = (data.displayName || "T").charAt(0);
+            loadData();
         });
 
-document.getElementById('logout-btn').addEventListener('click', () => {
-    // 1. Clear Browser Memory
-    sessionStorage.clear();
-    localStorage.clear();
-    
-    // 2. Sign out of Firebase
-    auth.signOut().then(() => {
-        window.location.href = '../../public/login.html';
-    });
-});
-
-        // --- TABS ---
-        window.switchTab = (mode) => {
-            currentTabMode = mode;
-            // Visuals
-            document.querySelectorAll('nav a').forEach(el => {
-                el.className = "flex items-center px-3 py-2.5 text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-lg group transition-colors";
+        // --- NAVIGATION ---
+        window.filterView = (view) => {
+            currentView = view;
+            // Update Tab Styles
+            document.querySelectorAll('nav button').forEach(b => {
+                b.className = "w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl font-medium transition";
+                if(b.id === 'tab-incoming') b.innerHTML = `<div class="flex items-center gap-3"><i class="fas fa-inbox"></i> Incoming</div><span id="badge-incoming" class="bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full">0</span>`;
             });
-            const activeClass = "flex items-center px-3 py-2.5 bg-brand-50 text-brand-700 rounded-lg group font-medium shadow-sm ring-1 ring-brand-200";
-            document.getElementById(`tab-${mode}`).className = activeClass;
             
-            // Logic
-            loadRequests(mode);
+            const activeTab = document.getElementById(`tab-${view}`);
+            activeTab.className = "w-full flex items-center justify-between px-4 py-3 bg-brand-50 text-brand-900 rounded-xl font-bold transition shadow-sm border border-brand-100";
+            
+            if(view === 'incoming') {
+                document.getElementById('view-title').innerText = "Incoming Requests";
+                activeTab.innerHTML = `<div class="flex items-center gap-3"><i class="fas fa-inbox"></i> Incoming</div><span id="badge-incoming" class="bg-brand-600 text-white text-xs px-2 py-0.5 rounded-full">0</span>`;
+            } else if (view === 'escalated') {
+                document.getElementById('view-title').innerText = "Escalated to HOD";
+            } else {
+                document.getElementById('view-title').innerText = "Approval History";
+            }
+            
+            loadData();
         };
 
-        // --- DATA LOADING ---
-        window.loadRequests = (mode = currentTabMode) => {
-            const feed = document.getElementById('requests-feed');
-            const emptyState = document.getElementById('empty-state');
-            const title = document.getElementById('page-title');
-
-            if (currentSubscription) currentSubscription(); // Unsubscribe prev
-
-            feed.innerHTML = '<div class="p-8 text-center text-gray-400"><i class="fas fa-circle-notch fa-spin"></i> Loading...</div>';
+        // --- DATA LOAD ---
+        function loadData() {
+            const feed = document.getElementById('request-feed');
+            const empty = document.getElementById('empty-state');
+            feed.innerHTML = '<div class="p-8 text-center"><i class="fas fa-circle-notch fa-spin text-brand-600"></i></div>';
 
             let query = db.collection('permissions');
-            
-            if (mode === 'incoming') {
-                title.innerText = "Incoming Requests";
-                query = query.where('status', '==', 'PENDING_TEACHER');
-            } else if (mode === 'escalated') {
-                title.innerText = "Escalated to HOD";
-                query = query.where('status', '==', 'PENDING_HOD');
-            } else if (mode === 'history') {
-                title.innerText = "Approval History";
-                query = query.where('status', 'in', ['APPROVED', 'REJECTED']);
-            }
 
-            currentSubscription = query.orderBy('timestamp', 'desc').onSnapshot(snapshot => {
+            if (currentView === 'incoming') query = query.where('status', '==', 'PENDING_TEACHER');
+            else if (currentView === 'escalated') query = query.where('status', '==', 'PENDING_HOD');
+            else query = query.where('status', 'in', ['APPROVED', 'REJECTED']);
+
+            query.orderBy('timestamp', 'desc').onSnapshot(snap => {
                 feed.innerHTML = '';
                 
-                if (mode === 'incoming') document.getElementById('sidebar-badge').innerText = snapshot.size;
+                // Update Badge
+                if(currentView === 'incoming') document.getElementById('badge-incoming').innerText = snap.size;
 
-                if (snapshot.empty) {
-                    emptyState.classList.remove('hidden');
+                if(snap.empty) {
+                    empty.classList.remove('hidden');
                     return;
                 }
-                
-                emptyState.classList.add('hidden');
-                snapshot.forEach(doc => {
-                    feed.appendChild(createCard(doc.id, doc.data(), mode === 'incoming'));
-                });
-            }, error => {
-                console.error("Query Error:", error);
-                feed.innerHTML = `<div class="p-4 text-red-500 bg-red-50 rounded">Error: ${error.message} <br> (Check Console for Index Link)</div>`;
-            });
-        };
+                empty.classList.add('hidden');
 
-        function createCard(id, data, isActionable) {
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    feed.appendChild(createCard(doc.id, data));
+                });
+            });
+        }
+
+        function createCard(id, data) {
             const d1 = new Date(data.startDate);
             const d2 = new Date(data.endDate);
-            const days = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
+            const days = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
+            const isMedical = data.reasonType === 'Medical';
+            const willEscalate = (days > 2 || isMedical) && currentView === 'incoming';
+
+            const card = document.createElement('div');
+            card.className = "bg-white p-5 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition relative overflow-hidden group";
             
-            // Escalation Check
-            const isEscalation = (days > 2) || (data.reasonType === 'Medical');
-            
-            const div = document.createElement('div');
-            div.className = "bg-white rounded-xl shadow-sm border border-gray-200 p-5 flex flex-col md:flex-row gap-5 relative overflow-hidden";
-            
-            let statusBadge = '';
-            if (data.status === 'PENDING_HOD') statusBadge = `<span class="bg-orange-100 text-orange-700 px-2 py-1 rounded text-xs font-bold ml-2">Waiting for HOD</span>`;
-            if (data.status === 'APPROVED') statusBadge = `<span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold ml-2">Approved</span>`;
-            
-            div.innerHTML = `
-                <div class="flex-shrink-0 flex flex-col items-center justify-center w-full md:w-16 gap-2">
-                    <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 font-bold border border-gray-200">
-                        ${data.studentName.charAt(0)}
-                    </div>
-                </div>
-                <div class="flex-1">
-                    <h3 class="text-lg font-bold text-gray-900">${data.studentName} ${statusBadge}</h3>
-                    <div class="flex items-center gap-2 text-sm text-gray-500 mt-1">
-                        <span class="px-2 py-0.5 rounded bg-gray-100 border border-gray-200 text-xs font-bold">${data.reasonType}</span>
-                        <span>${days} Days (${data.startDate} to ${data.endDate})</span>
-                    </div>
-                    <p class="text-gray-600 text-sm mt-2 italic">"${data.reason}"</p>
-                    
-                    ${(isActionable && isEscalation) ? `
-                        <div class="mt-2 inline-flex items-center gap-2 px-3 py-1 bg-orange-50 text-orange-700 text-xs font-bold rounded-full border border-orange-200">
-                            <i class="fas fa-arrow-up"></i> Will Escalate to HOD
+            // Left Border Color
+            if(isMedical) card.classList.add('border-l-4', 'border-l-red-500');
+            else if(days > 2) card.classList.add('border-l-4', 'border-l-orange-500');
+            else card.classList.add('border-l-4', 'border-l-brand-600');
+
+            card.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center font-bold text-gray-400 text-lg border border-gray-100">
+                            ${data.studentName.charAt(0)}
                         </div>
-                    ` : ''}
+                        <div>
+                            <h4 class="text-lg font-bold text-gray-900">${data.studentName}</h4>
+                            <p class="text-xs text-gray-500 font-mono">${data.rollNumber}</p>
+                            
+                            <div class="flex gap-2 mt-1">
+                                <span class="bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide border border-gray-200">${data.reasonType}</span>
+                                ${willEscalate ? '<span class="bg-orange-100 text-orange-700 px-2 py-0.5 rounded text-[10px] font-bold border border-orange-200 flex items-center gap-1"><i class="fas fa-arrow-up"></i> Requires HOD</span>' : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <span class="block text-2xl font-black text-gray-800 leading-none">${days}<span class="text-sm font-medium text-gray-400 ml-1">Days</span></span>
+                        <span class="text-xs text-gray-400">${new Date(data.startDate).toLocaleDateString()}</span>
+                    </div>
                 </div>
-                
-                ${isActionable ? `
-                <div class="flex flex-col gap-2 justify-center border-l border-gray-100 pl-4">
-                    <button onclick='triggerAction("${id}", "approve", ${JSON.stringify(data)})' class="px-4 py-2 bg-green-600 text-white rounded text-sm font-bold shadow hover:bg-green-700">Approve</button>
-                    <button onclick='triggerAction("${id}", "reject", null)' class="px-4 py-2 border border-red-200 text-red-600 rounded text-sm hover:bg-red-50">Reject</button>
+
+                <div class="mt-4 bg-gray-50 p-3 rounded-xl text-sm text-gray-600 italic border border-gray-100">
+                    "${data.reason}"
+                </div>
+
+                ${currentView === 'incoming' ? `
+                <div class="mt-5 flex gap-3 pt-4 border-t border-gray-100">
+                    <button onclick="prepAction('${id}', '${data.studentID}', 'reject')" class="flex-1 py-2.5 border border-red-100 text-red-600 bg-red-50 hover:bg-red-100 rounded-lg font-bold text-sm transition">Reject / Block</button>
+                    <button onclick="prepAction('${id}', '${data.studentID}', 'approve', ${willEscalate})" class="flex-[2] py-2.5 bg-gray-900 text-white hover:bg-gray-800 rounded-lg font-bold text-sm shadow-lg shadow-gray-200 transition transform active:scale-95">
+                        ${willEscalate ? 'Endorse to HOD' : 'Approve Pass'}
+                    </button>
                 </div>
                 ` : ''}
             `;
-            return div;
+            return card;
         }
 
         // --- ACTIONS ---
-        window.triggerAction = (id, type, data) => {
-            currentActionId = id;
-            currentActionType = type;
-            currentRequestData = data;
-            
+        window.prepAction = (id, studentId, action, isEscalation) => {
+            activeRequestId = id;
+            activeStudentId = studentId;
             const modal = document.getElementById('action-modal');
-            modal.classList.remove('hidden');
-            
-            const btn = document.getElementById('confirm-btn');
-            const rejectBox = document.getElementById('reject-reason-container');
+            const title = document.getElementById('modal-title');
             const desc = document.getElementById('modal-desc');
+            const rejectControls = document.getElementById('reject-controls');
+            const btn = document.getElementById('confirm-btn');
 
-            if (type === 'approve') {
-                rejectBox.classList.add('hidden');
-                btn.className = "px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-bold";
+            modal.classList.remove('hidden');
+
+            if (action === 'approve') {
+                rejectControls.classList.add('hidden');
+                title.innerText = isEscalation ? "Endorse Escalation?" : "Approve Request?";
+                desc.innerHTML = isEscalation 
+                    ? "This request exceeds 2 days or is medical. Approving it will <b>send it to the HOD</b>." 
+                    : "This will generate a valid digital pass for the student immediately.";
+                btn.className = "px-6 py-2 bg-brand-600 text-white rounded-lg font-bold hover:bg-brand-700";
+                btn.innerText = "Confirm Approval";
                 
-                // Smart Text
-                const d1 = new Date(data.startDate);
-                const d2 = new Date(data.endDate);
-                const days = Math.ceil(Math.abs(d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
-                
-                if (days > 2 || data.reasonType === 'Medical') {
-                    desc.innerHTML = `This request will be <b>ESCALATED to HOD</b> because it is ${days} days long or Medical.`;
-                } else {
-                    desc.innerText = "This will generate the permission pass immediately.";
-                }
+                btn.onclick = async () => {
+                    btn.disabled = true; btn.innerText = "Processing...";
+                    try {
+                        // RE-FETCH data just in case
+                        const freshDoc = await db.collection('permissions').doc(activeRequestId).get();
+                        await PermissionService.approveRequest(activeRequestId, freshDoc.data());
+                        closeModal();
+                    } catch(e) { alert(e.message); } 
+                    finally { btn.disabled = false; }
+                };
+
             } else {
-                rejectBox.classList.remove('hidden');
-                btn.className = "px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-bold";
-                desc.innerText = "This action cannot be undone.";
+                rejectControls.classList.remove('hidden');
+                title.innerText = "Reject Request";
+                desc.innerText = "Please provide a reason. You can also block this student if this is spam.";
+                btn.className = "px-6 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700";
+                btn.innerText = "Reject Request";
+
+                btn.onclick = async () => {
+                    const reason = document.getElementById('reason-input').value;
+                    const shouldBlock = document.getElementById('block-check').checked;
+                    
+                    if(!reason) { alert("Please enter a reason."); return; }
+                    
+                    btn.disabled = true; btn.innerText = "Processing...";
+                    try {
+                        if(shouldBlock) {
+                            if(confirm("CRITICAL: This will ban the student from the entire system. Proceed?")) {
+                                await PermissionService.blockStudent(activeRequestId, activeStudentId, reason);
+                            }
+                        } else {
+                            await PermissionService.rejectRequest(activeRequestId, reason);
+                        }
+                        closeModal();
+                    } catch(e) { alert(e.message); }
+                    finally { btn.disabled = false; }
+                };
             }
         };
 
         window.closeModal = () => document.getElementById('action-modal').classList.add('hidden');
-
-        document.getElementById('confirm-btn').addEventListener('click', async () => {
-            const btn = document.getElementById('confirm-btn');
-            btn.innerText = "Processing...";
-            btn.disabled = true;
-            
-            try {
-                if (currentActionType === 'reject') {
-                    const reason = document.getElementById('reject-reason').value;
-                    if (!currentRequestData) currentRequestData = {};
-                    currentRequestData.rejectReason = reason;
-                }
-
-                await processApproval(currentActionId, currentActionType, 'teacher', currentRequestData || {});
-                closeModal();
-            } catch (err) {
-                alert("Error: " + err.message);
-            } finally {
-                btn.innerText = "Confirm";
-                btn.disabled = false;
-            }
-        });
+        document.getElementById('logout-btn').onclick = () => {
+            sessionStorage.clear();
+            auth.signOut().then(() => location.href = '../../public/login.html');
+        };
     </script>
 </body>
 </html>
