@@ -7,8 +7,8 @@
     
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../assets/css/style.css">
-<script src="../../assets/js/ui.js" defer></script> 
+    <link rel="stylesheet" href="assets/css/style.css">
+    
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
@@ -54,10 +54,19 @@
                 </div>
 
                 <div class="md:hidden flex items-center">
-                    <button class="text-gray-600 hover:text-brand-600 focus:outline-none">
+                    <button onclick="toggleMobileMenu()" class="text-gray-600 hover:text-brand-600 focus:outline-none p-2">
                         <i class="fas fa-bars text-2xl"></i>
                     </button>
                 </div>
+            </div>
+        </div>
+
+        <div id="mobile-menu" class="hidden md:hidden bg-white border-b border-gray-100 absolute w-full left-0 top-20 shadow-lg">
+            <div class="px-4 pt-2 pb-6 space-y-2">
+                <a href="#how-it-works" onclick="toggleMobileMenu()" class="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-brand-600 hover:bg-gray-50">How it Works</a>
+                <a href="#features" onclick="toggleMobileMenu()" class="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-brand-600 hover:bg-gray-50">Features</a>
+                <a href="public/checker.html" class="block px-3 py-3 rounded-md text-base font-medium text-gray-700 hover:text-brand-600 hover:bg-gray-50">Verify Pass</a>
+                <a href="public/login.html" class="block px-3 py-3 mt-4 text-center rounded-lg text-base font-bold bg-brand-600 text-white shadow-md">Login Portal</a>
             </div>
         </div>
     </nav>
@@ -76,23 +85,23 @@
             </h1>
 
             <p data-aos="fade-up" data-aos-delay="200" class="mt-4 max-w-2xl mx-auto text-xl text-gray-500">
-                Replace paper chaos with a secure, instant, and transparent digital workflow. From request to QR-verified pass in minutes.
+                Replace paper chaos with a secure, instant, and transparent digital workflow. From student request to gate verification in minutes.
             </p>
 
-            <div data-aos="fade-up" data-aos-delay="300" class="mt-10 flex flex-col sm:flex-row justify-center gap-4">
-                <a href="public/login.html" class="px-8 py-4 bg-brand-600 text-white rounded-xl font-bold text-lg shadow-xl hover:bg-brand-700 hover:shadow-2xl transition transform hover:-translate-y-1">
+            <div data-aos="fade-up" data-aos-delay="300" class="mt-10 flex flex-col sm:flex-row justify-center gap-4 px-4">
+                <a href="public/login.html" class="px-8 py-4 bg-brand-600 text-white rounded-xl font-bold text-lg shadow-xl hover:bg-brand-700 hover:shadow-2xl transition transform hover:-translate-y-1 w-full sm:w-auto">
                     Get Started
                 </a>
-                <a href="#how-it-works" class="px-8 py-4 bg-white text-gray-700 border border-gray-200 rounded-xl font-bold text-lg hover:bg-gray-50 transition flex items-center justify-center gap-2">
+                <a href="#how-it-works" class="px-8 py-4 bg-white text-gray-700 border border-gray-200 rounded-xl font-bold text-lg hover:bg-gray-50 transition flex items-center justify-center gap-2 w-full sm:w-auto">
                     <i class="far fa-play-circle"></i> See Demo
                 </a>
             </div>
 
-            <div data-aos="fade-up" data-aos-delay="500" class="mt-16 mx-auto max-w-lg bg-white p-2 rounded-2xl shadow-2xl border border-gray-100 flex items-center p-2">
+            <div data-aos="fade-up" data-aos-delay="500" class="mt-16 mx-auto max-w-lg bg-white p-2 rounded-2xl shadow-2xl border border-gray-100 flex items-center p-2 transform transition hover:scale-[1.02]">
                 <div class="pl-4 pr-2 text-gray-400">
                     <i class="fas fa-search"></i>
                 </div>
-                <input type="text" placeholder="Have a Pass ID? Verify it instantly..." class="flex-1 p-2 outline-none text-gray-700 font-medium bg-transparent">
+                <input type="text" placeholder="Pass ID or Roll No..." class="flex-1 p-2 outline-none text-gray-700 font-medium bg-transparent text-sm md:text-base">
                 <button onclick="window.location.href='public/checker.html'" class="bg-gray-100 hover:bg-gray-200 text-gray-600 px-4 py-2 rounded-xl font-bold text-sm transition">
                     Check
                 </button>
@@ -101,8 +110,6 @@
 
         </div>
     </section>
-
-    
 
     <section id="how-it-works" class="py-24 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -114,28 +121,28 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
                 <div class="hidden md:block absolute top-12 left-0 w-full h-0.5 bg-gray-100 z-0"></div>
 
-                <div data-aos="fade-up" data-aos-delay="100" class="relative z-10 bg-white p-6 text-center">
-                    <div class="w-24 h-24 mx-auto bg-blue-50 rounded-full flex items-center justify-center mb-6 border-4 border-white shadow-lg">
+                <div data-aos="fade-up" data-aos-delay="100" class="relative z-10 bg-white p-6 text-center group">
+                    <div class="w-24 h-24 mx-auto bg-blue-50 rounded-full flex items-center justify-center mb-6 border-4 border-white shadow-lg group-hover:scale-110 transition duration-300">
                         <i class="fas fa-mobile-alt text-3xl text-brand-600"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-2">1. Request</h3>
-                    <p class="text-gray-500">Student submits a digital request. Logic checks if it's medical, personal, or OD.</p>
+                    <p class="text-gray-500">Student submits a digital request via mobile. Includes emergency & lab checks.</p>
                 </div>
 
-                <div data-aos="fade-up" data-aos-delay="200" class="relative z-10 bg-white p-6 text-center">
-                    <div class="w-24 h-24 mx-auto bg-blue-50 rounded-full flex items-center justify-center mb-6 border-4 border-white shadow-lg">
+                <div data-aos="fade-up" data-aos-delay="200" class="relative z-10 bg-white p-6 text-center group">
+                    <div class="w-24 h-24 mx-auto bg-blue-50 rounded-full flex items-center justify-center mb-6 border-4 border-white shadow-lg group-hover:scale-110 transition duration-300">
                         <i class="fas fa-user-check text-3xl text-brand-600"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-2">2. Approve</h3>
-                    <p class="text-gray-500">Class Teacher reviews it. If > 2 days, it auto-escalates to the HOD.</p>
+                    <p class="text-gray-500">Faculty reviews instantly. Long leaves auto-escalate to HOD for final sign-off.</p>
                 </div>
 
-                <div data-aos="fade-up" data-aos-delay="300" class="relative z-10 bg-white p-6 text-center">
-                    <div class="w-24 h-24 mx-auto bg-blue-50 rounded-full flex items-center justify-center mb-6 border-4 border-white shadow-lg">
+                <div data-aos="fade-up" data-aos-delay="300" class="relative z-10 bg-white p-6 text-center group">
+                    <div class="w-24 h-24 mx-auto bg-blue-50 rounded-full flex items-center justify-center mb-6 border-4 border-white shadow-lg group-hover:scale-110 transition duration-300">
                         <i class="fas fa-qrcode text-3xl text-brand-600"></i>
                     </div>
                     <h3 class="text-xl font-bold text-gray-900 mb-2">3. Verify</h3>
-                    <p class="text-gray-500">A Unique Verified Id interlinked with signed PDF is generated. Security scans the QR code to validate.</p>
+                    <p class="text-gray-500">Security guards scan the unique ID at the gate. Green means Go, Red means Stop.</p>
                 </div>
             </div>
         </div>
@@ -148,28 +155,28 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition">
+                <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition border border-gray-100">
                     <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center text-green-600 mb-4">
                         <i class="fas fa-leaf"></i>
                     </div>
                     <h3 class="font-bold text-lg mb-2">100% Paperless</h3>
-                    <p class="text-gray-500 text-sm">Save thousands of sheets of paper every semester. Environmentally friendly and cost-effective.</p>
+                    <p class="text-gray-500 text-sm">Save thousands of sheets every semester. Environmentally friendly and cost-effective.</p>
                 </div>
 
-                <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition">
+                <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition border border-gray-100">
                     <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center text-purple-600 mb-4">
-                        <i class="fas fa-lock"></i>
+                        <i class="fas fa-shield-alt"></i>
                     </div>
-                    <h3 class="font-bold text-lg mb-2">Anti-Forgery</h3>
-                    <p class="text-gray-500 text-sm">Every pass has a SHA-256 digital signature. Impossible to fake or alter without detection.</p>
+                    <h3 class="font-bold text-lg mb-2">Secure Validation</h3>
+                    <p class="text-gray-500 text-sm">Passes are linked to our central Cloud Database. No fake slips or forged signatures.</p>
                 </div>
 
-                <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition">
+                <div class="bg-white p-8 rounded-2xl shadow-sm hover:shadow-md transition border border-gray-100">
                     <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center text-orange-600 mb-4">
-                        <i class="fas fa-bolt"></i>
+                        <i class="fas fa-flask"></i>
                     </div>
-                    <h3 class="font-bold text-lg mb-2">Instant Audit</h3>
-                    <p class="text-gray-500 text-sm">Admins can see who is outside the campus in real-time. No more flipping through logbooks.</p>
+                    <h3 class="font-bold text-lg mb-2">Lab Integration</h3>
+                    <p class="text-gray-500 text-sm">Integrated inventory search helps students request components before applying for On-Duty.</p>
                 </div>
             </div>
         </div>
@@ -185,23 +192,31 @@
                 <span class="font-bold text-white tracking-tight">UNI-PASS</span>
             </div>
 
-            <div class="flex gap-8 text-sm font-medium">
+            <div class="flex flex-wrap justify-center gap-8 text-sm font-medium">
                 <a href="#" class="hover:text-white transition">Privacy Policy</a>
                 <a href="#" class="hover:text-white transition">Terms of Use</a>
                 <a href="public/login.html" class="hover:text-white transition">Staff Login</a>
+                <a href="admin/admin.html" class="hover:text-white transition">Admin Panel</a>
             </div>
 
-            <div class="text-sm">
-                &copy; 2025 UNI-PASS System. All rights reserved.
+            <div class="text-sm text-center md:text-right">
+                &copy; 2025 UNI-PASS System. <br class="md:hidden"> All rights reserved.
             </div>
         </div>
     </footer>
 
     <script>
+        // Init Animation Library
         AOS.init({
             duration: 800,
             once: true
         });
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.classList.toggle('hidden');
+        }
 
         // Sticky Navbar Effect
         window.addEventListener('scroll', () => {
@@ -216,5 +231,4 @@
         });
     </script>
 </body>
-
 </html>
