@@ -1,293 +1,35 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Track Requests | UNI-PASS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <link rel="stylesheet" href="../../assets/css/style.css">
-    <script src="../../assets/js/ui.js" defer></script>
-    <script type="module" src="../../assets/js/route-guard.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: { colors: { brand: { 600: '#2563eb', 900: '#1e3a8a' } } }
-            }
-        }
-    </script>
-    <style>
-        .step-line { position: absolute; left: 15px; top: 35px; bottom: -15px; width: 2px; background: #e2e8f0; z-index: 0; }
-        .step-active .step-line { background: #3b82f6; }
-        .step-last .step-line { display: none; }
-    </style>
-</head>
-<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
+<script type="module">
+    import { db, auth } from '../../assets/js/firebase-init.js';
+    import { generateOfficialPDF } from '../../assets/js/permission-pdf.js';
+    import { addToGoogleCalendar } from '../../assets/js/services.js'; // <--- IMPORT THIS
 
-    <nav class="bg-white shadow-sm z-50 sticky top-0">
-        <div class="max-w-3xl mx-auto px-4">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center gap-2">
-                    <a href="portalA.html" class="text-gray-400 hover:text-blue-600 transition"><i class="fas fa-arrow-left text-xl"></i></a>
-                    <span class="font-bold text-xl text-gray-900 ml-2">My History</span>
-                </div>
-                <div class="flex items-center">
-                    <button id="logout-btn" class="text-sm text-red-500 font-bold hover:text-red-700">Logout</button>
-                </div>
-            </div>
-        </div>
-    </nav>
+    // ... (Existing Code) ...
 
-    <main class="flex-1 max-w-3xl w-full mx-auto p-6 space-y-8">
-
-        <div id="active-container" class="hidden">
-            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Current Status</h3>
-            <div class="bg-white rounded-2xl shadow-lg border border-blue-100 overflow-hidden">
-                <div class="bg-blue-600 p-6 text-white flex justify-between items-center">
-                    <div>
-                        <h2 class="text-2xl font-bold">Request in Progress</h2>
-                        <p class="text-blue-200 text-sm font-mono mt-1" id="active-id">ID: ...</p>
-                    </div>
-                    <div class="bg-white/20 p-3 rounded-full backdrop-blur-sm animate-pulse">
-                        <i class="fas fa-sync-alt fa-spin text-xl"></i>
-                    </div>
-                </div>
-
-                <div class="p-8">
-                    <div class="space-y-0" id="tracker-steps">
-                        <div class="relative pl-12 pb-8 step-active">
-                            <div class="step-line"></div>
-                            <div class="absolute left-0 top-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md z-10">1</div>
-                            <h4 class="font-bold text-gray-900">Request Submitted</h4>
-                            <p class="text-xs text-gray-500" id="date-submitted">...</p>
-                        </div>
-
-                        <div class="relative pl-12 pb-8" id="step-teacher">
-                            <div class="step-line"></div>
-                            <div class="absolute left-0 top-0 w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-bold text-sm z-10 transition-colors duration-500 icon-box">
-                                <i class="fas fa-chalkboard-teacher"></i>
-                            </div>
-                            <h4 class="font-bold text-gray-400 title">Class Teacher Review</h4>
-                            <p class="text-xs text-gray-400 status-text">Pending...</p>
-                        </div>
-
-                        <div class="relative pl-12 pb-8 hidden" id="step-hod">
-                            <div class="step-line"></div>
-                            <div class="absolute left-0 top-0 w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-bold text-sm z-10 transition-colors duration-500 icon-box">
-                                <i class="fas fa-user-tie"></i>
-                            </div>
-                            <h4 class="font-bold text-gray-400 title">HOD Escalation</h4>
-                            <p class="text-xs text-gray-400 status-text">Required for >2 days</p>
-                        </div>
-
-                        <div class="relative pl-12 step-last" id="step-final">
-                            <div class="absolute left-0 top-0 w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-bold text-sm z-10 transition-colors duration-500 icon-box">
-                                <i class="fas fa-flag-checkered"></i>
-                            </div>
-                            <h4 class="font-bold text-gray-400 title">Ready for Download</h4>
-                            <p class="text-xs text-gray-400 status-text">Waiting for signature</p>
-                        </div>
-                    </div>
-
-                    <div class="mt-8 pt-6 border-t border-gray-100 flex justify-end" id="action-area">
-                        <button disabled class="px-6 py-3 bg-gray-100 text-gray-400 rounded-xl font-bold cursor-not-allowed flex items-center gap-2">
-                            <i class="fas fa-lock"></i> Generating Pass...
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div>
-            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Past Requests</h3>
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden" id="history-list">
-                <div class="p-8 text-center text-gray-400">Loading history...</div>
-            </div>
-        </div>
-
-    </main>
-
-    <script type="module" src="../../assets/js/permission-pdf.js"></script>
-    
-    <script type="module">
-        import { db, auth } from '../../assets/js/firebase-init.js';
+    // In your 'updateTracker' function, update the 'APPROVED' section:
+    if (status === 'APPROVED') {
+        setStep('step-final', 'done', 'Pass Generated Successfully');
         
-        let currentPassData = null;
+        actionArea.innerHTML = `
+            <div class="flex flex-col gap-3 w-full">
+                <button id="download-btn" class="w-full px-8 py-3 bg-green-600 text-white rounded-xl font-bold shadow-lg shadow-green-200 hover:bg-green-700 transition transform hover:-translate-y-1 flex items-center justify-center gap-2">
+                    <i class="fas fa-file-download"></i> Download Official Pass
+                </button>
 
-        auth.onAuthStateChanged(user => {
-            if (!user) location.href = '../../public/login.html';
-            listenToPermissions(user.uid);
-        });
+                <button id="calendar-btn" class="w-full px-8 py-3 bg-white text-blue-600 border border-blue-200 rounded-xl font-bold hover:bg-blue-50 transition flex items-center justify-center gap-2">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" class="w-5 h-5">
+                    Add to Google Calendar
+                </button>
+            </div>
+        `;
 
-        function listenToPermissions(uid) {
-            db.collection('permissions')
-                .where('studentID', '==', uid)
-                .orderBy('timestamp', 'desc')
-                .onSnapshot(snap => {
-                    const list = document.getElementById('history-list');
-                    list.innerHTML = '';
-                    
-                    if(snap.empty) {
-                        list.innerHTML = '<div class="p-8 text-center text-gray-400">No requests found.</div>';
-                        document.getElementById('active-container').classList.add('hidden');
-                        return;
-                    }
-
-                    // 1. Handle Active Request (Topmost)
-                    const latest = snap.docs[0].data();
-                    latest.id = snap.docs[0].id;
-                    
-                    // If it's recent (last 7 days) or pending, show in tracker
-                    const isRecent = (new Date() - new Date(latest.timestamp)) < (7 * 24 * 60 * 60 * 1000);
-                    
-                    if (latest.status !== 'REJECTED' || isRecent) {
-                        document.getElementById('active-container').classList.remove('hidden');
-                        updateTracker(latest);
-                    } else {
-                        document.getElementById('active-container').classList.add('hidden');
-                    }
-
-                    // 2. Populate History List
-                    snap.forEach(doc => {
-                        list.appendChild(createHistoryRow(doc.id, doc.data()));
-                    });
-                });
-        }
-
-        // --- TRACKER LOGIC ---
-        function updateTracker(data) {
-            currentPassData = data;
-            document.getElementById('active-id').innerText = `REF: ${data.id.substring(0,8).toUpperCase()}`;
-            document.getElementById('date-submitted').innerText = new Date(data.timestamp).toLocaleString();
-
-            const status = data.status;
-            const history = data.workflowHistory || [];
-            
-            // Helper to update step UI
-            const setStep = (id, state, text) => {
-                const el = document.getElementById(id);
-                const icon = el.querySelector('.icon-box');
-                const title = el.querySelector('.title');
-                const txt = el.querySelector('.status-text');
-                
-                txt.innerText = text;
-                
-                // Reset classes
-                icon.className = "absolute left-0 top-0 w-8 h-8 flex items-center justify-center font-bold text-sm z-10 transition-colors duration-500 icon-box rounded-full";
-                title.className = "font-bold title transition-colors";
-
-                if(state === 'done') {
-                    el.classList.add('step-active');
-                    icon.classList.add('bg-blue-600', 'text-white', 'shadow-md');
-                    title.classList.add('text-gray-900');
-                    txt.classList.add('text-blue-600', 'font-medium');
-                } else if (state === 'active') {
-                    el.classList.add('step-active');
-                    icon.classList.add('bg-blue-100', 'text-blue-600', 'border-2', 'border-blue-600', 'animate-pulse');
-                    title.classList.add('text-blue-600');
-                    txt.classList.add('text-blue-500', 'font-bold');
-                } else if (state === 'error') {
-                    icon.classList.add('bg-red-500', 'text-white');
-                    icon.innerHTML = '<i class="fas fa-times"></i>';
-                    title.classList.add('text-red-600');
-                    txt.classList.add('text-red-500', 'font-bold');
-                } else {
-                    icon.classList.add('bg-gray-200', 'text-gray-500');
-                    title.classList.add('text-gray-400');
-                }
-            };
-
-            // 1. Teacher Step
-            if (status === 'PENDING_TEACHER') {
-                setStep('step-teacher', 'active', 'Awaiting approval...');
-                setStep('step-final', 'wait', 'Pending...');
-            } else if (status === 'REJECTED' && !history.some(h => h.role === 'HOD')) {
-                setStep('step-teacher', 'error', 'Rejected by Faculty');
-            } else {
-                setStep('step-teacher', 'done', 'Approved');
-            }
-
-            // 2. HOD Step (Dynamic)
-            const hodStep = document.getElementById('step-hod');
-            if (status === 'PENDING_HOD' || history.some(h => h.step.includes('ESCALATED'))) {
-                hodStep.classList.remove('hidden');
-                if (status === 'PENDING_HOD') {
-                    setStep('step-hod', 'active', 'Escalated: Awaiting HOD');
-                } else if (status === 'REJECTED' && history.some(h => h.role === 'HOD')) {
-                    setStep('step-hod', 'error', 'Rejected by HOD');
-                } else {
-                    setStep('step-hod', 'done', 'Authorized by HOD');
-                }
-            } else {
-                hodStep.classList.add('hidden');
-            }
-
-            // 3. Final Step
-            const actionArea = document.getElementById('action-area');
-            if (status === 'APPROVED') {
-                setStep('step-final', 'done', 'Pass Generated Successfully');
-                actionArea.innerHTML = `
-                    <button onclick="downloadPass()" class="px-8 py-3 bg-green-600 text-white rounded-xl font-bold shadow-lg shadow-green-200 hover:bg-green-700 transition transform hover:-translate-y-1 flex items-center gap-2">
-                        <i class="fas fa-file-download"></i> Download Official Pass
-                    </button>
-                `;
-            } else if (status === 'REJECTED') {
-                actionArea.innerHTML = `
-                    <div class="text-red-500 text-sm font-bold bg-red-50 px-4 py-2 rounded-lg border border-red-100">
-                        <i class="fas fa-ban mr-2"></i> Request Denied. Please contact your faculty.
-                    </div>
-                `;
-            } else {
-                actionArea.innerHTML = `
-                    <button disabled class="px-6 py-3 bg-gray-100 text-gray-400 rounded-xl font-bold cursor-not-allowed flex items-center gap-2">
-                        <i class="fas fa-clock"></i> Awaiting Approval...
-                    </button>
-                `;
-            }
-        }
-
-        function createHistoryRow(id, data) {
-            const div = document.createElement('div');
-            div.className = "p-5 border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer flex justify-between items-center group";
-            
-            let statusColor = 'bg-gray-100 text-gray-500';
-            if(data.status === 'APPROVED') statusColor = 'bg-green-100 text-green-700';
-            if(data.status === 'REJECTED') statusColor = 'bg-red-100 text-red-700';
-            if(data.status.includes('PENDING')) statusColor = 'bg-yellow-100 text-yellow-700';
-
-            div.innerHTML = `
-                <div>
-                    <div class="flex items-center gap-3 mb-1">
-                        <span class="font-bold text-gray-800">${data.reasonType}</span>
-                        <span class="text-xs px-2 py-0.5 rounded-full ${statusColor} font-bold text-[10px] uppercase">${data.status.replace('_',' ')}</span>
-                    </div>
-                    <p class="text-xs text-gray-400 font-mono">${new Date(data.timestamp).toLocaleDateString()}</p>
-                </div>
-                <div class="text-gray-300 group-hover:text-blue-500 transition">
-                    <i class="fas fa-chevron-right"></i>
-                </div>
-            `;
-            div.onclick = () => {
-                document.getElementById('active-container').classList.remove('hidden');
-                updateTracker({id, ...data});
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            };
-            return div;
-        }
-
-        window.downloadPass = () => {
-            if(window.generateOfficialPDF && currentPassData) {
-                window.generateOfficialPDF(currentPassData.id, currentPassData);
-            } else {
-                alert("PDF Module Loading... Try again in 2 seconds.");
-            }
+        // Attach Event Listeners
+        document.getElementById('download-btn').onclick = () => {
+            generateOfficialPDF(data.id, data);
         };
 
-        document.getElementById('logout-btn').onclick = () => {
-            sessionStorage.clear();
-            auth.signOut().then(() => location.href = '../../public/login.html');
+        document.getElementById('calendar-btn').onclick = () => {
+            addToGoogleCalendar(data);
         };
-    </script>
-</body>
-</html>
+    }
+    // ...
+</script>
