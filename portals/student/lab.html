@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lab Search | UNI-PASS Student</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="module" src="../../assets/js/firebase-init.js"></script>
+    <style>
+        .filter-btn.active { background-color: #2563eb; color: white; border-color: #2563eb; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col">
+
+    <nav class="bg-white shadow-sm z-50 sticky top-0">
+        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <a href="portalA.html" class="text-slate-400 hover:text-blue-600 transition"><i class="fas fa-arrow-left text-xl"></i></a>
+                <span class="font-bold text-xl text-slate-900">Lab Search</span>
+            </div>
+            <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">L</div>
+        </div>
+    </nav>
+
+    <main class="flex-1 max-w-4xl w-full mx-auto p-4 space-y-6">
+
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <div class="relative mb-6">
+                <i class="fas fa-search absolute left-4 top-3.5 text-slate-400"></i>
+                <input type="text" id="lab-search" placeholder="Search for chemicals, components, tools..." class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition shadow-inner">
+            </div>
+
+            <div class="flex flex-wrap gap-2" id="filters">
+                <button onclick="filter('All')" class="filter-btn active px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-500 hover:bg-slate-50 transition">All</button>
+                <button onclick="filter('Chemistry')" class="filter-btn px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-500 hover:bg-slate-50 transition">Chemistry</button>
+                <button onclick="filter('Physics')" class="filter-btn px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-500 hover:bg-slate-50 transition">Physics</button>
+                <button onclick="filter('EEE')" class="filter-btn px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-500 hover:bg-slate-50 transition">EEE</button>
+                <button onclick="filter('CSE')" class="filter-btn px-4 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-500 hover:bg-slate-50 transition">IoT/CSE</button>
+            </div>
+        </div>
+
+        <div id="results-grid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            </div>
+
+    </main>
+
+    <script type="module">
+        import { db, auth } from '../../assets/js/firebase-init.js';
+
+        let allItems = [];
+        let currentFilter = 'All';
+
+        // Load Inventory
+        db.collection('inventory').onSnapshot(snap => {
+            allItems = [];
+            snap.forEach(doc => allItems.push({id: doc.id, ...doc.data()}));
+            render();
+        });
+
+        // Filter Logic
+        window.filter = (cat) => {
+            currentFilter = cat;
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            render();
+        };
+
+        // Render Logic
+        function render() {
+            const grid = document.getElementById('results-grid');
+            const term = document.getElementById('lab-search').value.toLowerCase();
+            
+            grid.innerHTML = '';
+            
+            const filtered = allItems.filter(item => {
+                const matchesCat = currentFilter === 'All' || item.department === currentFilter;
+                const matchesSearch = item.name.toLowerCase().includes(term);
+                return matchesCat && matchesSearch;
+            });
+
+            if(filtered.length === 0) {
+                grid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">No items found matching criteria.</div>`;
+                return;
+            }
+
+            filtered.forEach(item => {
+                const isAvail = item.quantity > 0;
+                const card = document.createElement('div');
+                card.className = `bg-white p-5 rounded-2xl shadow-sm border ${isAvail ? 'border-slate-200' : 'border-red-100'} hover:shadow-md transition relative overflow-hidden`;
+                
+                card.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <span class="text-[10px] font-bold uppercase tracking-wider ${isAvail ? 'text-blue-500' : 'text-red-400'}">${item.department}</span>
+                            <h3 class="text-lg font-bold text-slate-800 leading-tight mt-1">${item.name}</h3>
+                            <p class="text-xs text-slate-500 mt-2"><i class="fas fa-map-marker-alt mr-1"></i> ${item.location}</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="block text-2xl font-black ${isAvail ? 'text-slate-800' : 'text-red-400'}">${item.quantity}</span>
+                            <span class="text-[10px] text-slate-400 font-bold uppercase">Available</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
+                        <span class="text-xs font-bold text-slate-400">${isAvail ? 'Ready to Issue' : 'Out of Stock'}</span>
+                        <button onclick="requestItem('${item.id}', '${item.name}')" ${!isAvail ? 'disabled' : ''} class="px-4 py-2 ${isAvail ? 'bg-slate-900 hover:bg-slate-800' : 'bg-slate-200 cursor-not-allowed'} text-white rounded-lg text-sm font-bold transition">
+                            Request
+                        </button>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        document.getElementById('lab-search').addEventListener('keyup', render);
+
+        // Request Logic
+        window.requestItem = async (id, name) => {
+            if(!confirm(`Request 1 unit of ${name}?`)) return;
+            const user = auth.currentUser;
+            if(!user) return;
+            
+            try {
+                await db.collection('lab_requests').add({
+                    studentId: user.uid,
+                    itemId: id,
+                    itemName: name,
+                    status: 'PENDING',
+                    timestamp: new Date().toISOString()
+                });
+                alert("Request Sent! Check status with Lab Assistant.");
+            } catch(e) { alert(e.message); }
+        };
+    </script>
+</body>
+</html>
