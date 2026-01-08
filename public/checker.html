@@ -6,6 +6,9 @@
     <title>Gate Security | UNI-PASS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
     <script type="module" src="../assets/js/firebase-init.js"></script>
     <script>
         tailwind.config = {
@@ -66,12 +69,15 @@
     <script type="module">
         import { db } from '../assets/js/firebase-init.js';
         
+        // Expose to window for PDF button onclick
+        window.jsPDF = window.jspdf.jsPDF;
+
         const input = document.getElementById("hashInput");
         const btn = document.getElementById("checkBtn");
         const container = document.getElementById("resultContainer");
         const offlineBanner = document.getElementById("offline-banner");
 
-        // --- NETWORK LISTENERS ---
+        // --- NETWORK LISTENER ---
         function updateOnlineStatus() {
             if (navigator.onLine) {
                 offlineBanner.classList.add('hidden');
@@ -90,7 +96,7 @@
         window.addEventListener('offline', updateOnlineStatus);
         if (!navigator.onLine) updateOnlineStatus();
 
-        // --- LOGIC ---
+        // --- MAIN LOGIC ---
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const passId = urlParams.get('id');
@@ -103,7 +109,7 @@
         btn.onclick = () => {
             const val = input.value.trim().toUpperCase();
             if (!val) {
-                input.parentElement.classList.add('animate-pulse', 'border-red-500'); // Visual feedback
+                input.parentElement.classList.add('animate-pulse', 'border-red-500');
                 setTimeout(() => input.parentElement.classList.remove('animate-pulse', 'border-red-500'), 500);
                 return;
             }
@@ -117,9 +123,7 @@
             container.classList.add('hidden');
 
             try {
-                const today = new Date().toISOString().split('T')[0];
-
-                // 1. Search by Roll Number
+                // 1. Search Roll
                 let snap = await db.collection('permissions')
                     .where('rollNumber', '==', queryVal)
                     .where('status', '==', 'APPROVED')
@@ -127,13 +131,12 @@
                     .limit(1)
                     .get();
 
-                // 2. Search by ID if Roll No fails
+                // 2. Search ID
                 if (snap.empty) {
                     const docRef = await db.collection('permissions').doc(queryVal).get();
                     if(docRef.exists) snap = { empty: false, docs: [docRef] }; 
                 }
 
-                // --- 404 STATE ---
                 if (snap.empty) {
                     showResult("NOT FOUND", "red", "search-minus", "No pass found for this ID.");
                     return;
@@ -147,7 +150,6 @@
                 const endDate = new Date(data.endDate);
                 endDate.setHours(23, 59, 59, 999);
 
-                // --- VALIDATION ---
                 if (data.status !== 'APPROVED') {
                     showResult("ACCESS DENIED", "red", "ban", `Status: ${data.status}`);
                 } else if (now < startDate) {
@@ -163,7 +165,7 @@
                 if (!navigator.onLine) {
                     showResult("OFFLINE", "slate", "wifi-slash", "Internet connection lost.");
                 } else {
-                    showResult("SYSTEM ERROR", "slate", "server", "Database unreachable.");
+                    showResult("SYSTEM ERROR", "slate", "server", "Database Check Failed. Check Firestore Rules.");
                 }
             } finally {
                 btn.disabled = false;
@@ -189,6 +191,9 @@
         }
 
         function showValidPass(id, data) {
+            // Encode data for the button
+            const safeData = encodeURIComponent(JSON.stringify({...data, id}));
+
             container.innerHTML = `
                 <div class="bg-white rounded-3xl shadow-xl overflow-hidden animate-slide-up relative border border-slate-100">
                     <div class="bg-green-500 h-3 w-full"></div>
@@ -204,20 +209,26 @@
                     <div class="p-6 space-y-4">
                         <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 flex justify-between items-center">
                             <div class="text-left">
-                                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Valid From</p>
+                                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">From</p>
                                 <p class="font-bold text-slate-800 text-lg">${new Date(data.startDate).toLocaleDateString()}</p>
                             </div>
                             <div class="h-8 w-px bg-slate-300"></div>
                             <div class="text-right">
-                                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Valid To</p>
+                                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">To</p>
                                 <p class="font-bold text-slate-800 text-lg">${new Date(data.endDate).toLocaleDateString()}</p>
                             </div>
                         </div>
 
                         <div class="text-center">
-                            <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Permission Type</p>
+                            <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Reason</p>
                             <span class="text-2xl font-black text-brand-600">${data.reasonType}</span>
                         </div>
+                    </div>
+                    
+                    <div class="px-6 pb-6">
+                        <button onclick="downloadPass('${safeData}')" class="w-full bg-slate-900 text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition flex items-center justify-center gap-2 shadow-lg">
+                            <i class="fas fa-file-pdf"></i> Download PDF
+                        </button>
                     </div>
 
                     <div class="bg-slate-100 p-3 text-center border-t border-slate-200">
@@ -226,6 +237,76 @@
                 </div>`;
             container.classList.remove('hidden');
         }
+
+        // --- PDF GENERATION LOGIC ---
+        window.downloadPass = (encodedData) => {
+            const data = JSON.parse(decodeURIComponent(encodedData));
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Header Background
+            doc.setFillColor(37, 99, 235); // Brand Blue
+            doc.rect(0, 0, 210, 40, 'F');
+
+            // Header Text
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.setFont("helvetica", "bold");
+            doc.text("UNI-PASS | Official Gate Pass", 105, 20, null, null, "center");
+            
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text("MVGR College of Engineering", 105, 30, null, null, "center");
+
+            // Status Badge
+            doc.setFillColor(220, 252, 231); // Green bg
+            doc.setDrawColor(22, 163, 74);   // Green border
+            doc.roundedRect(70, 50, 70, 15, 3, 3, 'FD');
+            doc.setTextColor(22, 101, 52);   // Dark Green text
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.text("ACCESS GRANTED", 105, 60, null, null, "center");
+
+            // Student Details
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(16);
+            doc.text(data.studentName, 105, 80, null, null, "center");
+            
+            doc.setTextColor(100, 100, 100);
+            doc.setFontSize(12);
+            doc.setFont("courier", "bold");
+            doc.text(data.rollNumber, 105, 88, null, null, "center");
+
+            // Date Box
+            doc.setDrawColor(200, 200, 200);
+            doc.line(20, 100, 190, 100);
+            
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(50, 50, 50);
+            doc.text("Valid From:", 40, 115);
+            doc.text("Valid Until:", 140, 115);
+
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(14);
+            doc.text(new Date(data.startDate).toLocaleDateString(), 40, 125);
+            doc.text(new Date(data.endDate).toLocaleDateString(), 140, 125);
+
+            // Reason
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.text("Purpose:", 105, 145, null, null, "center");
+            doc.setFontSize(16);
+            doc.setTextColor(37, 99, 235);
+            doc.text(data.reasonType, 105, 155, null, null, "center");
+
+            // Footer Reference
+            doc.setFontSize(8);
+            doc.setTextColor(150, 150, 150);
+            doc.text(`Reference ID: ${data.id}`, 105, 280, null, null, "center");
+            doc.text("Generated via UNI-PASS Digital System", 105, 285, null, null, "center");
+
+            doc.save(`GatePass_${data.rollNumber}.pdf`);
+        };
     </script>
 </body>
 </html>
