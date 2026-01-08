@@ -1,98 +1,136 @@
 /**
- * UNI-PASS PDF GENERATOR
+ * UNI-PASS PDF GENERATOR (Enterprise Edition)
+ * Generates secure, verifiable PDF passes on the client side.
  */
-import { db } from './firebase-init.js';
-
-// 1. Crypto Engine
-async function generateDigitalSignature(data) {
-    const rawString = `${data.studentID}|${data.startDate}|${data.endDate}|${data.status}|${data.timestamp}`;
-    const encoder = new TextEncoder();
-    const encoded = encoder.encode(rawString);
-    const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
-    return Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-}
-
 
 window.generateOfficialPDF = async function(docId, data) {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const width = doc.internal.pageSize.getWidth();
+    const height = doc.internal.pageSize.getHeight();
 
-    // --- 1. PREPARE DATA ---
-    const rollNo = data.rollNumber || (data.studentID ? data.studentID.substring(0,10).toUpperCase() : "UNKNOWN");
-    const dept = data.department ? data.department.toUpperCase() : "ENGINEERING";
+    // --- COLORS ---
+    const BLUE = [30, 58, 138]; // Corporate Blue
+    const GRAY = [100, 116, 139];
+    const BLACK = [15, 23, 42];
 
-    // --- 2. HEADER ---
-    doc.setFillColor(30, 58, 138); 
+    // 1. HEADER BRANDING
+    doc.setFillColor(...BLUE);
     doc.rect(0, 0, width, 45, 'F');
-    doc.setTextColor(255);
-    doc.setFont("helvetica", "bold"); doc.setFontSize(20);
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(22);
     doc.text("MVGR COLLEGE OF ENGINEERING", width/2, 20, {align: 'center'});
-    doc.setFontSize(12); doc.setFont("helvetica", "normal");
-    doc.text("OFFICIAL CAMPUS GATE PASS", width/2, 35, {align: 'center'});
+    
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text("Vizianagaram, Andhra Pradesh - 535005", width/2, 28, {align: 'center'});
+    
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("OFFICIAL CAMPUS GATE PASS", width/2, 38, {align: 'center'});
 
-    // --- 3. STATUS ---
-    // Get the name of who approved it
-    const approverEvent = data.workflowHistory?.find(e => e.step === 'APPROVED');
-    const approverName = approverEvent ? approverEvent.actor.toUpperCase() : "AUTHORIZED FACULTY";
+    // 2. PASS META
+    doc.setTextColor(...BLACK);
+    doc.setFontSize(10);
+    doc.text(`PASS REF: ${docId.substring(0,12).toUpperCase()}`, 15, 55);
+    doc.text(`ISSUED: ${new Date().toLocaleString()}`, width - 15, 55, {align: 'right'});
 
-    doc.setFillColor(220, 252, 231); doc.setDrawColor(22, 163, 74);
-    doc.roundedRect(15, 55, width - 30, 20, 2, 2, 'FD');
-    doc.setTextColor(22, 163, 74); doc.setFontSize(12); doc.setFont("helvetica", "bold");
-    doc.text(`STATUS: APPROVED BY ${approverName}`, width/2, 68, {align: 'center'});
+    // 3. STUDENT DETAILS (Boxed)
+    const startY = 65;
+    doc.setDrawColor(200);
+    doc.setFillColor(248, 250, 252); // Slate-50
+    doc.rect(15, startY, width - 30, 90, 'FD');
 
-    // --- 4. DETAILS TABLE ---
-    doc.setDrawColor(200); doc.setFillColor(250, 250, 250);
-    doc.rect(15, 85, width - 30, 100, 'FD');
+    let y = startY + 10;
+    const lineHeight = 14;
 
-    let y = 100;
-    function addRow(lbl, val) {
-        doc.setTextColor(100); doc.setFontSize(10); doc.text(lbl.toUpperCase(), 25, y);
-        doc.setTextColor(0); doc.setFontSize(12); doc.text(val || "-", 80, y);
-        doc.line(25, y+4, width - 25, y+4);
-        y += 15;
+    function addRow(label, value) {
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(...GRAY);
+        doc.text(label.toUpperCase(), 25, y);
+        
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(...BLACK);
+        doc.text(String(value || "-"), 80, y);
+        
+        doc.setDrawColor(230);
+        doc.line(25, y + 5, width - 25, y + 5);
+        y += lineHeight;
     }
 
     addRow("Student Name", data.studentName);
-    addRow("Roll Number", rollNo);
-    addRow("Department", dept);
-    addRow("Section", data.section || "A");
+    addRow("Roll Number", data.rollNumber);
+    addRow("Department", data.department);
     addRow("Valid From", new Date(data.startDate).toDateString());
     addRow("Valid To", new Date(data.endDate).toDateString());
-    addRow("Reason Type", data.reasonType);
+    addRow("Category", data.reasonType);
 
-    // Reason Note
-    doc.setTextColor(100); doc.setFontSize(10); doc.text("NOTE / DESTINATION:", 25, y+5);
-    doc.setTextColor(50); doc.setFont("helvetica", "italic");
-    const splitText = doc.splitTextToSize(data.reason || "N/A", width - 50);
-    doc.text(splitText, 25, y+12);
+    // 4. REASON / NOTES
+    y += 5;
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(...GRAY);
+    doc.text("AUTHORIZED PURPOSE / DESTINATION:", 25, y);
+    y += 8;
+    doc.setFont("helvetica", "italic");
+    doc.setTextColor(...BLACK);
+    const splitNote = doc.splitTextToSize(data.reason, width - 60);
+    doc.text(splitNote, 25, y);
 
-    // --- 5. QR CODE (CLEAN ID ONLY) ---
-    const footerY = 250;
+    // 5. SIGNATURES
+    y = 200;
     
-    // The URL just has the ID (Simple & Fast)
-    const checkUrl = `https://harsha-e.github.io/UNI-Pass/public/checker.html?id=${docId}`;
+    // Teacher Sig
+    const teacherName = data.approvals?.teacher?.name || "Authorized Faculty";
+    doc.setFont("helvetica", "bold");
+    doc.text("Class Teacher", 40, y);
+    doc.setTextColor(22, 163, 74); // Green Ink
+    doc.setFont("courier", "bolditalic");
+    doc.text(`[ Signed: ${teacherName} ]`, 40, y + 8);
     
-    // QuickChart API (Reliable)
-    const qrApiUrl = `https://quickchart.io/qr?text=${encodeURIComponent(checkUrl)}&size=200&ecLevel=L&margin=1`;
-
-    try {
-        // Add QR Image
-        doc.addImage(qrApiUrl, "PNG", width/2 - 15, footerY - 20, 30, 30);
-    } catch (e) {
-        // Fallback text if network fails
-        doc.setFontSize(10); doc.setTextColor(255, 0, 0);
-        doc.text("SCAN VERIFICATION ID:", width/2, footerY, {align:'center'});
-        doc.text(docId, width/2, footerY+5, {align:'center'});
+    // HOD Sig (If exists)
+    if (data.approvals?.hod) {
+        doc.setTextColor(...BLACK);
+        doc.setFont("helvetica", "bold");
+        doc.text("Head of Department", width - 60, y, {align: 'center'});
+        doc.setTextColor(22, 163, 74);
+        doc.setFont("courier", "bolditalic");
+        doc.text(`[ Signed: ${data.approvals.hod.name} ]`, width - 60, y + 8, {align: 'center'});
     }
 
-    // --- 6. FOOTER TEXT ---
-    // No Hash, just official looking text
-    doc.setFont("courier", "normal"); doc.setFontSize(10); doc.setTextColor(80);
-    doc.text(`PASS ID: ${docId}`, width/2, footerY + 15, {align:'center'});
+    // 6. QR CODE (Verification Link)
+    const qrY = 240;
+    // Use the public checker URL (assuming GitHub Pages or similar)
+    const checkUrl = `https://harsha-e.github.io/UNI-Pass/public/checker.html?id=${docId}`;
     
-    doc.setFont("helvetica", "italic"); doc.setFontSize(9); doc.setTextColor(150);
-    doc.text("This document is digitally verified. Scan to authenticate.", width/2, footerY + 25, {align:'center'});
-    
-    doc.save(`PASS_${rollNo}.pdf`);
+    // Using QR Server API for client-side generation
+    const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(checkUrl)}`;
+
+    try {
+        const img = await loadImage(qrApi);
+        doc.addImage(img, 'PNG', width/2 - 20, qrY - 10, 40, 40);
+    } catch (e) {
+        doc.setTextColor(255, 0, 0);
+        doc.text("SCAN ERROR - VERIFY MANUALLY", width/2, qrY + 10, {align: 'center'});
+    }
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(150);
+    doc.text("Scan this QR code at the main gate to verify authenticity.", width/2, qrY + 35, {align: 'center'});
+    doc.text("This document is digitally generated and secure.", width/2, qrY + 40, {align: 'center'});
+
+    // Save
+    doc.save(`GATE_PASS_${data.rollNumber}.pdf`);
 };
+
+function loadImage(url) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.src = url;
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+    });
+}
