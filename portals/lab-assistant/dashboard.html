@@ -19,7 +19,6 @@
     </script>
     <style>
         .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(226, 232, 240, 0.8); }
-        .gradient-text { background-clip: text; -webkit-background-clip: text; color: transparent; background-image: linear-gradient(135deg, #0284c7 0%, #0c4a6e 100%); }
     </style>
 </head>
 <body class="bg-slate-50 font-sans min-h-screen flex flex-col">
@@ -37,10 +36,6 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
-                    <div class="hidden md:flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full text-xs font-bold text-slate-500">
-                        <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
-                        System Online
-                    </div>
                     <button id="logout-btn" class="p-2 text-slate-400 hover:text-red-500 transition-colors">
                         <i class="fas fa-power-off text-lg"></i>
                     </button>
@@ -77,19 +72,18 @@
             <div class="glass-panel p-6 rounded-2xl shadow-sm hover:shadow-glow transition-all duration-300 group">
                 <div class="flex justify-between items-start mb-4">
                     <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
-                        <i class="fas fa-clipboard-check"></i>
+                        <i class="fas fa-tags"></i>
                     </div>
-                    <span class="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-lg">Active Requests</span>
+                    <span class="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-lg">Categories</span>
                 </div>
-                <h3 class="text-3xl font-black text-slate-800">0</h3>
-                <p class="text-xs text-slate-500 mt-1">Student component requests</p>
+                <h3 class="text-3xl font-black text-slate-800" id="stat-cat">--</h3>
+                <p class="text-xs text-slate-500 mt-1">Active inventory sections</p>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
             <div class="lg:col-span-2 space-y-8">
-                
                 <div class="glass-panel rounded-3xl overflow-hidden shadow-lg border-0 ring-1 ring-slate-200">
                     <div class="bg-slate-900 p-8 text-white relative overflow-hidden">
                         <div class="absolute top-0 right-0 w-64 h-64 bg-brand-600 rounded-full blur-[100px] opacity-20 -mr-16 -mt-16"></div>
@@ -113,7 +107,7 @@
                                 </div>
                                 <h3 class="font-bold text-slate-800 text-lg" id="file-label">Drop CSV file here</h3>
                                 <p class="text-xs text-slate-400 mt-2 font-medium">or click to browse</p>
-                                <p class="text-[10px] text-slate-300 mt-4 uppercase tracking-widest">Supports: itemId, name, qty, location</p>
+                                <p class="text-[10px] text-slate-300 mt-4 uppercase tracking-widest">Supports: itemId, name, qty, location, status</p>
                             </div>
                         </div>
 
@@ -136,46 +130,30 @@
                         </div>
                     </div>
                 </div>
-
-                <div class="glass-panel rounded-2xl p-6">
-                    <h3 class="font-bold text-slate-800 mb-4">Recent Updates</h3>
-                    <div class="space-y-3">
-                        <div class="flex items-center gap-4 p-3 hover:bg-slate-50 rounded-xl transition cursor-pointer">
-                            <div class="w-10 h-10 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-sm">
-                                <i class="fas fa-plus"></i>
-                            </div>
-                            <div class="flex-1">
-                                <h4 class="text-sm font-bold text-slate-700">Stock Updated</h4>
-                                <p class="text-xs text-slate-400">Added 50 units of Beakers</p>
-                            </div>
-                            <span class="text-xs font-bold text-slate-300">2m ago</span>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <div class="space-y-6">
-                <div class="bg-gradient-to-br from-purple-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden group cursor-pointer">
+                <div class="bg-gradient-to-br from-brand-600 to-brand-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden group cursor-pointer hover:shadow-xl transition-all">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700"></div>
                     <div class="relative z-10">
                         <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center mb-4 backdrop-blur-sm">
                             <i class="fas fa-plus"></i>
                         </div>
                         <h3 class="font-bold text-lg">Add Single Item</h3>
-                        <p class="text-purple-100 text-xs mt-1">Manual entry for new equipment</p>
+                        <p class="text-brand-100 text-xs mt-1">Manual entry for new equipment</p>
                     </div>
                 </div>
 
                 <div class="glass-panel rounded-2xl p-6">
-                    <h3 class="font-bold text-slate-800 text-sm uppercase tracking-wider mb-4">Quick Links</h3>
+                    <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-4">Quick Links</h3>
                     <div class="space-y-2">
                         <a href="#" class="block p-3 rounded-xl bg-slate-50 text-slate-600 text-sm font-bold hover:bg-brand-50 hover:text-brand-600 transition flex items-center justify-between group">
-                            <span>Download Template</span>
-                            <i class="fas fa-download text-slate-300 group-hover:text-brand-400"></i>
+                            <span>Inventory List</span>
+                            <i class="fas fa-arrow-right text-slate-300 group-hover:text-brand-400"></i>
                         </a>
                         <a href="#" class="block p-3 rounded-xl bg-slate-50 text-slate-600 text-sm font-bold hover:bg-brand-50 hover:text-brand-600 transition flex items-center justify-between group">
-                            <span>View All Inventory</span>
-                            <i class="fas fa-arrow-right text-slate-300 group-hover:text-brand-400"></i>
+                            <span>Requests Pending</span>
+                            <i class="fas fa-clock text-slate-300 group-hover:text-brand-400"></i>
                         </a>
                     </div>
                 </div>
@@ -195,12 +173,23 @@
         const progressBar = document.getElementById('progress-bar');
         const progressPct = document.getElementById('progress-pct');
         const statusMsg = document.getElementById('status-msg');
-        const statTotal = document.getElementById('stat-total');
-
-        // --- Stats Init ---
-        db.collection('inventory').get().then(snap => {
-            statTotal.innerText = snap.size;
-        });
+        
+        // --- Stats ---
+        async function loadStats() {
+            const snap = await db.collection('inventory').get();
+            document.getElementById('stat-total').innerText = snap.size;
+            
+            let lowStock = 0;
+            let categories = new Set();
+            snap.forEach(doc => {
+                const d = doc.data();
+                if (d.status === 'Low Stock' || d.quantity < 5) lowStock++;
+                if (d.category) categories.add(d.category);
+            });
+            document.getElementById('stat-low').innerText = lowStock;
+            document.getElementById('stat-cat').innerText = categories.size;
+        }
+        loadStats();
 
         // --- File Handling ---
         fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
@@ -219,27 +208,21 @@
         uploadBtn.addEventListener('click', () => {
             const file = fileInput.files[0];
             if (!file) return;
-
             const reader = new FileReader();
-            reader.onload = async (e) => {
-                await processCSV(e.target.result);
-            };
+            reader.onload = async (e) => await processCSV(e.target.result);
             reader.readAsText(file);
         });
 
         async function processCSV(csvText) {
-            // UI State: Uploading
             uploadBtn.disabled = true;
             uploadBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing...';
             progressSection.classList.remove('hidden');
-            progressSection.classList.remove('animate-pulse');
 
             const lines = csvText.split('\n');
             const headers = lines[0].split(',').map(h => h.trim());
             
-            // Validation
             if (!headers.includes('itemId') || !headers.includes('itemName')) {
-                setStatus("❌ Invalid CSV. Missing itemId/itemName headers.", "error");
+                setStatus("❌ Invalid CSV headers.", "error");
                 resetUI();
                 return;
             }
@@ -249,74 +232,49 @@
             let batch = db.batch();
             let batchCount = 0;
 
-            try {
-                for (let i = 1; i < lines.length; i++) {
-                    const line = lines[i].trim();
-                    if (!line) continue;
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                const values = line.split(',');
+                const item = {};
 
-                    const values = line.split(',');
-                    const item = {};
+                headers.forEach((header, index) => {
+                    let val = values[index] ? values[index].trim() : "";
+                    if (header === 'quantity') val = parseInt(val) || 0;
+                    item[header] = val;
+                });
 
-                    headers.forEach((header, index) => {
-                        let val = values[index] ? values[index].trim() : "";
-                        if (header === 'quantity') val = parseInt(val) || 0;
-                        item[header] = val;
-                    });
-
-                    if (item.itemId) {
-                        const ref = db.collection('inventory').doc(item.itemId);
-                        batch.set(ref, item);
-                        batchCount++;
-                        count++;
-                    }
-
-                    if (batchCount >= 400) {
-                        await batch.commit();
-                        batch = db.batch();
-                        batchCount = 0;
-                        updateProgress(count, total);
-                    }
+                if (item.itemId) {
+                    batch.set(db.collection('inventory').doc(item.itemId), item);
+                    batchCount++;
+                    count++;
                 }
 
-                if (batchCount > 0) await batch.commit();
-
-                updateProgress(total, total);
-                setStatus(`✅ Successfully imported ${count} items.`, "success");
-                
-                // Refresh Stats
-                statTotal.innerText = parseInt(statTotal.innerText) + count;
-                
-                setTimeout(() => {
-                    fileInput.value = '';
-                    fileLabel.innerText = "Drop CSV file here";
-                    fileLabel.classList.remove('text-brand-600');
-                    dropZone.classList.remove('border-brand-600', 'bg-brand-50');
-                    progressSection.classList.add('hidden');
-                    uploadBtn.innerHTML = '<i class="fas fa-play mr-2"></i> Start Import';
-                }, 3000);
-
-            } catch (error) {
-                console.error(error);
-                setStatus("❌ Error: " + error.message, "error");
-                resetUI();
+                if (batchCount >= 400) {
+                    await batch.commit();
+                    batch = db.batch();
+                    batchCount = 0;
+                    updateProgress(count, total);
+                }
             }
+
+            if (batchCount > 0) await batch.commit();
+            
+            updateProgress(total, total);
+            setStatus(`✅ Imported ${count} items successfully.`, "success");
+            loadStats(); // Refresh stats
+            setTimeout(resetUI, 3000);
         }
 
         function updateProgress(current, total) {
             const pct = Math.round((current / total) * 100) + "%";
             progressBar.style.width = pct;
-            progressPct.innerText = pct;
+            progressPercent.innerText = pct;
         }
 
         function setStatus(msg, type) {
             statusMsg.innerText = msg;
-            statusMsg.classList.remove('hidden', 'bg-red-50', 'text-red-600', 'bg-green-50', 'text-green-600');
-            
-            if (type === 'error') {
-                statusMsg.classList.add('bg-red-50', 'text-red-600');
-            } else {
-                statusMsg.classList.add('bg-green-50', 'text-green-600');
-            }
+            statusMsg.className = `mt-6 p-4 rounded-xl text-sm font-bold flex items-center gap-3 ${type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`;
             statusMsg.classList.remove('hidden');
         }
 
@@ -324,6 +282,9 @@
             uploadBtn.disabled = false;
             uploadBtn.innerHTML = '<i class="fas fa-play mr-2"></i> Start Import';
             progressSection.classList.add('hidden');
+            fileInput.value = '';
+            fileLabel.innerText = "Drop CSV file here";
+            dropZone.classList.remove('border-brand-600', 'bg-brand-50');
         }
 
         document.getElementById('logout-btn').onclick = () => {
