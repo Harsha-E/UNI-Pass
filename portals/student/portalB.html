@@ -1,35 +1,314 @@
-<script type="module">
-    import { db, auth } from '../../assets/js/firebase-init.js';
-    import { generateOfficialPDF } from '../../assets/js/permission-pdf.js';
-    import { addToGoogleCalendar } from '../../assets/js/services.js'; // <--- IMPORT THIS
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Status | UNI-PASS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    // ... (Existing Code) ...
+    <script type="module" src="../../assets/js/route-guard.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 50: '#eff6ff', 100: '#dbeafe', 600: '#2563eb', 900: '#1e3a8a' } },
+                    boxShadow: { 'glow': '0 0 20px rgba(37, 99, 235, 0.15)' }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(226, 232, 240, 0.8); }
+        .step-line { position: absolute; left: 19px; top: 40px; bottom: -20px; width: 2px; background: #e2e8f0; z-index: 0; }
+        .step-active .step-line { background: #2563eb; }
+        .step-last .step-line { display: none; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans min-h-screen pb-24">
 
-    // In your 'updateTracker' function, update the 'APPROVED' section:
-    if (status === 'APPROVED') {
-        setStep('step-final', 'done', 'Pass Generated Successfully');
-        
-        actionArea.innerHTML = `
-            <div class="flex flex-col gap-3 w-full">
-                <button id="download-btn" class="w-full px-8 py-3 bg-green-600 text-white rounded-xl font-bold shadow-lg shadow-green-200 hover:bg-green-700 transition transform hover:-translate-y-1 flex items-center justify-center gap-2">
-                    <i class="fas fa-file-download"></i> Download Official Pass
-                </button>
-
-                <button id="calendar-btn" class="w-full px-8 py-3 bg-white text-blue-600 border border-blue-200 rounded-xl font-bold hover:bg-blue-50 transition flex items-center justify-center gap-2">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg" class="w-5 h-5">
-                    Add to Google Calendar
-                </button>
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30">
+        <div class="max-w-md mx-auto px-6 h-20 flex items-center justify-between">
+            <div>
+                <h1 class="font-bold text-xl text-slate-800 tracking-tight">Status Tracker</h1>
+                <p class="text-[10px] font-bold text-brand-600 uppercase tracking-wider">Live Updates</p>
             </div>
-        `;
+            <div class="w-10 h-10 bg-brand-50 rounded-full flex items-center justify-center text-brand-600 shadow-sm">
+                <i class="fas fa-satellite-dish"></i>
+            </div>
+        </div>
+    </header>
 
-        // Attach Event Listeners
-        document.getElementById('download-btn').onclick = () => {
-            generateOfficialPDF(data.id, data);
+    <main class="max-w-md mx-auto p-6 space-y-8">
+
+        <div id="active-container" class="hidden">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 ml-1">Current Request</h3>
+            
+            <div class="glass-panel rounded-3xl overflow-hidden shadow-lg border-0 ring-1 ring-slate-200">
+                <div class="bg-slate-900 p-6 text-white flex justify-between items-center relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-brand-600 rounded-full blur-[60px] opacity-30 -mr-10 -mt-10"></div>
+                    <div class="relative z-10">
+                        <h2 class="text-xl font-bold" id="status-header">Processing</h2>
+                        <p class="text-slate-400 text-xs mt-1 font-mono" id="ref-id">REF: ...</p>
+                    </div>
+                    <div class="relative z-10 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10" id="status-icon">
+                        <i class="fas fa-sync-alt fa-spin"></i>
+                    </div>
+                </div>
+
+                <div class="p-6">
+                    <div class="space-y-0 relative" id="tracker-steps">
+                        
+                        <div class="relative pl-14 pb-8" id="step-teacher">
+                            <div class="step-line"></div>
+                            <div class="absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 transition-all border-2 bg-slate-50 border-slate-200 text-slate-400" id="icon-teacher">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-800 text-sm pt-2">Class Teacher</h4>
+                            <p class="text-xs text-slate-400 mt-0.5" id="txt-teacher">Pending review...</p>
+                        </div>
+
+                        <div class="relative pl-14 pb-8 hidden" id="step-hod">
+                            <div class="step-line"></div>
+                            <div class="absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 transition-all border-2 bg-slate-50 border-slate-200 text-slate-400" id="icon-hod">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-800 text-sm pt-2">HOD Authorization</h4>
+                            <p class="text-xs text-slate-400 mt-0.5" id="txt-hod">Required for > 2 days</p>
+                        </div>
+
+                        <div class="relative pl-14 step-last" id="step-final">
+                            <div class="absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 transition-all border-2 bg-slate-50 border-slate-200 text-slate-400" id="icon-final">
+                                <i class="fas fa-flag-checkered"></i>
+                            </div>
+                            <h4 class="font-bold text-slate-800 text-sm pt-2">Final Status</h4>
+                            <p class="text-xs text-slate-400 mt-0.5" id="txt-final">Waiting...</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-slate-100 flex flex-col gap-3" id="action-area">
+                        </div>
+                </div>
+            </div>
+        </div>
+
+        <div>
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 ml-1">Past History</h3>
+            <div class="glass-panel rounded-2xl p-2 min-h-[200px]" id="history-list">
+                <div class="text-center py-10 text-slate-400">
+                    <i class="fas fa-circle-notch fa-spin"></i>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <nav class="fixed bottom-0 w-full bg-white border-t border-slate-200 pb-safe z-40">
+        <div class="max-w-md mx-auto grid grid-cols-3 h-20">
+            <a href="portalA.html" class="flex flex-col items-center justify-center text-slate-400 hover:text-brand-600 transition">
+                <div class="w-12 h-0.5 bg-transparent mb-2 rounded-full"></div>
+                <i class="fas fa-plus-circle text-xl mb-1"></i>
+                <span class="text-[10px] font-bold uppercase">Request</span>
+            </a>
+            <a href="lab.html" class="flex flex-col items-center justify-center text-slate-400 hover:text-brand-600 transition">
+                <div class="w-12 h-0.5 bg-transparent mb-2 rounded-full"></div>
+                <i class="fas fa-flask text-xl mb-1"></i>
+                <span class="text-[10px] font-bold uppercase">Lab</span>
+            </a>
+            <a href="portalB.html" class="flex flex-col items-center justify-center text-brand-600">
+                <div class="w-12 h-0.5 bg-brand-600 mb-2 rounded-full"></div>
+                <i class="fas fa-history text-xl mb-1"></i>
+                <span class="text-[10px] font-bold uppercase">History</span>
+            </a>
+        </div>
+    </nav>
+
+    <script type="module">
+        import { db, auth } from '../../assets/js/firebase-init.js';
+        import { generateOfficialPDF } from '../../assets/js/permission-pdf.js';
+        import { addToGoogleCalendar } from '../../assets/js/services.js';
+
+        let currentPass = null;
+
+        auth.onAuthStateChanged(user => {
+            if (user) loadHistory(user.uid);
+            else location.href = '../../public/login.html';
+        });
+
+        function loadHistory(uid) {
+            db.collection('permissions')
+                .where('studentID', '==', uid)
+                .orderBy('timestamp', 'desc')
+                .onSnapshot(snap => {
+                    const list = document.getElementById('history-list');
+                    list.innerHTML = '';
+
+                    if (snap.empty) {
+                        list.innerHTML = `<div class="text-center py-8 text-slate-400 text-sm">No history found.</div>`;
+                        document.getElementById('active-container').classList.add('hidden');
+                        return;
+                    }
+
+                    // 1. Process Active Request (Topmost)
+                    const latest = snap.docs[0].data();
+                    latest.id = snap.docs[0].id;
+                    
+                    // Show tracker if pending or recently updated
+                    const isRecent = (new Date() - new Date(latest.timestamp)) < (7 * 24 * 60 * 60 * 1000);
+                    
+                    if (latest.status !== 'REJECTED' || isRecent) {
+                        document.getElementById('active-container').classList.remove('hidden');
+                        updateTracker(latest);
+                    } else {
+                        document.getElementById('active-container').classList.add('hidden');
+                    }
+
+                    // 2. Populate History List
+                    snap.forEach(doc => {
+                        list.appendChild(createHistoryRow(doc.id, doc.data()));
+                    });
+                });
+        }
+
+        // --- TRACKER UI LOGIC ---
+        function updateTracker(data) {
+            currentPass = data;
+            document.getElementById('ref-id').innerText = `REF: ${data.id.substring(0,8).toUpperCase()}`;
+
+            const status = data.status;
+            const history = data.workflowHistory || [];
+            
+            // Helper Styles
+            const styleActive = (id) => {
+                const el = document.getElementById(id);
+                el.parentElement.classList.add('step-active');
+                el.className = "absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 transition-all border-2 bg-brand-600 border-brand-600 text-white shadow-glow";
+            };
+            const styleDone = (id) => {
+                const el = document.getElementById(id);
+                el.parentElement.classList.add('step-active');
+                el.className = "absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 transition-all border-2 bg-brand-100 border-brand-200 text-brand-600";
+                el.innerHTML = '<i class="fas fa-check"></i>';
+            };
+            const styleError = (id) => {
+                const el = document.getElementById(id);
+                el.className = "absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 transition-all border-2 bg-red-100 border-red-200 text-red-600";
+                el.innerHTML = '<i class="fas fa-times"></i>';
+            };
+
+            // 1. Teacher Step
+            if (status === 'PENDING_TEACHER') {
+                styleActive('icon-teacher');
+                document.getElementById('txt-teacher').innerText = "Awaiting Faculty Review...";
+            } else if (status === 'REJECTED' && !history.some(h => h.role === 'HOD')) {
+                styleError('icon-teacher');
+                document.getElementById('txt-teacher').innerText = "Rejected by Faculty";
+            } else {
+                styleDone('icon-teacher');
+                document.getElementById('txt-teacher').innerText = "Approved";
+            }
+
+            // 2. HOD Step (Conditional)
+            const hodStep = document.getElementById('step-hod');
+            if (status === 'PENDING_HOD' || history.some(h => h.step.includes('HOD') || h.status === 'PENDING_HOD')) {
+                hodStep.classList.remove('hidden');
+                if (status === 'PENDING_HOD') {
+                    styleActive('icon-hod');
+                    document.getElementById('txt-hod').innerText = "Escalated to HOD";
+                } else if (status === 'REJECTED' && history.some(h => h.role === 'HOD')) {
+                    styleError('icon-hod');
+                    document.getElementById('txt-hod').innerText = "Rejected by HOD";
+                } else {
+                    styleDone('icon-hod');
+                    document.getElementById('txt-hod').innerText = "Authorized";
+                }
+            } else {
+                hodStep.classList.add('hidden');
+            }
+
+            // 3. Final Step & Buttons
+            const actionArea = document.getElementById('action-area');
+            const headerTitle = document.getElementById('status-header');
+            const headerIcon = document.getElementById('status-icon');
+
+            if (status === 'APPROVED') {
+                styleDone('icon-final');
+                document.getElementById('txt-final').innerText = "Access Granted";
+                headerTitle.innerText = "Approved";
+                headerIcon.innerHTML = '<i class="fas fa-check"></i>';
+                headerIcon.className = "relative z-10 w-10 h-10 bg-green-500 rounded-full flex items-center justify-center border border-white/20";
+
+                actionArea.innerHTML = `
+                    <button onclick="downloadPass()" class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold shadow-xl shadow-slate-200 hover:bg-brand-600 transition flex items-center justify-center gap-3">
+                        <i class="fas fa-file-pdf text-lg"></i> Download Official Pass
+                    </button>
+                    <button onclick="addToCalendar()" class="w-full py-4 bg-white border border-slate-200 text-slate-700 rounded-xl font-bold hover:bg-slate-50 transition flex items-center justify-center gap-3">
+                        <i class="far fa-calendar-alt text-lg text-brand-600"></i> Add to Calendar
+                    </button>
+                `;
+            } else if (status === 'REJECTED') {
+                styleError('icon-final');
+                document.getElementById('txt-final').innerText = "Request Denied";
+                headerTitle.innerText = "Rejected";
+                headerIcon.innerHTML = '<i class="fas fa-ban"></i>';
+                headerIcon.className = "relative z-10 w-10 h-10 bg-red-500 rounded-full flex items-center justify-center border border-white/20";
+
+                actionArea.innerHTML = `
+                    <div class="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold flex items-center gap-3">
+                        <i class="fas fa-info-circle text-xl"></i>
+                        <span>Contact your Faculty for details.</span>
+                    </div>
+                `;
+            } else {
+                actionArea.innerHTML = `
+                    <button disabled class="w-full py-4 bg-slate-100 text-slate-400 rounded-xl font-bold flex items-center justify-center gap-3 cursor-not-allowed">
+                        <i class="fas fa-clock"></i> Processing Request...
+                    </button>
+                `;
+            }
+        }
+
+        // --- GLOBAL ACTIONS ---
+        window.downloadPass = () => {
+            if(currentPass) generateOfficialPDF(currentPass.id, currentPass);
         };
 
-        document.getElementById('calendar-btn').onclick = () => {
-            addToGoogleCalendar(data);
+        window.addToCalendar = () => {
+            if(currentPass) addToGoogleCalendar(currentPass);
         };
-    }
-    // ...
-</script>
+
+        // --- HISTORY ROW ---
+        function createHistoryRow(id, data) {
+            const div = document.createElement('div');
+            div.className = "p-4 hover:bg-slate-50 rounded-xl transition cursor-pointer flex justify-between items-center group mb-1";
+            
+            let statusColor = 'bg-slate-100 text-slate-500';
+            if(data.status === 'APPROVED') statusColor = 'bg-green-100 text-green-700';
+            if(data.status === 'REJECTED') statusColor = 'bg-red-100 text-red-700';
+            if(data.status.includes('PENDING')) statusColor = 'bg-amber-100 text-amber-700';
+
+            div.innerHTML = `
+                <div>
+                    <div class="flex items-center gap-3 mb-1">
+                        <span class="font-bold text-slate-800 text-sm">${data.reasonType}</span>
+                        <span class="px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wide ${statusColor}">${data.status.replace('_',' ')}</span>
+                    </div>
+                    <p class="text-xs text-slate-400 font-mono">${new Date(data.timestamp).toLocaleDateString()}</p>
+                </div>
+                <div class="text-slate-300 group-hover:text-brand-600 transition transform group-hover:translate-x-1">
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            `;
+            
+            div.onclick = () => {
+                document.getElementById('active-container').classList.remove('hidden');
+                updateTracker({id, ...data});
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            };
+            return div;
+        }
+    </script>
+</body>
+</html>
