@@ -12,7 +12,7 @@
             theme: {
                 extend: {
                     colors: { brand: { 600: '#2563eb', 900: '#1e3a8a' } },
-                    animation: { 'slide-up': 'slideUp 0.4s ease-out' },
+                    animation: { 'slide-up': 'slideUp 0.4s ease-out', 'pulse-slow': 'pulse 3s infinite' },
                     keyframes: { slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } } }
                 }
             }
@@ -139,10 +139,16 @@
                 const data = snap.docs[0].data();
                 const docId = snap.docs[0].id;
                 
+                // --- FIXED DATE LOGIC ---
+                // We create a Date object set to MIDNIGHT of the local day to ignore time issues.
                 const now = new Date();
-                const startDate = new Date(data.startDate);
-                const endDate = new Date(data.endDate);
-                endDate.setHours(23, 59, 59, 999);
+                
+                // Force Start Date to Local Midnight (Fixes 5:30 AM Issue)
+                // Appending "T00:00:00" forces local time parsing instead of UTC
+                const startDate = new Date(data.startDate + "T00:00:00");
+                
+                // Force End Date to End of Day
+                const endDate = new Date(data.endDate + "T23:59:59");
 
                 if (data.status !== 'APPROVED') {
                     showResult("ACCESS DENIED", "red", "ban", `Status: ${data.status}`);
