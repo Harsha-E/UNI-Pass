@@ -7,72 +7,89 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script type="module" src="../assets/js/firebase-init.js"></script>
-    <link rel="stylesheet" href="../../assets/css/style.css">
-<script src="../../assets/js/ui.js" defer></script>
+    <style>
+        .roll-filled { background-color: #eff6ff !important; border-color: #3b82f6 !important; color: #1e40af !important; }
+        .roll-error { background-color: #fef2f2 !important; border-color: #dc2626 !important; color: #991b1b !important; }
+        .identity-card:has(input:checked) { border-color: #2563eb; background-color: #eff6ff; ring: 2px solid #2563eb; }
+        .hidden-field { display: none; }
+    </style>
 </head>
-<body class="bg-gray-50 flex items-center justify-center min-h-screen font-sans">
+<body class="bg-slate-50 flex items-center justify-center min-h-screen font-sans">
 
-    <div class="max-w-md w-full bg-white rounded-xl shadow-2xl overflow-hidden">
-        <div class="bg-blue-900 p-6 text-center">
-            <h2 class="text-2xl font-bold text-white">Create Account</h2>
-            <p class="text-blue-200 text-sm mt-1">Institutional Access Portal</p>
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
+
+    <div class="max-w-lg w-full bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden m-4">
+        <div class="bg-gradient-to-r from-slate-900 to-slate-800 p-8 text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+            <h2 class="text-3xl font-bold text-white tracking-tight">Create Account</h2>
+            <p class="text-slate-300 text-sm mt-2">MVGR Institutional Access</p>
         </div>
 
-        <form id="signup-form" class="p-8 space-y-5">
+        <form id="signup-form" class="p-8 space-y-6">
             
             <div>
-                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Full Name</label>
-                <div class="relative">
-                    <i class="fas fa-user absolute left-3 top-3 text-gray-400"></i>
-                    <input type="text" id="reg-name" required class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. Arjun Reddy">
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">College Email</label>
-                <div class="relative">
-                    <i class="fas fa-envelope absolute left-3 top-3 text-gray-400"></i>
-                    <input type="email" id="reg-email" required class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="id@mvgrce.edu.in">
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Password</label>
-                <div class="relative">
-                    <i class="fas fa-lock absolute left-3 top-3 text-gray-400"></i>
-                    <input type="password" id="reg-pass" required class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="••••••••">
-                </div>
-            </div>
-
-            <div>
-                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">I am a...</label>
-                <div class="flex gap-4">
-                    <label class="flex-1 cursor-pointer">
-                        <input type="radio" name="role" value="student" checked class="peer sr-only" onchange="window.toggleRollField(true)">
-                        <div class="text-center py-2 border rounded-lg peer-checked:bg-blue-600 peer-checked:text-white transition">Student</div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Select Identity</label>
+                <div class="grid grid-cols-2 gap-4">
+                    <label class="identity-card cursor-pointer border border-slate-200 rounded-xl p-4 flex flex-col items-center transition-all hover:border-blue-300">
+                        <input type="radio" name="role" value="student" checked class="sr-only" onchange="window.toggleRollField(true)">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-2">
+                            <i class="fas fa-user-graduate"></i>
+                        </div>
+                        <span class="font-bold text-slate-700 text-sm">Student</span>
                     </label>
-                    <label class="flex-1 cursor-pointer">
-                        <input type="radio" name="role" value="teacher" class="peer sr-only" onchange="window.toggleRollField(false)">
-                        <div class="text-center py-2 border rounded-lg peer-checked:bg-blue-600 peer-checked:text-white transition">Faculty</div>
+                    <label class="identity-card cursor-pointer border border-slate-200 rounded-xl p-4 flex flex-col items-center transition-all hover:border-blue-300">
+                        <input type="radio" name="role" value="teacher" class="sr-only" onchange="window.toggleRollField(false)">
+                        <div class="w-10 h-10 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center mb-2">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <span class="font-bold text-slate-700 text-sm">Faculty</span>
                     </label>
                 </div>
             </div>
 
-            <div id="roll-container">
-                <label class="block text-xs font-bold text-gray-600 uppercase mb-1">Roll Number</label>
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Full Name</label>
                 <div class="relative">
-                    <i class="fas fa-id-card absolute left-3 top-3 text-gray-400"></i>
-                    <input type="text" id="reg-roll" class="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" placeholder="e.g. 24331A4201">
+                    <i class="fas fa-user absolute left-4 top-3.5 text-slate-400"></i>
+                    <input type="text" id="reg-name" required class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition" placeholder="e.g. Student Name">
                 </div>
-                <p class="text-xs text-gray-400 mt-1">Section and Counselor will be assigned automatically based on this ID.</p>
             </div>
 
-            <button type="submit" id="btn-signup" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-lg transform hover:-translate-y-0.5">
-                Register
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">College Email</label>
+                <div class="relative">
+                    <i class="fas fa-envelope absolute left-4 top-3.5 text-slate-400"></i>
+                    <input type="email" id="reg-email" required class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition" placeholder="20331A0000@mvgrce.edu.in">
+                </div>
+                <p id="domain-error" class="text-xs text-red-500 mt-2 hidden flex items-center"><i class="fas fa-exclamation-circle mr-1"></i> Students must use @mvgrce.edu.in</p>
+                <p id="format-error" class="text-xs text-red-500 mt-2 hidden flex items-center"><i class="fas fa-exclamation-circle mr-1"></i> Roll No mismatch (e.g. 24331A4228)</p>
+            </div>
+
+            <div id="roll-container" class="transition-all duration-300">
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Roll Number (Auto-Locked)</label>
+                <div class="relative">
+                    <i class="fas fa-id-card absolute left-4 top-3.5 text-slate-400" id="roll-icon"></i>
+                    <input type="text" id="reg-roll" readonly class="w-full pl-11 pr-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-slate-500 font-mono font-bold cursor-not-allowed transition-all" placeholder="Enter email to generate ID">
+                    
+                    <div class="absolute right-4 top-3.5 text-green-500 hidden" id="roll-check"><i class="fas fa-check-circle"></i></div>
+                    <div class="absolute right-4 top-3.5 text-red-500 hidden" id="roll-fail"><i class="fas fa-times-circle"></i></div>
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Password</label>
+                <div class="relative">
+                    <i class="fas fa-lock absolute left-4 top-3.5 text-slate-400"></i>
+                    <input type="password" id="reg-pass" required class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition" placeholder="••••••••">
+                </div>
+            </div>
+
+            <button type="submit" id="btn-signup" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 active:scale-95">
+                Create Account
             </button>
 
-            <p class="text-center text-sm text-gray-500 mt-4">
-                Already have an account? <a href="login.html" class="text-blue-600 font-bold hover:underline">Login</a>
+            <p class="text-center text-sm text-slate-500 mt-6">
+                Already have an account? <a href="login.html" class="text-blue-600 font-bold hover:text-blue-700">Login</a>
             </p>
         </form>
     </div>
@@ -80,90 +97,178 @@
     <script type="module">
         import { db, auth } from '../assets/js/firebase-init.js';
 
-        // Helper to toggle visibility
+        // --- UI UTILS ---
+        function showToast(msg, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const colors = type === 'error' ? 'bg-red-500' : 'bg-green-600';
+            toast.className = `${colors} text-white px-6 py-3 rounded-lg shadow-lg mb-2 flex items-center gap-3 animate-bounce`;
+            toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-times-circle' : 'fa-check-circle'}"></i> <span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
+
+        const emailInput = document.getElementById('reg-email');
+        const rollInput = document.getElementById('reg-roll');
+        const rollContainer = document.getElementById('roll-container');
+        const domainError = document.getElementById('domain-error');
+        const formatError = document.getElementById('format-error');
+        const rollCheck = document.getElementById('roll-check');
+        const rollFail = document.getElementById('roll-fail');
+        const submitBtn = document.getElementById('btn-signup');
+
+        // Regex: 5 digits + 1 char + 4 digits (e.g., 24331A4228)
+        const STRICT_ROLL_REGEX = /^[0-9]{5}[A-Z0-9][0-9]{4}$/;
+
+        // --- LOGIC: Auto-Slice & Validation ---
+        emailInput.addEventListener('input', (e) => {
+            const val = e.target.value.trim();
+            const role = document.querySelector('input[name="role"]:checked').value;
+
+            // Reset States
+            rollInput.classList.remove('roll-filled', 'roll-error');
+            rollCheck.classList.add('hidden');
+            rollFail.classList.add('hidden');
+            domainError.classList.add('hidden');
+            formatError.classList.add('hidden');
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+
+            if (val.includes('@')) {
+                const parts = val.split('@');
+                const userPart = parts[0].toUpperCase(); 
+                const domainPart = parts[1];
+
+                // 1. Roll Number Extraction (Only for Students)
+                if (role === 'student') {
+                    rollInput.value = userPart;
+
+                    // 2. Strict Format Check
+                    const isValidFormat = STRICT_ROLL_REGEX.test(userPart);
+                    const isValidLength = userPart.length === 10;
+
+                    if (isValidFormat && isValidLength) {
+                        rollInput.classList.add('roll-filled');
+                        rollCheck.classList.remove('hidden');
+                    } else {
+                        // Soft error display (don't disable button yet until domain check fails too)
+                        rollInput.classList.add('roll-error');
+                        rollFail.classList.remove('hidden');
+                        formatError.classList.remove('hidden');
+                    }
+                }
+
+                // 3. Domain Check
+                if (role === 'student' && domainPart !== 'mvgrce.edu.in') {
+                    domainError.classList.remove('hidden');
+                    emailInput.classList.add('border-red-500');
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                } else {
+                    emailInput.classList.remove('border-red-500');
+                }
+            } else {
+                if(role === 'student') rollInput.value = '';
+            }
+        });
+
+        // --- LOGIC: Toggle Fields ---
         window.toggleRollField = (isStudent) => {
-            const el = document.getElementById('roll-container');
-            if(isStudent) el.classList.remove('hidden');
-            else el.classList.add('hidden');
+            if(isStudent) {
+                rollContainer.classList.remove('hidden');
+                // Trigger input event to re-validate if email exists
+                emailInput.dispatchEvent(new Event('input'));
+            } else {
+                rollContainer.classList.add('hidden');
+                domainError.classList.add('hidden');
+                formatError.classList.add('hidden');
+                submitBtn.disabled = false;
+                submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                emailInput.classList.remove('border-red-500');
+            }
         };
 
         document.getElementById('signup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-signup');
-            
-            // Add status message element
-            let statusMsg = document.getElementById('status-msg');
-            if(!statusMsg) {
-                statusMsg = document.createElement('p');
-                statusMsg.id = 'status-msg';
-                statusMsg.className = "text-center text-xs text-blue-600 mt-2 animate-pulse";
-                btn.parentNode.appendChild(statusMsg);
+            const originalText = btn.innerText;
+
+            const email = document.getElementById('reg-email').value.trim();
+            const pass = document.getElementById('reg-pass').value;
+            const name = document.getElementById('reg-name').value;
+            const selectedRole = document.querySelector('input[name="role"]:checked').value;
+            const roll = document.getElementById('reg-roll').value;
+
+            // Final Guard for Students
+            if (selectedRole === 'student') {
+                if (!email.endsWith('@mvgrce.edu.in')) {
+                    showToast("Students must use @mvgrce.edu.in", "error");
+                    return; 
+                }
+                if (!STRICT_ROLL_REGEX.test(roll) || roll.length !== 10) {
+                    showToast("Invalid Roll Number Format (Must be 10 chars)", "error");
+                    return;
+                }
             }
 
             btn.disabled = true;
-            btn.innerText = "Processing...";
-
-            const email = document.getElementById('reg-email').value;
-            const pass = document.getElementById('reg-pass').value;
-            const name = document.getElementById('reg-name').value;
-            const role = document.querySelector('input[name="role"]:checked').value;
-            const roll = document.getElementById('reg-roll').value;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Creating...';
 
             try {
-                // 1. Create User in Auth System
-                statusMsg.innerText = "Creating secure credentials...";
                 const userCredential = await auth.createUserWithEmailAndPassword(email, pass);
                 const user = userCredential.user;
-
-                // 2. Send Verification Email
-                statusMsg.innerText = "Sending verification email...";
                 await user.sendEmailVerification();
 
-                // 3. Determine Auto-Assignment Logic (Realistic)
                 let section = 'N/A';
                 let department = 'General';
+                let finalRole = 'student';
+                let isBlocked = false;
                 
-                if (role === 'student' && roll) {
-                    // Dept Code extraction (e.g. 42 = CSE)
-                    if (roll.includes('42')) department = 'Computer Science';
-                    else if (roll.includes('01')) department = 'Civil';
-                    else if (roll.includes('03')) department = 'Mechanical';
-                    else if (roll.includes('04')) department = 'ECE';
-                    
-                    // Section Logic (Last 2 digits)
-                    const lastTwo = parseInt(roll.slice(-2));
-                    if (!isNaN(lastTwo)) {
-                        section = (lastTwo <= 66) ? 'A' : 'B';
+                if (selectedRole === 'student') {
+                    finalRole = 'student';
+                    if (roll) {
+                        if (roll.includes('42')) department = 'CSE';
+                        else if (roll.includes('01')) department = 'CIVIL';
+                        else if (roll.includes('03')) department = 'MECH';
+                        else if (roll.includes('04')) department = 'ECE';
+                        else if (roll.includes('05')) department = 'EEE';
+                        else if (roll.includes('12')) department = 'IT';
+                        else if (roll.includes('54')) department = 'AI & DS';
+                        
+                        const lastTwo = parseInt(roll.slice(-2));
+                        if (!isNaN(lastTwo)) section = (lastTwo <= 66) ? 'A' : 'B';
                     }
+                } else {
+                    finalRole = 'pending'; 
+                    isBlocked = true;
                 }
 
-                // 4. Save Extended Profile to Database
-                statusMsg.innerText = "Finalizing profile...";
                 await db.collection('users').doc(user.uid).set({
                     displayName: name,
                     email: email,
-                    role: role,
-                    rollNumber: role === 'student' ? roll.toUpperCase() : null,
+                    role: finalRole,
+                    requestedRole: selectedRole, 
+                    rollNumber: selectedRole === 'student' ? roll.toUpperCase() : null,
                     department: department,
                     section: section,
-                    attendance: 75, // Default safe attendance
-                    isBlocked: false, // Default allowed
+                    attendance: 75,
+                    isBlocked: isBlocked,
                     createdAt: new Date().toISOString()
                 });
 
-                // 5. Success
-                alert(`Account Created Successfully!\n\nIMPORTANT: We have sent a verification link to ${email}.\n\nYou MUST verify your email before logging in.`);
+                showToast(`Account Created! Verify your email.`, "success");
                 
-                // Force logout so they verify first
+                if (selectedRole !== 'student') {
+                    setTimeout(() => alert("Faculty Account Created.\n\nPlease contact the Administrator to approve your access."), 500);
+                }
+
                 await auth.signOut();
-                window.location.href = 'login.html';
+                setTimeout(() => window.location.href = 'login.html', 2000);
 
             } catch (err) {
-                console.error(err);
-                alert("Error: " + err.message);
+                showToast(err.message, "error");
                 btn.disabled = false;
-                btn.innerText = "Register";
-                statusMsg.innerText = "";
+                btn.innerText = originalText;
             }
         });
     </script>
