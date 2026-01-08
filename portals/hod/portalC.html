@@ -1,107 +1,252 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>HOD Portal • UNIPASS</title>
-  <link rel="stylesheet" href="../../assets/css/main.css" />
-  <script type="module" src="../../assets/js/route-guard.js"></script>
-  <link rel="stylesheet" href="../../assets/css/style.css">
-<script src="../../assets/js/ui.js" defer></script>
-</head>
-<body>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOD Approval | UNI-PASS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
 
-  <main class="hod-portal">
-    <h2>All Permissions</h2>
-    <ul id="allList"></ul>
-
-    <h2>Pending My Approval</h2>
-    <ul id="pendingList"></ul>
-  </main>
-
-  <script type="module">
-    import { auth } from "../../assets/js/firebase-init.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
-
-    import {
-      fetchHodPermissions
-    } from "../../assets/js/permission-events.js";
-
-    import {
-      approveAsHod,
-      rejectAsHod
-    } from "../../assets/js/permission-flow.js";
-
-    const allList = document.getElementById("allList");
-    const pendingList = document.getElementById("pendingList");
-
-    function renderPermission(p, actions = false) {
-      const li = document.createElement("li");
-
-      li.innerHTML = `
-        <strong>${p.student.name}</strong> — ${p.reason.label}
-        ${p.reason.customText ? `<div>${p.reason.customText}</div>` : ""}
-        <div>Teacher: ${p.status.teacher}</div>
-        <div>HOD: ${p.status.hod}</div>
-        <div>Final: ${p.status.final}</div>
-      `;
-
-      if (actions) {
-        const approve = document.createElement("button");
-        approve.textContent = "Approve";
-        approve.onclick = async () => {
-          const user = auth.currentUser;
-          if (!user) return;
-          await approveAsHod(p.id, {
-            uid: user.uid,
-            name: user.email,
-            email: user.email
-          });
-          load();
-        };
-
-        const reject = document.createElement("button");
-        reject.textContent = "Reject";
-        reject.onclick = async () => {
-          const user = auth.currentUser;
-          if (!user) return;
-          await rejectAsHod(p.id, {
-            uid: user.uid,
-            name: user.email,
-            email: user.email
-          });
-          load();
-        };
-
-        li.appendChild(approve);
-        li.appendChild(reject);
-      }
-
-      return li;
-    }
-
-    async function load() {
-      const list = await fetchHodPermissions();
-      allList.innerHTML = "";
-      pendingList.innerHTML = "";
-
-      list.forEach(p => {
-        allList.appendChild(renderPermission(p));
-
-        if (
-          p.approvalType === "TEACHER_HOD" &&
-          p.status.teacher === "approved" &&
-          p.status.hod === "pending"
-        ) {
-          pendingList.appendChild(renderPermission(p, true));
+    <script type="module" src="../../assets/js/route-guard.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 50: '#f5f3ff', 100: '#ede9fe', 600: '#7c3aed', 900: '#4c1d95' } }, // Purple Theme for HOD
+                    boxShadow: { 'glow': '0 0 20px rgba(124, 58, 237, 0.15)' }
+                }
+            }
         }
-      });
-    }
+    </script>
+    <style>
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(226, 232, 240, 0.8); }
+        .card-enter { animation: slideIn 0.3s ease-out forwards; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans min-h-screen flex flex-col">
 
-    onAuthStateChanged(auth, user => {
-      if (!user) return;
-      load();
-    });
-  </script>
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-brand-600 to-brand-900 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-600/20">
+                        <i class="fas fa-user-tie text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-xl text-slate-800 tracking-tight">HOD Console</h1>
+                        <p class="text-[10px] font-bold text-brand-600 uppercase tracking-wider" id="dept-name">Department Head</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <div class="hidden md:flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full text-xs font-bold text-slate-500">
+                        <span class="w-2 h-2 rounded-full bg-purple-500 animate-pulse"></span>
+                        <span id="pending-count">0 Escalations</span>
+                    </div>
+                    <button id="logout-btn" class="p-2 text-slate-400 hover:text-red-500 transition-colors">
+                        <i class="fas fa-power-off text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
 
+    <main class="flex-1 max-w-2xl w-full mx-auto p-6 space-y-6">
+
+        <div class="flex justify-between items-end pb-2">
+            <div>
+                <h2 class="text-2xl font-bold text-slate-800">Escalated Requests</h2>
+                <p class="text-slate-500 text-sm">Review passes exceeding 2 days duration.</p>
+            </div>
+            <button onclick="loadRequests()" class="text-brand-600 hover:bg-brand-50 p-2 rounded-full transition">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+
+        <div id="request-feed" class="space-y-4 min-h-[300px]">
+            <div class="text-center py-12 text-slate-400 animate-pulse">
+                <i class="fas fa-circle-notch fa-spin text-3xl mb-3"></i>
+                <p>Syncing Escalations...</p>
+            </div>
+        </div>
+
+        <div id="empty-state" class="hidden text-center py-16">
+            <div class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300 text-4xl">
+                <i class="fas fa-check"></i>
+            </div>
+            <h3 class="text-slate-900 font-bold text-lg">All Caught Up!</h3>
+            <p class="text-slate-500 text-sm">No pending escalations for your department.</p>
+        </div>
+
+    </main>
+
+    <script type="module">
+        import { db, auth } from '../../assets/js/firebase-init.js';
+        import { sendEmail } from '../../assets/js/services.js';
+
+        let currentUser = null;
+
+        auth.onAuthStateChanged(async user => {
+            if (user) {
+                currentUser = user;
+                // Get HOD Profile for Department
+                const profile = await db.collection('users').doc(user.uid).get();
+                if (profile.exists) {
+                    const data = profile.data();
+                    document.getElementById('dept-name').innerText = `Head of ${data.department || 'Department'}`;
+                    loadRequests(data.department);
+                }
+            } else {
+                location.href = '../../public/login.html';
+            }
+        });
+
+        function loadRequests(department) {
+            const feed = document.getElementById('request-feed');
+            const empty = document.getElementById('empty-state');
+            
+            // Query: Status is PENDING_HOD + Matching Department
+            db.collection('permissions')
+                .where('status', '==', 'PENDING_HOD')
+                .where('department', '==', department)
+                .orderBy('timestamp', 'desc')
+                .onSnapshot(async snap => {
+                    document.getElementById('pending-count').innerText = `${snap.size} Escalations`;
+                    feed.innerHTML = '';
+
+                    if (snap.empty) {
+                        feed.classList.add('hidden');
+                        empty.classList.remove('hidden');
+                        return;
+                    }
+
+                    feed.classList.remove('hidden');
+                    empty.classList.add('hidden');
+
+                    // Process each request
+                    for (const doc of snap.docs) {
+                        const data = doc.data();
+                        const card = await createCard(doc.id, data);
+                        feed.appendChild(card);
+                    }
+                });
+        }
+
+        async function createCard(docId, data) {
+            // Check for Red Flag (Security Risk)
+            let isFlagged = false;
+            try {
+                const studentSnap = await db.collection('users').doc(data.studentID).get();
+                if (studentSnap.exists && studentSnap.data().isFlagged) {
+                    isFlagged = true;
+                }
+            } catch (e) { console.error("Flag Check Error", e); }
+
+            const div = document.createElement('div');
+            div.className = "glass-panel p-6 rounded-2xl shadow-sm card-enter relative overflow-hidden group border-l-4 " + (isFlagged ? "border-l-red-500" : "border-l-brand-600");
+
+            const startDate = new Date(data.startDate).toLocaleDateString();
+            const endDate = new Date(data.endDate).toLocaleDateString();
+            const days = Math.ceil((new Date(data.endDate) - new Date(data.startDate)) / (1000 * 60 * 60 * 24)) + 1;
+
+            div.innerHTML = `
+                ${isFlagged ? `
+                <div class="bg-red-50 border-b border-red-100 p-2 -mx-6 -mt-6 mb-4 flex items-center justify-center gap-2 text-red-600 font-bold text-xs uppercase tracking-widest">
+                    <i class="fas fa-exclamation-triangle"></i> Security Alert: Student Flagged
+                </div>` : ''}
+
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-sm">
+                            ${data.studentName.charAt(0)}
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-800">${data.studentName}</h3>
+                            <p class="text-xs text-slate-500 font-mono">${data.rollNumber}</p>
+                        </div>
+                    </div>
+                    <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">
+                        ${days} Days
+                    </span>
+                </div>
+
+                <div class="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-100">
+                    <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Reason</p>
+                    <p class="font-bold text-slate-800 text-sm mb-3">"${data.reasonType}"</p>
+                    
+                    <div class="flex items-center gap-4 text-xs">
+                        <div class="flex-1 bg-white p-2 rounded border border-slate-200 text-center">
+                            <span class="block text-slate-400 text-[10px] uppercase">From</span>
+                            <span class="font-bold text-slate-700">${startDate}</span>
+                        </div>
+                        <i class="fas fa-arrow-right text-slate-300"></i>
+                        <div class="flex-1 bg-white p-2 rounded border border-slate-200 text-center">
+                            <span class="block text-slate-400 text-[10px] uppercase">To</span>
+                            <span class="font-bold text-slate-700">${endDate}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button onclick="updateStatus('${docId}', 'REJECTED', '${data.studentEmail}', '${data.studentName}', '${data.reasonType}')" 
+                        class="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition">
+                        Reject
+                    </button>
+                    <button onclick="updateStatus('${docId}', 'APPROVED', '${data.studentEmail}', '${data.studentName}', '${data.reasonType}')" 
+                        class="flex-1 py-3 rounded-xl bg-brand-600 text-white font-bold text-sm shadow-lg shadow-brand-200 hover:bg-brand-700 transition transform active:scale-95">
+                        Authorize
+                    </button>
+                </div>
+            `;
+            return div;
+        }
+
+        window.updateStatus = async (docId, status, email, name, reason) => {
+            const btn = event.target;
+            const originalText = btn.innerText;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i>`;
+
+            try {
+                // Update Firestore
+                await db.collection('permissions').doc(docId).update({
+                    status: status,
+                    'approvals.hod': {
+                        uid: currentUser.uid,
+                        name: currentUser.displayName,
+                        timestamp: new Date().toISOString()
+                    },
+                    // Log to History
+                    workflowHistory: firebase.firestore.FieldValue.arrayUnion({
+                        step: 'HOD_ACTION',
+                        role: 'HOD',
+                        status: status,
+                        timestamp: new Date().toISOString()
+                    })
+                });
+
+                // Send Email Notification
+                if (status === 'APPROVED') {
+                    await sendEmail(email, name, "APPROVED", reason);
+                } else {
+                    await sendEmail(email, name, "REJECTED", reason);
+                }
+
+                // UI will auto-update due to onSnapshot
+
+            } catch (error) {
+                console.error(error);
+                alert("Error: " + error.message);
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
+        };
+
+        document.getElementById('logout-btn').onclick = () => {
+            auth.signOut().then(() => location.href = '../../public/login.html');
+        };
+    </script>
 </body>
 </html>
