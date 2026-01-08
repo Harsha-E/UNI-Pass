@@ -50,7 +50,7 @@
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <i class="fas fa-qrcode text-slate-400 text-xl group-focus-within:text-brand-600 transition-colors"></i>
                 </div>
-                <input type="text" id="hashInput" class="w-full bg-slate-50 border border-slate-200 text-slate-900 pl-12 pr-4 py-4 rounded-2xl outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-all font-mono text-lg placeholder-slate-400 shadow-inner uppercase tracking-wider font-bold" placeholder="PASS ID / ROLL NO" autocomplete="off">
+                <input type="text" id="hashInput" class="w-full bg-slate-50 border border-slate-200 text-slate-900 pl-12 pr-4 py-4 rounded-2xl outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-all font-mono text-lg placeholder-slate-400 shadow-inner tracking-wider font-bold normal-case" placeholder="Pass ID / Roll No" autocomplete="off">
             </div>
 
             <button id="checkBtn" class="w-full mt-6 bg-brand-600 hover:bg-brand-900 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-3 text-lg active:scale-95 group">
@@ -104,13 +104,13 @@
         // --- TRIGGER LOGIC ---
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                const val = input.value.trim().toUpperCase();
+                const val = input.value.trim();
                 if (val) verifyPass(val);
             }
         });
 
         btn.onclick = () => {
-            const val = input.value.trim().toUpperCase();
+            const val = input.value.trim();
             if (!val) {
                 input.parentElement.classList.add('animate-pulse', 'border-red-500');
                 setTimeout(() => input.parentElement.classList.remove('animate-pulse', 'border-red-500'), 500);
@@ -131,15 +131,16 @@
                 let data = null;
                 let docId = null;
 
-                // 1. Check ID
+                // 1. Check Exact ID (Case Sensitive)
                 const docRef = await db.collection('permissions').doc(queryVal).get();
                 if (docRef.exists) {
                     data = docRef.data();
                     docId = docRef.id;
                 } else {
-                    // 2. Fallback to Roll No
+                    // 2. Fallback to Roll No (Case Insensitive Uppercase)
+                    const rollQuery = queryVal.toUpperCase();
                     const snap = await db.collection('permissions')
-                        .where('rollNumber', '==', queryVal)
+                        .where('rollNumber', '==', rollQuery)
                         .where('status', '==', 'APPROVED')
                         .orderBy('endDate', 'desc')
                         .limit(1)
@@ -207,9 +208,8 @@
         }
 
         function showValidPass(id, data) {
-            // SAFE DATA EXTRACTION
             const teacher = data.approvals?.teacher?.name || "Faculty";
-            const hod = data.approvals?.hod?.name; // Might be undefined
+            const hod = data.approvals?.hod?.name;
             const description = data.reason || "No description provided.";
 
             container.innerHTML = `
