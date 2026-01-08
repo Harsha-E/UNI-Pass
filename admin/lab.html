@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Lab Inventory Manager | UNI-PASS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script type="module" src="../assets/js/firebase-init.js"></script>
+</head>
+<body class="bg-slate-100 font-sans h-screen flex overflow-hidden">
+
+    <aside class="w-64 bg-slate-900 text-white flex flex-col shadow-xl z-20">
+        <div class="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950">
+            <span class="font-bold text-lg tracking-wider text-slate-100">LAB ADMIN</span>
+        </div>
+        <nav class="flex-1 p-4 space-y-2">
+            <a href="admin.html" class="w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 rounded-xl transition">
+                <i class="fas fa-arrow-left w-5 mr-3"></i> Back to Main
+            </a>
+            <div class="px-4 text-xs font-bold text-slate-500 uppercase mt-4">Inventory</div>
+            <button class="w-full flex items-center px-4 py-3 bg-blue-600 text-white rounded-xl shadow-lg">
+                <i class="fas fa-flask w-5 mr-3"></i> Manage Stock
+            </button>
+        </nav>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-screen overflow-hidden relative">
+        <header class="h-16 bg-white shadow-sm flex items-center justify-between px-8 border-b border-slate-200">
+            <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <i class="fas fa-database text-blue-600"></i> Lab Inventory System
+            </h2>
+        </header>
+
+        <div class="flex-1 overflow-y-auto p-8 bg-slate-50">
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-700 mb-4"><i class="fas fa-plus-circle text-green-500 mr-2"></i> Add Single Item</h3>
+                    <form id="add-item-form" class="space-y-4">
+                        <div class="grid grid-cols-2 gap-4">
+                            <input type="text" id="item-name" placeholder="Item Name (e.g. Ethyl Alcohol)" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+                            <select id="item-dept" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                                <option value="Chemistry">Chemistry</option>
+                                <option value="Physics">Physics</option>
+                                <option value="EEE">EEE</option>
+                                <option value="CSE">CSE (IoT)</option>
+                            </select>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <input type="number" id="item-qty" placeholder="Quantity" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none" required>
+                            <input type="text" id="item-loc" placeholder="Location (e.g. Shelf A1)" class="w-full p-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        </div>
+                        <button type="submit" class="w-full bg-slate-900 text-white py-2 rounded-lg font-bold hover:bg-slate-800 transition">Add to Inventory</button>
+                    </form>
+                </div>
+
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-4 opacity-10"><i class="fas fa-file-csv text-9xl"></i></div>
+                    <h3 class="font-bold text-slate-700 mb-2"><i class="fas fa-file-upload text-blue-500 mr-2"></i> Bulk Upload</h3>
+                    <p class="text-xs text-slate-500 mb-4">Upload a CSV file with headers: <code>name, department, quantity, location</code></p>
+                    
+                    <div class="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:bg-slate-50 transition cursor-pointer relative">
+                        <input type="file" id="csv-file" accept=".csv" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                        <i class="fas fa-cloud-upload-alt text-2xl text-slate-400 mb-2"></i>
+                        <p class="text-sm font-bold text-slate-600">Drag & Drop or Click to Upload CSV</p>
+                    </div>
+                    <div id="upload-status" class="mt-2 text-xs font-bold text-center h-4"></div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+                    <h3 class="font-bold text-slate-800">Current Stock</h3>
+                    <input type="text" id="search-stock" placeholder="Search inventory..." class="px-4 py-2 border rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-100 text-xs uppercase text-slate-500 font-bold">
+                            <tr>
+                                <th class="px-6 py-3">Item Name</th>
+                                <th class="px-6 py-3">Dept</th>
+                                <th class="px-6 py-3">Qty</th>
+                                <th class="px-6 py-3">Location</th>
+                                <th class="px-6 py-3 text-right">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inventory-list" class="text-sm divide-y divide-slate-100">
+                            <tr><td colspan="5" class="p-8 text-center text-slate-400"><i class="fas fa-circle-notch fa-spin"></i> Loading...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <script type="module">
+        import { db } from '../assets/js/firebase-init.js';
+
+        // --- 1. ADD SINGLE ITEM ---
+        document.getElementById('add-item-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button');
+            const originalText = btn.innerText;
+            btn.innerText = "Adding..."; btn.disabled = true;
+
+            try {
+                await db.collection('inventory').add({
+                    name: document.getElementById('item-name').value,
+                    department: document.getElementById('item-dept').value,
+                    quantity: parseInt(document.getElementById('item-qty').value),
+                    location: document.getElementById('item-loc').value,
+                    searchKey: document.getElementById('item-name').value.toLowerCase(), // Helper for search
+                    timestamp: new Date().toISOString()
+                });
+                e.target.reset();
+                alert("Item Added!");
+            } catch(err) { alert(err.message); }
+            finally { btn.innerText = originalText; btn.disabled = false; }
+        });
+
+        // --- 2. BULK CSV UPLOAD ---
+        document.getElementById('csv-file').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if(!file) return;
+
+            const status = document.getElementById('upload-status');
+            status.innerText = "Parsing CSV...";
+            status.className = "mt-2 text-xs font-bold text-center h-4 text-blue-600";
+
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: async (results) => {
+                    const items = results.data;
+                    status.innerText = `Uploading ${items.length} items...`;
+                    
+                    const batch = db.batch();
+                    let count = 0;
+
+                    items.forEach((item) => {
+                        if(item.name && item.quantity) {
+                            const ref = db.collection('inventory').doc(); // Auto ID
+                            batch.set(ref, {
+                                name: item.name,
+                                department: item.department || 'General',
+                                quantity: parseInt(item.quantity) || 0,
+                                location: item.location || 'N/A',
+                                searchKey: item.name.toLowerCase(),
+                                timestamp: new Date().toISOString()
+                            });
+                            count++;
+                        }
+                    });
+
+                    // Firestore Batch limit is 500. For hackathon we assume <500 lines.
+                    if(count > 0) {
+                        await batch.commit();
+                        status.innerText = `Success! ${count} items added.`;
+                        status.className = "mt-2 text-xs font-bold text-center h-4 text-green-600";
+                    } else {
+                        status.innerText = "Error: No valid data found in CSV.";
+                        status.className = "mt-2 text-xs font-bold text-center h-4 text-red-600";
+                    }
+                }
+            });
+        });
+
+        // --- 3. LIVE INVENTORY VIEW ---
+        db.collection('inventory').orderBy('timestamp', 'desc').onSnapshot(snap => {
+            const list = document.getElementById('inventory-list');
+            list.innerHTML = '';
+            
+            if(snap.empty) {
+                list.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400">Inventory is empty.</td></tr>';
+                return;
+            }
+
+            snap.forEach(doc => {
+                const data = doc.data();
+                const row = document.createElement('tr');
+                row.className = "hover:bg-slate-50 transition";
+                row.innerHTML = `
+                    <td class="px-6 py-4 font-bold text-slate-800">${data.name}</td>
+                    <td class="px-6 py-4"><span class="bg-blue-50 text-blue-600 px-2 py-1 rounded text-xs font-bold uppercase">${data.department}</span></td>
+                    <td class="px-6 py-4 font-mono font-bold ${data.quantity < 5 ? 'text-red-500' : 'text-slate-600'}">${data.quantity}</td>
+                    <td class="px-6 py-4 text-slate-500">${data.location}</td>
+                    <td class="px-6 py-4 text-right">
+                        <button onclick="deleteItem('${doc.id}')" class="text-red-400 hover:text-red-600 transition"><i class="fas fa-trash"></i></button>
+                    </td>
+                `;
+                list.appendChild(row);
+            });
+        });
+
+        window.deleteItem = async (id) => {
+            if(confirm("Remove this item from inventory?")) {
+                await db.collection('inventory').doc(id).delete();
+            }
+        };
+
+        // --- 4. CLIENT SIDE SEARCH ---
+        document.getElementById('search-stock').addEventListener('keyup', (e) => {
+            const term = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#inventory-list tr');
+            rows.forEach(row => {
+                const text = row.innerText.toLowerCase();
+                row.style.display = text.includes(term) ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+</html>
