@@ -4,6 +4,7 @@ const PROTECTED_PATHS = {
     '/portals/teacher/': 'teacher',
     '/portals/hod/': 'hod',
     '/portals/student/': 'student',
+    '/portals/lab-assistant/': 'lab_assistant', // <--- ADDED NEW PATH
     '/admin/': 'admin'
 };
 
@@ -27,7 +28,7 @@ async function verifyAccess(user) {
 
     const requiredRole = PROTECTED_PATHS[matchedPath];
 
-    // 2. Fetch LIVE User Profile (Bypass Session Storage for Security)
+    // 2. Fetch LIVE User Profile
     try {
         const doc = await db.collection('users').doc(user.uid).get();
         
@@ -83,6 +84,14 @@ auth.onAuthStateChanged(async (user) => {
         // Redirect from Login Page if already logged in
         if (currentPath.includes('login.html') || currentPath.includes('signup.html')) {
             const cachedRole = sessionStorage.getItem('uni_pass_role');
+            
+            // SPECIFIC REDIRECT FOR LAB ASSISTANT
+            if (cachedRole === 'lab_assistant') {
+                window.location.href = '/portals/lab-assistant/dashboard.html';
+                return;
+            }
+
+            // GENERIC REDIRECT FOR OTHERS
             if (cachedRole && PROTECTED_PATHS[`/portals/${cachedRole}/`]) {
                 window.location.href = `/portals/${cachedRole}/portalA.html`;
             }
