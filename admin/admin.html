@@ -39,7 +39,8 @@
             <button onclick="switchTab('users')" id="nav-users" class="nav-item w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl transition group">
                 <i class="fas fa-users w-5 mr-3 group-hover:text-blue-400"></i> Directory
             </button>
-        </nav>
+            
+            </nav>
 
         <div class="p-4 border-t border-slate-800">
             <button id="logout-btn" class="w-full py-2.5 border border-slate-700 text-slate-400 rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 transition flex items-center justify-center gap-2 text-sm font-medium">
@@ -119,8 +120,8 @@
                 <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                     <div class="px-6 py-4 border-b border-slate-100 bg-orange-50/50 flex justify-between items-center">
                         <div>
-                            <h3 class="font-bold text-orange-800">Pending Faculty Requests</h3>
-                            <p class="text-xs text-slate-500">These users signed up as Faculty and require verification.</p>
+                            <h3 class="font-bold text-orange-800">Pending Staff Requests</h3>
+                            <p class="text-xs text-slate-500">Faculty and Lab Assistants requiring verification.</p>
                         </div>
                         <span class="bg-orange-100 text-orange-700 text-xs font-bold px-3 py-1 rounded-full border border-orange-200">Action Required</span>
                     </div>
@@ -189,7 +190,7 @@
                                 <option value="student">Student</option>
                                 <option value="teacher">Teacher</option>
                                 <option value="hod">HOD</option>
-                            </select>
+                                <option value="lab_assistant">Lab Assistant</option> </select>
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Department</label>
@@ -226,14 +227,12 @@
     <script type="module">
         import { db, auth } from '../assets/js/firebase-init.js';
 
-        // Variables for Charts
         let statusChartInst = null;
         let reasonChartInst = null;
 
         auth.onAuthStateChanged(async user => {
             if (!user) location.href = '../public/login.html';
             
-            // Double Check Admin Role
             const doc = await db.collection('users').doc(user.uid).get();
             if(!doc.exists || doc.data().role !== 'admin') {
                 alert("Unauthorized Access");
@@ -242,11 +241,10 @@
             }
 
             loadStats();
-            initCharts(); // NEW: Load Graphs
+            initCharts();
             listenForApprovals();
         });
 
-        // --- NAVIGATION ---
         window.switchTab = (tab) => {
             ['dashboard', 'approvals', 'users'].forEach(t => {
                 document.getElementById(`view-${t}`).classList.add('hidden');
@@ -262,7 +260,6 @@
             if(tab === 'users') loadUsers();
         };
 
-        // --- MODAL LOGIC ---
         window.toggleModal = (show) => {
             document.getElementById('user-modal').classList.toggle('hidden', !show);
         };
@@ -278,46 +275,39 @@
                 rollInput.placeholder = "e.g. 24331A4201";
                 hint.innerText = "Required for students.";
             } else {
-                rollInput.value = ''; // Clear value
+                rollInput.value = '';
                 rollInput.disabled = true;
                 rollInput.classList.add('bg-slate-100', 'text-slate-400', 'cursor-not-allowed');
                 rollInput.classList.remove('bg-white');
-                rollInput.placeholder = "Not applicable for faculty";
-                hint.innerText = "Faculty do not require a Roll Number.";
+                rollInput.placeholder = "Not applicable";
+                hint.innerText = "ID not required for staff roles.";
             }
         });
 
         // --- 1. STATISTICS & CHARTS ---
         async function loadStats() {
-            // Fetch User Counts
             const snapS = await db.collection('users').where('role', '==', 'student').get();
-            const snapF = await db.collection('users').where('role', 'in', ['teacher', 'hod']).get();
+            const snapF = await db.collection('users').where('role', 'in', ['teacher', 'hod', 'lab_assistant']).get();
             
             document.getElementById('stat-students').innerText = snapS.size;
             document.getElementById('stat-faculty').innerText = snapF.size;
         }
 
         async function initCharts() {
-            // Fetch Permission Data (Limit to 100 for speed)
             const snap = await db.collection('permissions').limit(100).get();
-            
             let statusCounts = { APPROVED: 0, REJECTED: 0, PENDING: 0 };
             let reasonCounts = {};
 
             snap.forEach(doc => {
                 const d = doc.data();
-                
-                // Status Count
                 if (d.status === 'APPROVED') statusCounts.APPROVED++;
                 else if (d.status === 'REJECTED') statusCounts.REJECTED++;
                 else statusCounts.PENDING++;
 
-                // Reason Count
                 const r = d.reasonType || 'Other';
                 reasonCounts[r] = (reasonCounts[r] || 0) + 1;
             });
 
-            // 1. Status Chart (Doughnut)
             const ctx1 = document.getElementById('statusChart').getContext('2d');
             if(statusChartInst) statusChartInst.destroy();
             statusChartInst = new Chart(ctx1, {
@@ -333,7 +323,6 @@
                 options: { cutout: '70%', responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
             });
 
-            // 2. Reason Chart (Bar)
             const ctx2 = document.getElementById('reasonChart').getContext('2d');
             if(reasonChartInst) reasonChartInst.destroy();
             reasonChartInst = new Chart(ctx2, {
@@ -348,9 +337,7 @@
                     }]
                 },
                 options: { 
-                    responsive: true, 
-                    maintainAspectRatio: false, 
-                    plugins: { legend: { display: false } },
+                    responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
                     scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } } 
                 }
             });
@@ -377,7 +364,8 @@
 
                     snap.forEach(doc => {
                         const u = doc.data();
-                        const reqRole = u.requestedRole ? u.requestedRole.toUpperCase() : 'FACULTY';
+                        let reqRole = u.requestedRole ? u.requestedRole.toUpperCase() : 'FACULTY';
+                        if(reqRole === 'LAB_ASSISTANT') reqRole = 'LAB ASSIST'; // Pretty print
                         
                         const item = document.createElement('div');
                         item.className = "p-6 flex items-center justify-between hover:bg-slate-50 transition";
@@ -411,15 +399,12 @@
 
             if (action === 'approve') {
                 await db.collection('users').doc(uid).update({
-                    role: reqRole || 'teacher',
+                    role: reqRole || 'teacher', // Fallback
                     isBlocked: false,
                     approvedAt: new Date().toISOString()
                 });
             } else {
-                await db.collection('users').doc(uid).update({
-                    role: 'blocked',
-                    isBlocked: true
-                });
+                await db.collection('users').doc(uid).update({ role: 'blocked', isBlocked: true });
             }
         };
 
@@ -435,7 +420,6 @@
 
             snap.forEach(doc => {
                 const u = doc.data();
-                
                 if (search && !u.email.toLowerCase().includes(search) && !u.displayName.toLowerCase().includes(search)) return;
 
                 const isBlocked = u.isBlocked === true;

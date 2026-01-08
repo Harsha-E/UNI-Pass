@@ -1,23 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Uni Pass • Access Denied</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="/assets/css/main.css" />
-  <link rel="stylesheet" href="../../assets/css/style.css">
-<script src="../../assets/js/ui.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Not Found | UNI-PASS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .pattern { background-image: radial-gradient(#cbd5e1 1px, transparent 1px); background-size: 20px 20px; }
+    </style>
 </head>
+<body class="bg-slate-50 text-slate-800 font-sans h-screen flex flex-col items-center justify-center pattern">
 
-<body class="auth-page">
+    <div class="max-w-md w-full p-6 text-center">
+        <div class="mb-8 relative">
+            <div class="absolute inset-0 bg-blue-100 rounded-full blur-3xl opacity-50 animate-pulse"></div>
+            <h1 class="relative text-9xl font-black text-blue-600 tracking-tighter drop-shadow-sm">404</h1>
+        </div>
 
-  <main class="auth-container">
-    <section class="auth-card">
-      <h2>Access Denied</h2>
-      <p>You are not allowed to access this page</p>
-      <a href="/public/login.html">Go to Login</a>
-    </section>
-  </main>
+        <h2 class="text-2xl font-bold text-slate-900 mb-3">Page Not Found</h2>
+        <p class="text-slate-500 mb-8 px-4">
+            The page you are looking for might have been removed, had its name changed, or is temporarily unavailable.
+        </p>
+
+        <a href="index.html" class="inline-flex items-center gap-2 bg-slate-900 text-white font-bold py-3.5 px-8 rounded-xl hover:bg-slate-800 transition shadow-lg hover:shadow-xl hover:-translate-y-1">
+            <i class="fas fa-home"></i> Back to Home
+        </a>
+    </div>
+
+    <footer class="absolute bottom-6 text-xs text-slate-400 font-medium">
+        &copy; 2025 UNI-PASS System
+    </footer>
 
 </body>
 </html>

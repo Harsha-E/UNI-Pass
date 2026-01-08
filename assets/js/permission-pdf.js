@@ -1,9 +1,15 @@
 /**
  * UNI-PASS PDF GENERATOR (Enterprise Edition)
- * Generates secure, verifiable PDF passes on the client side.
+ * Generates secure, verifiable PDF passes with Real QR Code & Footer ID.
  */
+import { db } from './firebase-init.js'; // Ensure firebase is init if needed, though mostly data is passed in.
 
-window.generateOfficialPDF = async function(docId, data) {
+export async function generateOfficialPDF(docId, data) {
+    if (!window.jspdf) {
+        alert("PDF Library not loaded. Please refresh.");
+        return;
+    }
+
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     const width = doc.internal.pageSize.getWidth();
@@ -31,10 +37,9 @@ window.generateOfficialPDF = async function(docId, data) {
     doc.setFont("helvetica", "bold");
     doc.text("OFFICIAL CAMPUS GATE PASS", width/2, 38, {align: 'center'});
 
-    // 2. PASS META
+    // 2. PASS META (Top Right)
     doc.setTextColor(...BLACK);
     doc.setFontSize(10);
-    doc.text(`PASS REF: ${docId.substring(0,12).toUpperCase()}`, 15, 55);
     doc.text(`ISSUED: ${new Date().toLocaleString()}`, width - 15, 55, {align: 'right'});
 
     // 3. STUDENT DETAILS (Boxed)
@@ -75,7 +80,7 @@ window.generateOfficialPDF = async function(docId, data) {
     y += 8;
     doc.setFont("helvetica", "italic");
     doc.setTextColor(...BLACK);
-    const splitNote = doc.splitTextToSize(data.reason, width - 60);
+    const splitNote = doc.splitTextToSize(data.reason || "N/A", width - 60);
     doc.text(splitNote, 25, y);
 
     // 5. SIGNATURES
@@ -99,12 +104,11 @@ window.generateOfficialPDF = async function(docId, data) {
         doc.text(`[ Signed: ${data.approvals.hod.name} ]`, width - 60, y + 8, {align: 'center'});
     }
 
-    // 6. QR CODE (Verification Link)
+    // 6. QR CODE & FOOTER ID
     const qrY = 240;
-    // Use the public checker URL (assuming GitHub Pages or similar)
     const checkUrl = `https://harsha-e.github.io/UNI-Pass/public/checker.html?id=${docId}`;
     
-    // Using QR Server API for client-side generation
+    // Create Real QR Code
     const qrApi = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(checkUrl)}`;
 
     try {
@@ -112,19 +116,27 @@ window.generateOfficialPDF = async function(docId, data) {
         doc.addImage(img, 'PNG', width/2 - 20, qrY - 10, 40, 40);
     } catch (e) {
         doc.setTextColor(255, 0, 0);
-        doc.text("SCAN ERROR - VERIFY MANUALLY", width/2, qrY + 10, {align: 'center'});
+        doc.text("QR LOAD ERROR", width/2, qrY + 10, {align: 'center'});
     }
 
+    // QR Description
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(150);
-    doc.text("Scan this QR code at the main gate to verify authenticity.", width/2, qrY + 35, {align: 'center'});
-    doc.text("This document is digitally generated and secure.", width/2, qrY + 40, {align: 'center'});
+    doc.text("Scan to verify authenticity.", width/2, qrY + 35, {align: 'center'});
+
+    // --- THE FOOTER ID (EXACTLY AS REQUESTED) ---
+    // This allows the guard to manually type the ID if the QR fails
+    doc.setFont("courier", "bold"); 
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0); // Black for visibility
+    doc.text(`PASS ID: ${docId}`, width/2, qrY + 45, {align: 'center'});
 
     // Save
     doc.save(`GATE_PASS_${data.rollNumber}.pdf`);
-};
+}
 
+// Helper to load image for PDF
 function loadImage(url) {
     return new Promise((resolve, reject) => {
         const img = new Image();
@@ -134,3 +146,6 @@ function loadImage(url) {
         img.onerror = reject;
     });
 }
+
+// Attach to window for global access
+window.generateOfficialPDF = generateOfficialPDF;

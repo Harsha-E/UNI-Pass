@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lab Command Center | UNI-PASS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script type="module" src="../../assets/js/route-guard.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: { brand: { 50: '#f0f9ff', 100: '#e0f2fe', 600: '#0284c7', 900: '#0c4a6e' } },
+                    boxShadow: { 'glow': '0 0 20px rgba(2, 132, 199, 0.15)' }
+                }
+            }
+        }
+    </script>
+    <style>
+        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(226, 232, 240, 0.8); }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans min-h-screen flex flex-col">
+
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-brand-600 to-brand-900 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-600/20">
+                        <i class="fas fa-microscope text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-xl text-slate-800 tracking-tight">LabOS</h1>
+                        <p class="text-[10px] font-bold text-brand-600 uppercase tracking-wider">Inventory Manager</p>
+                    </div>
+                </div>
+                <div class="flex items-center gap-4">
+                    <button id="logout-btn" class="p-2 text-slate-400 hover:text-red-500 transition-colors">
+                        <i class="fas fa-power-off text-lg"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-1 max-w-7xl w-full mx-auto p-6 lg:p-8 space-y-8">
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="glass-panel p-6 rounded-2xl shadow-sm hover:shadow-glow transition-all duration-300 group">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                        <i class="fas fa-boxes"></i>
+                    </div>
+                    <span class="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-lg">Total Assets</span>
+                </div>
+                <h3 class="text-3xl font-black text-slate-800" id="stat-total">--</h3>
+                <p class="text-xs text-slate-500 mt-1">Registered items in database</p>
+            </div>
+
+            <div class="glass-panel p-6 rounded-2xl shadow-sm hover:shadow-glow transition-all duration-300 group">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="w-12 h-12 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <span class="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-lg">Low Stock</span>
+                </div>
+                <h3 class="text-3xl font-black text-slate-800" id="stat-low">--</h3>
+                <p class="text-xs text-slate-500 mt-1">Items requiring replenishment</p>
+            </div>
+
+            <div class="glass-panel p-6 rounded-2xl shadow-sm hover:shadow-glow transition-all duration-300 group">
+                <div class="flex justify-between items-start mb-4">
+                    <div class="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
+                        <i class="fas fa-tags"></i>
+                    </div>
+                    <span class="text-xs font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded-lg">Categories</span>
+                </div>
+                <h3 class="text-3xl font-black text-slate-800" id="stat-cat">--</h3>
+                <p class="text-xs text-slate-500 mt-1">Active inventory sections</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-2 space-y-8">
+                <div class="glass-panel rounded-3xl overflow-hidden shadow-lg border-0 ring-1 ring-slate-200">
+                    <div class="bg-slate-900 p-8 text-white relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-64 h-64 bg-brand-600 rounded-full blur-[100px] opacity-20 -mr-16 -mt-16"></div>
+                        <div class="relative z-10 flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-bold">Bulk Import</h2>
+                                <p class="text-slate-400 text-sm mt-1">Upload CSV to update inventory in seconds.</p>
+                            </div>
+                            <div class="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10">
+                                <i class="fas fa-cloud-upload-alt text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="p-8">
+                        <div class="relative group">
+                            <input type="file" id="csv-input" accept=".csv" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-20">
+                            <div class="border-2 border-dashed border-slate-300 rounded-2xl p-10 text-center group-hover:border-brand-600 group-hover:bg-brand-50 transition-all duration-300 bg-slate-50" id="drop-zone">
+                                <div class="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-4 text-brand-600 text-2xl group-hover:scale-110 transition-transform duration-300">
+                                    <i class="fas fa-file-csv"></i>
+                                </div>
+                                <h3 class="font-bold text-slate-800 text-lg" id="file-label">Drop CSV file here</h3>
+                                <p class="text-xs text-slate-400 mt-2 font-medium">or click to browse</p>
+                                <p class="text-[10px] text-slate-300 mt-4 uppercase tracking-widest">Supports: itemId, name, qty, location, status</p>
+                            </div>
+                        </div>
+
+                        <div id="progress-section" class="hidden mt-6 animate-pulse">
+                            <div class="flex justify-between text-xs font-bold text-slate-500 mb-2">
+                                <span id="progress-status">Uploading...</span>
+                                <span id="progress-pct">0%</span>
+                            </div>
+                            <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div id="progress-bar" class="h-full bg-brand-600 rounded-full transition-all duration-300" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div id="status-msg" class="hidden mt-6 p-4 rounded-xl text-sm font-bold flex items-center gap-3"></div>
+
+                        <div class="mt-6 flex justify-end">
+                            <button id="upload-btn" disabled class="px-8 py-3 bg-slate-900 text-white rounded-xl font-bold shadow-xl shadow-slate-200 hover:bg-brand-600 hover:shadow-brand-600/30 transition-all transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                                <i class="fas fa-play mr-2"></i> Start Import
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-6">
+                <div class="bg-gradient-to-br from-brand-600 to-brand-800 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden group cursor-pointer hover:shadow-xl transition-all">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-white opacity-10 rounded-full blur-2xl -mr-10 -mt-10 group-hover:scale-150 transition-transform duration-700"></div>
+                    <div class="relative z-10">
+                        <div class="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center mb-4 backdrop-blur-sm">
+                            <i class="fas fa-plus"></i>
+                        </div>
+                        <h3 class="font-bold text-lg">Add Single Item</h3>
+                        <p class="text-brand-100 text-xs mt-1">Manual entry for new equipment</p>
+                    </div>
+                </div>
+
+                <div class="glass-panel rounded-2xl p-6">
+                    <h3 class="font-bold text-slate-800 text-xs uppercase tracking-wider mb-4">Quick Links</h3>
+                    <div class="space-y-2">
+                        <a href="#" class="block p-3 rounded-xl bg-slate-50 text-slate-600 text-sm font-bold hover:bg-brand-50 hover:text-brand-600 transition flex items-center justify-between group">
+                            <span>Inventory List</span>
+                            <i class="fas fa-arrow-right text-slate-300 group-hover:text-brand-400"></i>
+                        </a>
+                        <a href="#" class="block p-3 rounded-xl bg-slate-50 text-slate-600 text-sm font-bold hover:bg-brand-50 hover:text-brand-600 transition flex items-center justify-between group">
+                            <span>Requests Pending</span>
+                            <i class="fas fa-clock text-slate-300 group-hover:text-brand-400"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { db, auth } from '../../assets/js/firebase-init.js';
+
+        // --- DOM Elements ---
+        const fileInput = document.getElementById('csv-input');
+        const dropZone = document.getElementById('drop-zone');
+        const fileLabel = document.getElementById('file-label');
+        const uploadBtn = document.getElementById('upload-btn');
+        const progressSection = document.getElementById('progress-section');
+        const progressBar = document.getElementById('progress-bar');
+        const progressPct = document.getElementById('progress-pct');
+        const statusMsg = document.getElementById('status-msg');
+        
+        // --- Stats ---
+        async function loadStats() {
+            const snap = await db.collection('inventory').get();
+            document.getElementById('stat-total').innerText = snap.size;
+            
+            let lowStock = 0;
+            let categories = new Set();
+            snap.forEach(doc => {
+                const d = doc.data();
+                if (d.status === 'Low Stock' || d.quantity < 5) lowStock++;
+                if (d.category) categories.add(d.category);
+            });
+            document.getElementById('stat-low').innerText = lowStock;
+            document.getElementById('stat-cat').innerText = categories.size;
+        }
+        loadStats();
+
+        // --- File Handling ---
+        fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+        function handleFile(file) {
+            if (file) {
+                fileLabel.innerText = file.name;
+                fileLabel.classList.add('text-brand-600');
+                dropZone.classList.add('border-brand-600', 'bg-brand-50');
+                uploadBtn.disabled = false;
+                statusMsg.classList.add('hidden');
+            }
+        }
+
+        // --- Upload Logic ---
+        uploadBtn.addEventListener('click', () => {
+            const file = fileInput.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async (e) => await processCSV(e.target.result);
+            reader.readAsText(file);
+        });
+
+        async function processCSV(csvText) {
+            uploadBtn.disabled = true;
+            uploadBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Processing...';
+            progressSection.classList.remove('hidden');
+
+            const lines = csvText.split('\n');
+            const headers = lines[0].split(',').map(h => h.trim());
+            
+            if (!headers.includes('itemId') || !headers.includes('itemName')) {
+                setStatus("❌ Invalid CSV headers.", "error");
+                resetUI();
+                return;
+            }
+
+            const total = lines.length - 1;
+            let count = 0;
+            let batch = db.batch();
+            let batchCount = 0;
+
+            for (let i = 1; i < lines.length; i++) {
+                const line = lines[i].trim();
+                if (!line) continue;
+                const values = line.split(',');
+                const item = {};
+
+                headers.forEach((header, index) => {
+                    let val = values[index] ? values[index].trim() : "";
+                    if (header === 'quantity') val = parseInt(val) || 0;
+                    item[header] = val;
+                });
+
+                if (item.itemId) {
+                    batch.set(db.collection('inventory').doc(item.itemId), item);
+                    batchCount++;
+                    count++;
+                }
+
+                if (batchCount >= 400) {
+                    await batch.commit();
+                    batch = db.batch();
+                    batchCount = 0;
+                    updateProgress(count, total);
+                }
+            }
+
+            if (batchCount > 0) await batch.commit();
+            
+            updateProgress(total, total);
+            setStatus(`✅ Imported ${count} items successfully.`, "success");
+            loadStats(); // Refresh stats
+            setTimeout(resetUI, 3000);
+        }
+
+        function updateProgress(current, total) {
+            const pct = Math.round((current / total) * 100) + "%";
+            progressBar.style.width = pct;
+            progressPercent.innerText = pct;
+        }
+
+        function setStatus(msg, type) {
+            statusMsg.innerText = msg;
+            statusMsg.className = `mt-6 p-4 rounded-xl text-sm font-bold flex items-center gap-3 ${type === 'error' ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`;
+            statusMsg.classList.remove('hidden');
+        }
+
+        function resetUI() {
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = '<i class="fas fa-play mr-2"></i> Start Import';
+            progressSection.classList.add('hidden');
+            fileInput.value = '';
+            fileLabel.innerText = "Drop CSV file here";
+            dropZone.classList.remove('border-brand-600', 'bg-brand-50');
+        }
+
+        document.getElementById('logout-btn').onclick = () => {
+            auth.signOut().then(() => window.location.href = '../../public/login.html');
+        };
+    </script>
+</body>
+</html>

@@ -18,11 +18,9 @@
         }
     </script>
     <style>
-        .step-line { position: absolute; left: 19px; top: 40px; bottom: -20px; width: 2px; background: #e2e8f0; z-index: 0; }
+        .step-line { position: absolute; left: 15px; top: 35px; bottom: -15px; width: 2px; background: #e2e8f0; z-index: 0; }
         .step-active .step-line { background: #3b82f6; }
         .step-last .step-line { display: none; }
-        .animate-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
     </style>
 </head>
 <body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
@@ -43,31 +41,58 @@
 
     <main class="flex-1 max-w-3xl w-full mx-auto p-6 space-y-8">
 
-        <div id="active-container" class="hidden animate-pop">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Current Status</h3>
-                <span class="text-xs font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded" id="active-ref">REF: ...</span>
-            </div>
-            
-            <div class="bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden relative">
-                <div class="bg-blue-600 p-6 text-white flex justify-between items-center relative overflow-hidden">
-                    <div class="relative z-10">
+        <div id="active-container" class="hidden">
+            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Current Status</h3>
+            <div class="bg-white rounded-2xl shadow-lg border border-blue-100 overflow-hidden">
+                <div class="bg-blue-600 p-6 text-white flex justify-between items-center">
+                    <div>
                         <h2 class="text-2xl font-bold">Request in Progress</h2>
-                        <p class="text-blue-200 text-sm mt-1 flex items-center gap-2">
-                            <i class="far fa-clock"></i> <span id="active-time">Just now</span>
-                        </p>
+                        <p class="text-blue-200 text-sm font-mono mt-1" id="active-id">ID: ...</p>
                     </div>
-                    <i class="fas fa-paper-plane text-blue-500 text-8xl absolute -right-4 -bottom-8 opacity-20 transform -rotate-12"></i>
+                    <div class="bg-white/20 p-3 rounded-full backdrop-blur-sm animate-pulse">
+                        <i class="fas fa-sync-alt fa-spin text-xl"></i>
+                    </div>
                 </div>
 
                 <div class="p-8">
                     <div class="space-y-0" id="tracker-steps">
+                        <div class="relative pl-12 pb-8 step-active">
+                            <div class="step-line"></div>
+                            <div class="absolute left-0 top-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md z-10">1</div>
+                            <h4 class="font-bold text-gray-900">Request Submitted</h4>
+                            <p class="text-xs text-gray-500" id="date-submitted">...</p>
                         </div>
 
-                    <div class="mt-8 pt-6 border-t border-gray-100 flex justify-between items-center" id="action-area">
-                        <p class="text-sm text-gray-400 italic">Pass will be available upon final approval.</p>
+                        <div class="relative pl-12 pb-8" id="step-teacher">
+                            <div class="step-line"></div>
+                            <div class="absolute left-0 top-0 w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-bold text-sm z-10 transition-colors duration-500 icon-box">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </div>
+                            <h4 class="font-bold text-gray-400 title">Class Teacher Review</h4>
+                            <p class="text-xs text-gray-400 status-text">Pending...</p>
+                        </div>
+
+                        <div class="relative pl-12 pb-8 hidden" id="step-hod">
+                            <div class="step-line"></div>
+                            <div class="absolute left-0 top-0 w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-bold text-sm z-10 transition-colors duration-500 icon-box">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
+                            <h4 class="font-bold text-gray-400 title">HOD Escalation</h4>
+                            <p class="text-xs text-gray-400 status-text">Required for >2 days</p>
+                        </div>
+
+                        <div class="relative pl-12 step-last" id="step-final">
+                            <div class="absolute left-0 top-0 w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center font-bold text-sm z-10 transition-colors duration-500 icon-box">
+                                <i class="fas fa-flag-checkered"></i>
+                            </div>
+                            <h4 class="font-bold text-gray-400 title">Ready for Download</h4>
+                            <p class="text-xs text-gray-400 status-text">Waiting for signature</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 pt-6 border-t border-gray-100 flex justify-end" id="action-area">
                         <button disabled class="px-6 py-3 bg-gray-100 text-gray-400 rounded-xl font-bold cursor-not-allowed flex items-center gap-2">
-                            <i class="fas fa-lock"></i> Download PDF
+                            <i class="fas fa-lock"></i> Generating Pass...
                         </button>
                     </div>
                 </div>
@@ -77,9 +102,7 @@
         <div>
             <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Past Requests</h3>
             <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden" id="history-list">
-                <div class="p-12 text-center text-gray-400">
-                    <i class="fas fa-circle-notch fa-spin mb-2"></i><br>Loading records...
-                </div>
+                <div class="p-8 text-center text-gray-400">Loading history...</div>
             </div>
         </div>
 
@@ -106,7 +129,7 @@
                     list.innerHTML = '';
                     
                     if(snap.empty) {
-                        list.innerHTML = '<div class="p-8 text-center text-gray-400">No requests found. <a href="portalA.html" class="text-blue-600 underline">Create one?</a></div>';
+                        list.innerHTML = '<div class="p-8 text-center text-gray-400">No requests found.</div>';
                         document.getElementById('active-container').classList.add('hidden');
                         return;
                     }
@@ -115,12 +138,15 @@
                     const latest = snap.docs[0].data();
                     latest.id = snap.docs[0].id;
                     
-                    // Show in big tracker if it's NOT final (Approved/Rejected) OR if it was updated recently
-                    const isDone = ['APPROVED', 'REJECTED'].includes(latest.status);
+                    // If it's recent (last 7 days) or pending, show in tracker
+                    const isRecent = (new Date() - new Date(latest.timestamp)) < (7 * 24 * 60 * 60 * 1000);
                     
-                    // Always show the latest one in the big card
-                    document.getElementById('active-container').classList.remove('hidden');
-                    updateTracker(latest);
+                    if (latest.status !== 'REJECTED' || isRecent) {
+                        document.getElementById('active-container').classList.remove('hidden');
+                        updateTracker(latest);
+                    } else {
+                        document.getElementById('active-container').classList.add('hidden');
+                    }
 
                     // 2. Populate History List
                     snap.forEach(doc => {
@@ -132,85 +158,93 @@
         // --- TRACKER LOGIC ---
         function updateTracker(data) {
             currentPassData = data;
-            document.getElementById('active-ref').innerText = `REF: ${data.id.substring(0,6).toUpperCase()}`;
-            document.getElementById('active-time').innerText = new Date(data.timestamp).toLocaleDateString();
+            document.getElementById('active-id').innerText = `REF: ${data.id.substring(0,8).toUpperCase()}`;
+            document.getElementById('date-submitted').innerText = new Date(data.timestamp).toLocaleString();
 
-            const stepsContainer = document.getElementById('tracker-steps');
-            stepsContainer.innerHTML = ''; // Clear
-
-            // DEFINE STEPS based on status
-            const isEscalated = data.workflowHistory?.some(h => h.step.includes('ESCALATED')) || data.status === 'PENDING_HOD';
             const status = data.status;
-
-            // 1. SUBMITTED
-            addStep('Request Submitted', 'Sent to Faculty Advisor', 'done', 1);
-
-            // 2. FACULTY REVIEW
-            let teacherState = 'active';
-            if (status === 'PENDING_TEACHER') teacherState = 'active';
-            else if (status === 'REJECTED' && !isEscalated) teacherState = 'error';
-            else teacherState = 'done';
+            const history = data.workflowHistory || [];
             
-            addStep('Faculty Review', teacherState === 'active' ? 'Pending Approval...' : (teacherState === 'error' ? 'Rejected' : 'Approved'), teacherState, 2);
-
-            // 3. HOD REVIEW (Conditional)
-            if (isEscalated) {
-                let hodState = 'wait';
-                if (status === 'PENDING_HOD') hodState = 'active';
-                else if (status === 'APPROVED') hodState = 'done';
-                else if (status === 'REJECTED') hodState = 'error';
+            // Helper to update step UI
+            const setStep = (id, state, text) => {
+                const el = document.getElementById(id);
+                const icon = el.querySelector('.icon-box');
+                const title = el.querySelector('.title');
+                const txt = el.querySelector('.status-text');
                 
-                addStep('HOD Escalation', hodState === 'active' ? 'Under Review' : (hodState === 'done' ? 'Authorized' : (hodState === 'error' ? 'Denied' : 'Pending')), hodState, 3);
+                txt.innerText = text;
+                
+                // Reset classes
+                icon.className = "absolute left-0 top-0 w-8 h-8 flex items-center justify-center font-bold text-sm z-10 transition-colors duration-500 icon-box rounded-full";
+                title.className = "font-bold title transition-colors";
+
+                if(state === 'done') {
+                    el.classList.add('step-active');
+                    icon.classList.add('bg-blue-600', 'text-white', 'shadow-md');
+                    title.classList.add('text-gray-900');
+                    txt.classList.add('text-blue-600', 'font-medium');
+                } else if (state === 'active') {
+                    el.classList.add('step-active');
+                    icon.classList.add('bg-blue-100', 'text-blue-600', 'border-2', 'border-blue-600', 'animate-pulse');
+                    title.classList.add('text-blue-600');
+                    txt.classList.add('text-blue-500', 'font-bold');
+                } else if (state === 'error') {
+                    icon.classList.add('bg-red-500', 'text-white');
+                    icon.innerHTML = '<i class="fas fa-times"></i>';
+                    title.classList.add('text-red-600');
+                    txt.classList.add('text-red-500', 'font-bold');
+                } else {
+                    icon.classList.add('bg-gray-200', 'text-gray-500');
+                    title.classList.add('text-gray-400');
+                }
+            };
+
+            // 1. Teacher Step
+            if (status === 'PENDING_TEACHER') {
+                setStep('step-teacher', 'active', 'Awaiting approval...');
+                setStep('step-final', 'wait', 'Pending...');
+            } else if (status === 'REJECTED' && !history.some(h => h.role === 'HOD')) {
+                setStep('step-teacher', 'error', 'Rejected by Faculty');
+            } else {
+                setStep('step-teacher', 'done', 'Approved');
             }
 
-            // 4. FINAL
-            let finalState = 'wait';
-            if (status === 'APPROVED') finalState = 'done';
-            
-            addStep('Pass Generation', status === 'APPROVED' ? 'Ready for Download' : 'Waiting for signatures...', finalState, isEscalated ? 4 : 3, true);
+            // 2. HOD Step (Dynamic)
+            const hodStep = document.getElementById('step-hod');
+            if (status === 'PENDING_HOD' || history.some(h => h.step.includes('ESCALATED'))) {
+                hodStep.classList.remove('hidden');
+                if (status === 'PENDING_HOD') {
+                    setStep('step-hod', 'active', 'Escalated: Awaiting HOD');
+                } else if (status === 'REJECTED' && history.some(h => h.role === 'HOD')) {
+                    setStep('step-hod', 'error', 'Rejected by HOD');
+                } else {
+                    setStep('step-hod', 'done', 'Authorized by HOD');
+                }
+            } else {
+                hodStep.classList.add('hidden');
+            }
 
-            // BUTTON LOGIC
+            // 3. Final Step
             const actionArea = document.getElementById('action-area');
             if (status === 'APPROVED') {
+                setStep('step-final', 'done', 'Pass Generated Successfully');
                 actionArea.innerHTML = `
-                    <div class="text-sm text-green-600 font-bold flex items-center gap-2"><i class="fas fa-check-circle"></i> Authorized</div>
-                    <button onclick="downloadPass()" class="px-6 py-3 bg-green-600 text-white rounded-xl font-bold shadow-lg hover:bg-green-700 transition transform hover:-translate-y-1 flex items-center gap-2 animate-bounce">
+                    <button onclick="downloadPass()" class="px-8 py-3 bg-green-600 text-white rounded-xl font-bold shadow-lg shadow-green-200 hover:bg-green-700 transition transform hover:-translate-y-1 flex items-center gap-2">
                         <i class="fas fa-file-download"></i> Download Official Pass
                     </button>
                 `;
             } else if (status === 'REJECTED') {
-                actionArea.innerHTML = `<div class="w-full bg-red-50 text-red-600 p-3 rounded-lg text-center font-bold text-sm border border-red-100">Request Denied. Please contact your Faculty Advisor.</div>`;
+                actionArea.innerHTML = `
+                    <div class="text-red-500 text-sm font-bold bg-red-50 px-4 py-2 rounded-lg border border-red-100">
+                        <i class="fas fa-ban mr-2"></i> Request Denied. Please contact your faculty.
+                    </div>
+                `;
             } else {
                 actionArea.innerHTML = `
-                    <p class="text-sm text-gray-400 italic">Processing...</p>
                     <button disabled class="px-6 py-3 bg-gray-100 text-gray-400 rounded-xl font-bold cursor-not-allowed flex items-center gap-2">
-                        <i class="fas fa-lock"></i> Locked
+                        <i class="fas fa-clock"></i> Awaiting Approval...
                     </button>
                 `;
             }
-        }
-
-        function addStep(title, desc, state, num, isLast = false) {
-            const container = document.getElementById('tracker-steps');
-            const step = document.createElement('div');
-            step.className = `relative pl-16 pb-8 ${state === 'active' ? 'step-active' : ''} ${isLast ? 'step-last' : ''}`;
-            
-            let iconBg = 'bg-gray-100 text-gray-400';
-            let line = `<div class="step-line"></div>`;
-            
-            if (state === 'done') iconBg = 'bg-blue-600 text-white shadow-md shadow-blue-200';
-            if (state === 'active') iconBg = 'bg-white border-2 border-blue-600 text-blue-600 animate-pulse';
-            if (state === 'error') iconBg = 'bg-red-500 text-white';
-
-            step.innerHTML = `
-                ${line}
-                <div class="absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 transition-all ${iconBg}">
-                    ${state === 'done' ? '<i class="fas fa-check"></i>' : (state === 'error' ? '<i class="fas fa-times"></i>' : num)}
-                </div>
-                <h4 class="font-bold text-gray-900 text-sm">${title}</h4>
-                <p class="text-xs ${state === 'active' ? 'text-blue-600 font-bold' : 'text-gray-500'}">${desc}</p>
-            `;
-            container.appendChild(step);
         }
 
         function createHistoryRow(id, data) {
@@ -225,13 +259,13 @@
             div.innerHTML = `
                 <div>
                     <div class="flex items-center gap-3 mb-1">
-                        <span class="font-bold text-gray-800 text-sm">${data.reasonType}</span>
-                        <span class="text-[10px] px-2 py-0.5 rounded-full ${statusColor} font-bold uppercase tracking-wide">${data.status.replace('_',' ')}</span>
+                        <span class="font-bold text-gray-800">${data.reasonType}</span>
+                        <span class="text-xs px-2 py-0.5 rounded-full ${statusColor} font-bold text-[10px] uppercase">${data.status.replace('_',' ')}</span>
                     </div>
                     <p class="text-xs text-gray-400 font-mono">${new Date(data.timestamp).toLocaleDateString()}</p>
                 </div>
                 <div class="text-gray-300 group-hover:text-blue-500 transition">
-                    <i class="fas fa-eye"></i>
+                    <i class="fas fa-chevron-right"></i>
                 </div>
             `;
             div.onclick = () => {
@@ -245,6 +279,8 @@
         window.downloadPass = () => {
             if(window.generateOfficialPDF && currentPassData) {
                 window.generateOfficialPDF(currentPassData.id, currentPassData);
+            } else {
+                alert("PDF Module Loading... Try again in 2 seconds.");
             }
         };
 
