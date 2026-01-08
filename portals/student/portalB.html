@@ -3,254 +3,195 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Track Requests | UNI-PASS</title>
+    <title>My History | UNI-PASS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <link rel="stylesheet" href="../../assets/css/style.css">
-    <script src="../../assets/js/ui.js" defer></script>
-    <script type="module" src="../../assets/js/route-guard.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: { colors: { brand: { 600: '#2563eb', 900: '#1e3a8a' } } }
-            }
-        }
-    </script>
-    <style>
-        .step-line { position: absolute; left: 19px; top: 40px; bottom: -20px; width: 2px; background: #e2e8f0; z-index: 0; }
-        .step-active .step-line { background: #3b82f6; }
-        .step-last .step-line { display: none; }
-        .animate-pop { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
-        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-    </style>
-</head>
-<body class="bg-gray-50 text-gray-800 font-sans min-h-screen flex flex-col">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-    <nav class="bg-white shadow-sm z-50 sticky top-0">
-        <div class="max-w-3xl mx-auto px-4">
-            <div class="flex justify-between h-16">
-                <div class="flex items-center gap-2">
-                    <a href="portalA.html" class="text-gray-400 hover:text-blue-600 transition"><i class="fas fa-arrow-left text-xl"></i></a>
-                    <span class="font-bold text-xl text-gray-900 ml-2">My History</span>
-                </div>
-                <div class="flex items-center">
-                    <button id="logout-btn" class="text-sm text-red-500 font-bold hover:text-red-700">Logout</button>
-                </div>
-            </div>
+    <script type="module" src="../../assets/js/route-guard.js"></script>
+</head>
+<body class="bg-gray-50 font-sans pb-20">
+
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
+        <div class="max-w-2xl mx-auto px-4 h-16 flex items-center justify-between">
+            <h1 class="font-bold text-lg text-gray-800">Request History</h1>
+            <div class="text-xs font-bold text-gray-400 uppercase tracking-wider" id="req-count">0 Requests</div>
+        </div>
+    </header>
+
+    <main class="max-w-2xl mx-auto p-4 space-y-4" id="history-feed">
+        <div class="text-center py-12 text-gray-400">
+            <i class="fas fa-circle-notch fa-spin text-2xl"></i>
+        </div>
+    </main>
+
+    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 pb-safe z-40">
+        <div class="max-w-md mx-auto grid grid-cols-2 h-16">
+            <a href="portalA.html" class="flex flex-col items-center justify-center text-gray-400 hover:text-blue-600 transition">
+                <i class="fas fa-plus-circle text-xl mb-1"></i>
+                <span class="text-[10px] font-bold uppercase">New Request</span>
+            </a>
+            <a href="portalB.html" class="flex flex-col items-center justify-center text-blue-600">
+                <i class="fas fa-history text-xl mb-1"></i>
+                <span class="text-[10px] font-bold uppercase">History</span>
+            </a>
         </div>
     </nav>
 
-    <main class="flex-1 max-w-3xl w-full mx-auto p-6 space-y-8">
-
-        <div id="active-container" class="hidden animate-pop">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider">Current Status</h3>
-                <span class="text-xs font-mono text-blue-600 bg-blue-50 px-2 py-1 rounded" id="active-ref">REF: ...</span>
-            </div>
-            
-            <div class="bg-white rounded-2xl shadow-xl border border-blue-100 overflow-hidden relative">
-                <div class="bg-blue-600 p-6 text-white flex justify-between items-center relative overflow-hidden">
-                    <div class="relative z-10">
-                        <h2 class="text-2xl font-bold">Request in Progress</h2>
-                        <p class="text-blue-200 text-sm mt-1 flex items-center gap-2">
-                            <i class="far fa-clock"></i> <span id="active-time">Just now</span>
-                        </p>
-                    </div>
-                    <i class="fas fa-paper-plane text-blue-500 text-8xl absolute -right-4 -bottom-8 opacity-20 transform -rotate-12"></i>
-                </div>
-
-                <div class="p-8">
-                    <div class="space-y-0" id="tracker-steps">
-                        </div>
-
-                    <div class="mt-8 pt-6 border-t border-gray-100 flex justify-between items-center" id="action-area">
-                        <p class="text-sm text-gray-400 italic">Pass will be available upon final approval.</p>
-                        <button disabled class="px-6 py-3 bg-gray-100 text-gray-400 rounded-xl font-bold cursor-not-allowed flex items-center gap-2">
-                            <i class="fas fa-lock"></i> Download PDF
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div>
-            <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Past Requests</h3>
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden" id="history-list">
-                <div class="p-12 text-center text-gray-400">
-                    <i class="fas fa-circle-notch fa-spin mb-2"></i><br>Loading records...
-                </div>
-            </div>
-        </div>
-
-    </main>
-
-    <script type="module" src="../../assets/js/permission-pdf.js"></script>
-    
     <script type="module">
         import { db, auth } from '../../assets/js/firebase-init.js';
-        
-        let currentPassData = null;
+
+        // Make jsPDF available globally for the onclick handler
+        window.jsPDF = window.jspdf.jsPDF;
 
         auth.onAuthStateChanged(user => {
-            if (!user) location.href = '../../public/login.html';
-            listenToPermissions(user.uid);
+            if (user) loadHistory(user.uid);
+            else location.href = '../../public/login.html';
         });
 
-        function listenToPermissions(uid) {
+        function loadHistory(uid) {
             db.collection('permissions')
                 .where('studentID', '==', uid)
                 .orderBy('timestamp', 'desc')
                 .onSnapshot(snap => {
-                    const list = document.getElementById('history-list');
-                    list.innerHTML = '';
-                    
-                    if(snap.empty) {
-                        list.innerHTML = '<div class="p-8 text-center text-gray-400">No requests found. <a href="portalA.html" class="text-blue-600 underline">Create one?</a></div>';
-                        document.getElementById('active-container').classList.add('hidden');
+                    const feed = document.getElementById('history-feed');
+                    document.getElementById('req-count').innerText = `${snap.size} Requests`;
+                    feed.innerHTML = '';
+
+                    if (snap.empty) {
+                        feed.innerHTML = `
+                            <div class="text-center py-12 text-gray-400">
+                                <i class="fas fa-folder-open text-4xl mb-3 text-gray-300"></i>
+                                <p>No history yet.</p>
+                            </div>`;
                         return;
                     }
 
-                    // 1. Handle Active Request (Topmost)
-                    const latest = snap.docs[0].data();
-                    latest.id = snap.docs[0].id;
-                    
-                    // Show in big tracker if it's NOT final (Approved/Rejected) OR if it was updated recently
-                    const isDone = ['APPROVED', 'REJECTED'].includes(latest.status);
-                    
-                    // Always show the latest one in the big card
-                    document.getElementById('active-container').classList.remove('hidden');
-                    updateTracker(latest);
-
-                    // 2. Populate History List
                     snap.forEach(doc => {
-                        list.appendChild(createHistoryRow(doc.id, doc.data()));
+                        const data = doc.data();
+                        const isApproved = data.status === 'APPROVED';
+                        
+                        // Status Config
+                        let statusColor = 'bg-yellow-100 text-yellow-700 border-yellow-200';
+                        let statusIcon = 'fa-clock';
+                        let statusText = 'Pending';
+
+                        if (isApproved) {
+                            statusColor = 'bg-green-100 text-green-700 border-green-200';
+                            statusIcon = 'fa-check-circle';
+                            statusText = 'Approved';
+                        } else if (data.status.includes('REJECTED')) {
+                            statusColor = 'bg-red-100 text-red-700 border-red-200';
+                            statusIcon = 'fa-times-circle';
+                            statusText = 'Rejected';
+                        }
+
+                        // Prepare data string for PDF
+                        const safeData = encodeURIComponent(JSON.stringify({ ...data, id: doc.id }));
+
+                        const card = document.createElement('div');
+                        card.className = "bg-white p-5 rounded-2xl border border-gray-200 shadow-sm relative overflow-hidden";
+                        
+                        card.innerHTML = `
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-bold uppercase tracking-wide border ${statusColor}">
+                                        <i class="fas ${statusIcon}"></i> ${statusText}
+                                    </span>
+                                    <p class="text-xs text-gray-400 mt-2 font-mono">${new Date(data.timestamp).toLocaleDateString()}</p>
+                                </div>
+                                <div class="text-right">
+                                    <span class="block text-lg font-black text-gray-800">${data.reasonType}</span>
+                                </div>
+                            </div>
+
+                            <div class="bg-gray-50 p-3 rounded-xl mb-4 border border-gray-100">
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-500 font-bold text-xs uppercase">From</span>
+                                    <span class="font-bold text-gray-800">${new Date(data.startDate).toLocaleDateString()}</span>
+                                </div>
+                                <div class="h-px bg-gray-200 my-2"></div>
+                                <div class="flex justify-between text-sm">
+                                    <span class="text-gray-500 font-bold text-xs uppercase">To</span>
+                                    <span class="font-bold text-gray-800">${new Date(data.endDate).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+
+                            ${isApproved ? `
+                            <button onclick="downloadPass('${safeData}')" class="w-full py-3 bg-blue-600 text-white rounded-xl font-bold text-sm shadow-lg shadow-blue-200 hover:bg-blue-700 transition flex items-center justify-center gap-2">
+                                <i class="fas fa-file-pdf"></i> Download Official Pass
+                            </button>
+                            ` : ''}
+
+                            ${data.status.includes('REJECTED') ? `
+                            <div class="text-xs text-red-500 bg-red-50 p-3 rounded-lg border border-red-100 italic">
+                                <strong>Reason:</strong> ${data.rejectionReason || 'Contact Faculty'}
+                            </div>
+                            ` : ''}
+                        `;
+                        feed.appendChild(card);
                     });
                 });
         }
 
-        // --- TRACKER LOGIC ---
-        function updateTracker(data) {
-            currentPassData = data;
-            document.getElementById('active-ref').innerText = `REF: ${data.id.substring(0,6).toUpperCase()}`;
-            document.getElementById('active-time').innerText = new Date(data.timestamp).toLocaleDateString();
+        // --- PDF GENERATOR (Same Professional Logic) ---
+        window.downloadPass = (encodedData) => {
+            const data = JSON.parse(decodeURIComponent(encodedData));
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
 
-            const stepsContainer = document.getElementById('tracker-steps');
-            stepsContainer.innerHTML = ''; // Clear
-
-            // DEFINE STEPS based on status
-            const isEscalated = data.workflowHistory?.some(h => h.step.includes('ESCALATED')) || data.status === 'PENDING_HOD';
-            const status = data.status;
-
-            // 1. SUBMITTED
-            addStep('Request Submitted', 'Sent to Faculty Advisor', 'done', 1);
-
-            // 2. FACULTY REVIEW
-            let teacherState = 'active';
-            if (status === 'PENDING_TEACHER') teacherState = 'active';
-            else if (status === 'REJECTED' && !isEscalated) teacherState = 'error';
-            else teacherState = 'done';
+            // Header
+            doc.setFillColor(37, 99, 235);
+            doc.rect(0, 0, 210, 40, 'F');
             
-            addStep('Faculty Review', teacherState === 'active' ? 'Pending Approval...' : (teacherState === 'error' ? 'Rejected' : 'Approved'), teacherState, 2);
-
-            // 3. HOD REVIEW (Conditional)
-            if (isEscalated) {
-                let hodState = 'wait';
-                if (status === 'PENDING_HOD') hodState = 'active';
-                else if (status === 'APPROVED') hodState = 'done';
-                else if (status === 'REJECTED') hodState = 'error';
-                
-                addStep('HOD Escalation', hodState === 'active' ? 'Under Review' : (hodState === 'done' ? 'Authorized' : (hodState === 'error' ? 'Denied' : 'Pending')), hodState, 3);
-            }
-
-            // 4. FINAL
-            let finalState = 'wait';
-            if (status === 'APPROVED') finalState = 'done';
+            doc.setTextColor(255, 255, 255);
+            doc.setFontSize(22);
+            doc.setFont("helvetica", "bold");
+            doc.text("UNI-PASS | Official Gate Pass", 105, 20, null, null, "center");
             
-            addStep('Pass Generation', status === 'APPROVED' ? 'Ready for Download' : 'Waiting for signatures...', finalState, isEscalated ? 4 : 3, true);
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "normal");
+            doc.text("MVGR College of Engineering", 105, 30, null, null, "center");
 
-            // BUTTON LOGIC
-            const actionArea = document.getElementById('action-area');
-            if (status === 'APPROVED') {
-                actionArea.innerHTML = `
-                    <div class="text-sm text-green-600 font-bold flex items-center gap-2"><i class="fas fa-check-circle"></i> Authorized</div>
-                    <button onclick="downloadPass()" class="px-6 py-3 bg-green-600 text-white rounded-xl font-bold shadow-lg hover:bg-green-700 transition transform hover:-translate-y-1 flex items-center gap-2 animate-bounce">
-                        <i class="fas fa-file-download"></i> Download Official Pass
-                    </button>
-                `;
-            } else if (status === 'REJECTED') {
-                actionArea.innerHTML = `<div class="w-full bg-red-50 text-red-600 p-3 rounded-lg text-center font-bold text-sm border border-red-100">Request Denied. Please contact your Faculty Advisor.</div>`;
-            } else {
-                actionArea.innerHTML = `
-                    <p class="text-sm text-gray-400 italic">Processing...</p>
-                    <button disabled class="px-6 py-3 bg-gray-100 text-gray-400 rounded-xl font-bold cursor-not-allowed flex items-center gap-2">
-                        <i class="fas fa-lock"></i> Locked
-                    </button>
-                `;
-            }
-        }
+            // Status
+            doc.setFillColor(220, 252, 231);
+            doc.setDrawColor(22, 163, 74);
+            doc.roundedRect(70, 50, 70, 15, 3, 3, 'FD');
+            doc.setTextColor(22, 101, 52);
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "bold");
+            doc.text("ACCESS GRANTED", 105, 60, null, null, "center");
 
-        function addStep(title, desc, state, num, isLast = false) {
-            const container = document.getElementById('tracker-steps');
-            const step = document.createElement('div');
-            step.className = `relative pl-16 pb-8 ${state === 'active' ? 'step-active' : ''} ${isLast ? 'step-last' : ''}`;
+            // Info
+            doc.setTextColor(0, 0, 0);
+            doc.setFontSize(16);
+            doc.text(data.studentName, 105, 80, null, null, "center");
             
-            let iconBg = 'bg-gray-100 text-gray-400';
-            let line = `<div class="step-line"></div>`;
-            
-            if (state === 'done') iconBg = 'bg-blue-600 text-white shadow-md shadow-blue-200';
-            if (state === 'active') iconBg = 'bg-white border-2 border-blue-600 text-blue-600 animate-pulse';
-            if (state === 'error') iconBg = 'bg-red-500 text-white';
+            doc.setTextColor(100, 100, 100);
+            doc.setFontSize(12);
+            doc.setFont("courier", "bold");
+            doc.text(data.rollNumber, 105, 88, null, null, "center");
 
-            step.innerHTML = `
-                ${line}
-                <div class="absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 transition-all ${iconBg}">
-                    ${state === 'done' ? '<i class="fas fa-check"></i>' : (state === 'error' ? '<i class="fas fa-times"></i>' : num)}
-                </div>
-                <h4 class="font-bold text-gray-900 text-sm">${title}</h4>
-                <p class="text-xs ${state === 'active' ? 'text-blue-600 font-bold' : 'text-gray-500'}">${desc}</p>
-            `;
-            container.appendChild(step);
-        }
+            // Dates
+            doc.setDrawColor(200, 200, 200);
+            doc.line(20, 100, 190, 100);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(50, 50, 50);
+            doc.text("Valid From:", 40, 115);
+            doc.text("Valid Until:", 140, 115);
+            doc.setFont("helvetica", "normal");
+            doc.setFontSize(14);
+            doc.text(new Date(data.startDate).toLocaleDateString(), 40, 125);
+            doc.text(new Date(data.endDate).toLocaleDateString(), 140, 125);
 
-        function createHistoryRow(id, data) {
-            const div = document.createElement('div');
-            div.className = "p-5 border-b border-gray-100 hover:bg-gray-50 transition cursor-pointer flex justify-between items-center group";
-            
-            let statusColor = 'bg-gray-100 text-gray-500';
-            if(data.status === 'APPROVED') statusColor = 'bg-green-100 text-green-700';
-            if(data.status === 'REJECTED') statusColor = 'bg-red-100 text-red-700';
-            if(data.status.includes('PENDING')) statusColor = 'bg-yellow-100 text-yellow-700';
+            // Footer
+            doc.setFontSize(8);
+            doc.setTextColor(150, 150, 150);
+            doc.text(`Reference ID: ${data.id}`, 105, 280, null, null, "center");
 
-            div.innerHTML = `
-                <div>
-                    <div class="flex items-center gap-3 mb-1">
-                        <span class="font-bold text-gray-800 text-sm">${data.reasonType}</span>
-                        <span class="text-[10px] px-2 py-0.5 rounded-full ${statusColor} font-bold uppercase tracking-wide">${data.status.replace('_',' ')}</span>
-                    </div>
-                    <p class="text-xs text-gray-400 font-mono">${new Date(data.timestamp).toLocaleDateString()}</p>
-                </div>
-                <div class="text-gray-300 group-hover:text-blue-500 transition">
-                    <i class="fas fa-eye"></i>
-                </div>
-            `;
-            div.onclick = () => {
-                document.getElementById('active-container').classList.remove('hidden');
-                updateTracker({id, ...data});
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            };
-            return div;
-        }
-
-        window.downloadPass = () => {
-            if(window.generateOfficialPDF && currentPassData) {
-                window.generateOfficialPDF(currentPassData.id, currentPassData);
-            }
-        };
-
-        document.getElementById('logout-btn').onclick = () => {
-            sessionStorage.clear();
-            auth.signOut().then(() => location.href = '../../public/login.html');
+            doc.save(`GatePass_${data.rollNumber}.pdf`);
         };
     </script>
 </body>
