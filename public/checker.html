@@ -98,12 +98,10 @@
                 input.value = passId;
                 if(navigator.onLine) verifyPass(passId);
             }
-            // Focus input immediately for scanners
             input.focus();
         });
 
         // --- TRIGGER LOGIC ---
-        // 1. Enter Key (For Scanners)
         input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
                 const val = input.value.trim().toUpperCase();
@@ -111,7 +109,6 @@
             }
         });
 
-        // 2. Button Click
         btn.onclick = () => {
             const val = input.value.trim().toUpperCase();
             if (!val) {
@@ -134,17 +131,13 @@
                 let data = null;
                 let docId = null;
 
-                // STRATEGY 1: Check by Document ID (QR Code standard)
-                // This is the most direct and fastest check
+                // 1. Check ID
                 const docRef = await db.collection('permissions').doc(queryVal).get();
-                
                 if (docRef.exists) {
                     data = docRef.data();
                     docId = docRef.id;
-                } 
-                else {
-                    // STRATEGY 2: Fallback to Roll Number search
-                    // Useful if guard types manually
+                } else {
+                    // 2. Fallback to Roll No
                     const snap = await db.collection('permissions')
                         .where('rollNumber', '==', queryVal)
                         .where('status', '==', 'APPROVED')
@@ -163,15 +156,11 @@
                     return;
                 }
 
-                // --- VALIDATION LOGIC ---
-                // Set "Now" to start of today (00:00:00) to ensure full-day validity
+                // --- VALIDATION ---
                 const today = new Date();
-                today.setHours(0, 0, 0, 0);
+                today.setHours(0, 0, 0, 0); // Ignore time
 
-                // Parse Start Date (Force Local Midnight)
                 const startDate = new Date(data.startDate + "T00:00:00");
-                
-                // Parse End Date (Force End of Day)
                 const endDate = new Date(data.endDate + "T23:59:59");
 
                 if (data.status !== 'APPROVED') {
@@ -194,7 +183,6 @@
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<span>VERIFY ACCESS</span><i class="fas fa-arrow-right"></i>';
-                // Refocus for next scan
                 input.value = '';
                 input.focus();
             }
@@ -219,6 +207,11 @@
         }
 
         function showValidPass(id, data) {
+            // SAFE DATA EXTRACTION
+            const teacher = data.approvals?.teacher?.name || "Faculty";
+            const hod = data.approvals?.hod?.name; // Might be undefined
+            const description = data.reason || "No description provided.";
+
             container.innerHTML = `
                 <div class="bg-white rounded-3xl shadow-xl overflow-hidden animate-slide-up relative border border-slate-100">
                     <div class="bg-green-500 h-3 w-full"></div>
@@ -232,21 +225,47 @@
                     </div>
 
                     <div class="p-6 space-y-4">
-                        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 flex justify-between items-center">
+                        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 flex justify-between items-center shadow-inner">
                             <div class="text-left">
                                 <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">From</p>
                                 <p class="font-bold text-slate-800 text-lg">${new Date(data.startDate).toLocaleDateString()}</p>
                             </div>
-                            <div class="h-8 w-px bg-slate-300"></div>
+                            <div class="h-10 w-px bg-slate-300"></div>
                             <div class="text-right">
                                 <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">To</p>
                                 <p class="font-bold text-slate-800 text-lg">${new Date(data.endDate).toLocaleDateString()}</p>
                             </div>
                         </div>
 
-                        <div class="text-center">
-                            <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Reason</p>
-                            <span class="text-2xl font-black text-brand-600">${data.reasonType}</span>
+                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
+                            <p class="text-[10px] uppercase font-bold text-blue-400 mb-1 tracking-wider">
+                                Permission: <span class="text-blue-600 font-black">${data.reasonType}</span>
+                            </p>
+                            <p class="text-sm text-blue-900 font-medium italic">"${description}"</p>
+                        </div>
+
+                        <div class="space-y-2 pt-2">
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs">
+                                    <i class="fas fa-chalkboard-teacher"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase">Approved By</p>
+                                    <p class="text-sm font-bold text-slate-800">${teacher}</p>
+                                </div>
+                            </div>
+                            
+                            ${hod ? `
+                            <div class="flex items-center gap-3">
+                                <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 text-xs">
+                                    <i class="fas fa-user-tie"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[10px] font-bold text-slate-400 uppercase">HOD Authorization</p>
+                                    <p class="text-sm font-bold text-slate-800">${hod}</p>
+                                </div>
+                            </div>
+                            ` : ''}
                         </div>
                     </div>
 
