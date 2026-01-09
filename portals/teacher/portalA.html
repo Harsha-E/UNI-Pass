@@ -6,12 +6,15 @@
     <title>Faculty Console | UNI-PASS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
+
     <script type="module" src="../../assets/js/route-guard.js"></script>
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { brand: { 50: '#f0fdf4', 100: '#dcfce7', 600: '#16a34a', 900: '#14532d' } },
+                    colors: { brand: { 50: '#f0fdf4', 100: '#dcfce7', 600: '#16a34a', 900: '#14532d' } }, // Green Theme for Teachers
                     boxShadow: { 'glow': '0 0 20px rgba(22, 163, 74, 0.15)' }
                 }
             }
@@ -21,39 +24,41 @@
         .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(226, 232, 240, 0.8); }
         .tab-active { background-color: #16a34a; color: white; border-color: #16a34a; }
         .tab-inactive { background-color: white; color: #64748b; border-color: #e2e8f0; }
+        .card-enter { animation: slideIn 0.3s ease-out forwards; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
-<body class="bg-slate-50 font-sans min-h-screen flex flex-col pb-20 md:pb-0">
+<body class="bg-slate-50 font-sans min-h-screen flex flex-col">
 
     <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
         <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-20 items-center">
                 <div class="flex items-center gap-3">
-                    <button id="logout-btn-mobile" class="md:hidden text-slate-400 hover:text-red-500 transition-colors p-2">
-                        <i class="fas fa-power-off text-lg"></i>
-                    </button>
+                    <div class="w-10 h-10 bg-gradient-to-br from-brand-600 to-brand-900 rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-600/20">
+                        <i class="fas fa-chalkboard-teacher text-lg"></i>
+                    </div>
                     <div>
-                        <h1 class="font-bold text-xl text-slate-800 tracking-tight">Faculty</h1>
-                        <p class="text-[10px] font-bold text-brand-600 uppercase tracking-wider" id="teacher-dept">...</p>
+                        <h1 class="font-bold text-xl text-slate-800 tracking-tight">Faculty Console</h1>
+                        <p class="text-[10px] font-bold text-brand-600 uppercase tracking-wider" id="teacher-dept">Class Teacher</p>
                     </div>
                 </div>
                 <div class="flex items-center gap-4">
-                    <div class="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full text-xs font-bold text-slate-500">
+                    <div class="hidden md:flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-full text-xs font-bold text-slate-500">
                         <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
                         <span id="badge-incoming">0 Pending</span>
                     </div>
-                    <button id="logout-btn" class="hidden md:flex items-center gap-2 text-slate-500 hover:text-red-600 font-bold text-xs uppercase tracking-widest transition-colors">
-                        <span>Logout</span>
-                        <i class="fas fa-sign-out-alt"></i>
+                    <button id="logout-btn" class="p-2 text-slate-400 hover:text-red-500 transition-colors">
+                        <i class="fas fa-power-off text-lg"></i>
                     </button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <main class="flex-1 max-w-2xl w-full mx-auto p-4 sm:p-6 space-y-6">
+    <main class="flex-1 max-w-2xl w-full mx-auto p-6 space-y-6">
+
         <div class="flex p-1 bg-slate-200 rounded-xl">
-            <button onclick="switchTab('incoming')" id="tab-incoming" class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all tab-active flex items-center justify-center gap-2">
+            <button onclick="switchTab('incoming')" id="tab-incoming" class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all shadow-sm tab-active flex items-center justify-center gap-2">
                 <i class="fas fa-inbox"></i> Inbox
             </button>
             <button onclick="switchTab('history')" id="tab-history" class="flex-1 py-2.5 rounded-lg text-sm font-bold transition-all tab-inactive flex items-center justify-center gap-2">
@@ -62,52 +67,227 @@
         </div>
 
         <div id="request-feed" class="space-y-4 min-h-[400px]">
-            <div class="text-center py-12 text-slate-400"><i class="fas fa-circle-notch fa-spin text-3xl"></i></div>
+            <div class="text-center py-12 text-slate-400 animate-pulse">
+                <i class="fas fa-circle-notch fa-spin text-3xl mb-3"></i>
+                <p>Syncing Requests...</p>
+            </div>
         </div>
 
         <div id="empty-state" class="hidden text-center py-16">
-            <div class="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300 text-3xl"><i class="fas fa-check-double"></i></div>
-            <h3 class="text-slate-900 font-bold">All caught up!</h3>
+            <div class="w-24 h-24 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-300 text-4xl">
+                <i class="fas fa-check-double"></i>
+            </div>
+            <h3 class="text-slate-900 font-bold text-lg">All Clear!</h3>
+            <p class="text-slate-500 text-sm">You have reviewed all incoming requests.</p>
         </div>
-    </main>
 
-    <nav class="fixed bottom-0 w-full bg-white border-t border-slate-200 md:hidden z-40">
-        <div class="grid grid-cols-2 h-16">
-            <a href="portalA.html" class="flex flex-col items-center justify-center text-brand-600">
-                <i class="fas fa-tasks text-xl"></i>
-                <span class="text-[10px] font-bold uppercase mt-1">Console</span>
-            </a>
-            <a href="portalC.html" class="flex flex-col items-center justify-center text-slate-400 hover:text-brand-600">
-                <i class="fas fa-archive text-xl"></i>
-                <span class="text-[10px] font-bold uppercase mt-1">Archive</span>
-            </a>
-        </div>
-    </nav>
+    </main>
 
     <script type="module">
         import { db, auth } from '../../assets/js/firebase-init.js';
+        import { sendEmail } from '../../assets/js/services.js';
 
-        const logout = async () => { if(confirm("Sign out of Faculty Console?")) { sessionStorage.clear(); await auth.signOut(); location.href = '../../public/login.html'; }};
-        document.getElementById('logout-btn').onclick = logout;
-        document.getElementById('logout-btn-mobile').onclick = logout;
-
+        let currentView = 'incoming';
         let currentUser = null;
         let myDept = null;
 
+        // --- AUTH & LOAD ---
         auth.onAuthStateChanged(async user => {
             if (user) {
                 currentUser = user;
                 const profile = await db.collection('users').doc(user.uid).get();
                 if (profile.exists) {
-                    myDept = profile.data().department;
-                    document.getElementById('teacher-dept').innerText = `${myDept} Dept`;
+                    const data = profile.data();
+                    myDept = data.department;
+                    document.getElementById('teacher-dept').innerText = `${myDept} Department`;
                     loadRequests();
                 }
-            } else location.href = '../../public/login.html';
+            } else {
+                location.href = '../../public/login.html';
+            }
         });
 
-        // Tab and Request logic remains exactly as your original file...
-        // [Existing onSnapshot and createCard logic follows]
+        // Inside your <script type="module"> in teacher/portalA.html
+
+        window.switchTab = (tab) => {
+            const incomingBtn = document.getElementById('tab-incoming');
+            const historyBtn = document.getElementById('tab-history');
+            const feed = document.getElementById('request-feed');
+
+            if (tab === 'incoming') {
+                incomingBtn.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all tab-active flex items-center justify-center gap-2";
+                historyBtn.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all tab-inactive flex items-center justify-center gap-2";
+                currentView = 'incoming';
+            } else {
+                historyBtn.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all tab-active flex items-center justify-center gap-2";
+                incomingBtn.className = "flex-1 py-2.5 rounded-lg text-sm font-bold transition-all tab-inactive flex items-center justify-center gap-2";
+                currentView = 'history';
+            }
+            loadRequests(); // Call your existing data fetcher
+        };
+
+        function loadRequests() {
+            const feed = document.getElementById('request-feed');
+            const empty = document.getElementById('empty-state');
+            
+            let query = db.collection('permissions').where('department', '==', myDept);
+
+            if (currentView === 'incoming') {
+                query = query.where('status', '==', 'PENDING_TEACHER');
+            } else {
+                // Show items this teacher acted on
+                query = query.where('approvals.teacher.uid', '==', currentUser.uid).orderBy('timestamp', 'desc').limit(20);
+            }
+
+            query.onSnapshot(async snap => {
+                if(currentView === 'incoming') document.getElementById('badge-incoming').innerText = `${snap.size} Pending`;
+                
+                feed.innerHTML = '';
+                if (snap.empty) {
+                    feed.classList.add('hidden');
+                    empty.classList.remove('hidden');
+                    return;
+                }
+
+                feed.classList.remove('hidden');
+                empty.classList.add('hidden');
+
+                for (const doc of snap.docs) {
+                    feed.appendChild(await createCard(doc.id, doc.data()));
+                }
+            });
+        }
+
+        // --- CARD GENERATION ---
+        async function createCard(docId, data) {
+            // 1. Calculate Duration
+            const start = new Date(data.startDate);
+            const end = new Date(data.endDate);
+            const diffTime = Math.abs(end - start);
+            const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1; 
+            const isLongLeave = days > 2;
+
+            // 2. Check Security Flag (Red Flag)
+            let isFlagged = false;
+            try {
+                const sProfile = await db.collection('users').doc(data.studentID).get();
+                if(sProfile.exists && sProfile.data().isFlagged) isFlagged = true;
+            } catch(e) {}
+
+            const div = document.createElement('div');
+            div.className = "glass-panel p-6 rounded-2xl shadow-sm card-enter relative overflow-hidden group border-l-4 " + 
+                (isFlagged ? "border-l-red-500" : (isLongLeave ? "border-l-purple-500" : "border-l-brand-600"));
+
+            // --- HTML CONTENT ---
+            div.innerHTML = `
+                ${isFlagged ? `
+                <div class="bg-red-50 border-b border-red-100 p-2 -mx-6 -mt-6 mb-4 flex items-center justify-center gap-2 text-red-600 font-bold text-xs uppercase tracking-widest animate-pulse">
+                    <i class="fas fa-exclamation-triangle"></i> Security Alert: Student Flagged
+                </div>` : ''}
+
+                <div class="flex justify-between items-start mb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-sm">
+                            ${data.studentName.charAt(0)}
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-slate-800">${data.studentName}</h3>
+                            <p class="text-xs text-slate-500 font-mono">${data.rollNumber}</p>
+                        </div>
+                    </div>
+                    <div class="flex flex-col items-end gap-1">
+                        <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide">
+                            ${days} Days
+                        </span>
+                        ${isLongLeave ? `<span class="text-[9px] text-purple-600 font-bold uppercase">Requires HOD</span>` : ''}
+                    </div>
+                </div>
+
+                <div class="bg-slate-50 rounded-xl p-4 mb-6 border border-slate-100 relative">
+                    <p class="text-[10px] uppercase font-bold text-slate-400 mb-1 tracking-wider">Reason</p>
+                    <p class="font-bold text-slate-800 text-sm mb-3">"${data.reasonType}"</p>
+                    <p class="text-xs text-slate-500 italic mb-3">"${data.reason || 'No description'}"</p>
+                    
+                    <div class="flex items-center gap-4 text-xs border-t border-slate-200 pt-3">
+                        <div>
+                            <span class="text-slate-400 text-[10px] uppercase font-bold">From</span>
+                            <span class="font-bold text-slate-700 block">${start.toLocaleDateString()}</span>
+                        </div>
+                        <div class="h-4 w-px bg-slate-300"></div>
+                        <div>
+                            <span class="text-slate-400 text-[10px] uppercase font-bold">To</span>
+                            <span class="font-bold text-slate-700 block">${end.toLocaleDateString()}</span>
+                        </div>
+                    </div>
+                </div>
+
+                ${currentView === 'incoming' ? `
+                <div class="flex gap-3">
+                    <button onclick="handleAction('${docId}', 'REJECT', '${data.studentEmail}', '${data.studentName}', '${data.reasonType}')" 
+                        class="flex-1 py-3 rounded-xl border border-slate-200 text-slate-600 font-bold text-sm hover:bg-red-50 hover:text-red-600 hover:border-red-200 transition">
+                        Reject
+                    </button>
+                    <button onclick="handleAction('${docId}', '${isLongLeave ? 'ESCALATE' : 'APPROVE'}', '${data.studentEmail}', '${data.studentName}', '${data.reasonType}')" 
+                        class="flex-1 py-3 rounded-xl ${isLongLeave ? 'bg-purple-600 hover:bg-purple-700 shadow-purple-200' : 'bg-brand-600 hover:bg-brand-700 shadow-brand-200'} text-white font-bold text-sm shadow-lg transition transform active:scale-95 flex items-center justify-center gap-2">
+                        ${isLongLeave ? '<span>Verify & Escalate</span> <i class="fas fa-arrow-up"></i>' : '<span>Approve Pass</span> <i class="fas fa-check"></i>'}
+                    </button>
+                </div>
+                ` : `
+                <div class="text-center">
+                    <span class="text-xs font-bold text-slate-400 uppercase">Processed on ${new Date(data.timestamp).toLocaleDateString()}</span>
+                </div>
+                `}
+            `;
+            return div;
+        }
+
+        // --- ACTIONS ---
+        window.handleAction = async (docId, action, email, name, reason) => {
+            const btn = event.target.closest('button');
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = `<i class="fas fa-circle-notch fa-spin"></i> Processing`;
+
+            try {
+                let updateData = {
+                    'approvals.teacher': {
+                        uid: currentUser.uid,
+                        name: currentUser.displayName,
+                        timestamp: new Date().toISOString()
+                    }
+                };
+
+                // Logic: 
+                // APPROVE -> Final Approval (Status: APPROVED)
+                // ESCALATE -> Goes to HOD (Status: PENDING_HOD)
+                // REJECT -> Dead end (Status: REJECTED)
+
+                if (action === 'APPROVE') {
+                    updateData.status = 'APPROVED';
+                    await sendEmail(email, name, "APPROVED", reason);
+                } else if (action === 'ESCALATE') {
+                    updateData.status = 'PENDING_HOD';
+                    // Optional: Email student saying "Forwarded to HOD"
+                } else {
+                    updateData.status = 'REJECTED';
+                    await sendEmail(email, name, "REJECTED", reason);
+                }
+
+                await db.collection('permissions').doc(docId).update(updateData);
+                
+                // No need to reload, onSnapshot handles it
+
+            } catch (error) {
+                console.error(error);
+                alert("Action Failed: " + error.message);
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            }
+        };
+
+        document.getElementById('logout-btn').onclick = () => {
+            auth.signOut().then(() => location.href = '../../public/login.html');
+        };
     </script>
 </body>
 </html>
