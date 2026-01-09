@@ -30,15 +30,15 @@
     <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30">
         <div class="max-w-md mx-auto px-6 h-20 flex items-center justify-between">
             <div class="flex items-center gap-3">
-                <button id="logout-btn-mobile" class="md:hidden text-slate-400 hover:text-red-500">
-                    <i class="fas fa-power-off"></i>
+                <button id="logout-btn-mobile" class="md:hidden text-slate-400 hover:text-red-500 transition-colors">
+                    <i class="fas fa-power-off text-lg"></i>
                 </button>
                 <div>
-                    <h1 class="font-bold text-xl text-slate-800 tracking-tight">Tracker</h1>
+                    <h1 class="font-bold text-xl text-slate-800 tracking-tight">Status Tracker</h1>
                     <p class="text-[10px] font-bold text-brand-600 uppercase tracking-wider">Live Updates</p>
                 </div>
             </div>
-            <button id="logout-btn" class="hidden md:flex items-center gap-2 text-slate-500 hover:text-red-600 font-bold text-xs uppercase tracking-widest">
+            <button id="logout-btn" class="hidden md:flex items-center gap-2 text-slate-500 hover:text-red-600 font-bold text-xs uppercase tracking-widest transition-colors">
                 <span>Logout</span>
                 <i class="fas fa-sign-out-alt"></i>
             </button>
@@ -49,8 +49,10 @@
     </header>
 
     <main class="max-w-md mx-auto p-4 sm:p-6 space-y-8">
+
         <div id="active-container" class="hidden">
             <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 ml-1">Current Request</h3>
+            
             <div class="glass-panel rounded-3xl overflow-hidden shadow-lg border-0 ring-1 ring-slate-200">
                 <div class="bg-slate-900 p-6 text-white flex justify-between items-center relative overflow-hidden">
                     <div class="absolute top-0 right-0 w-32 h-32 bg-brand-600 rounded-full blur-[60px] opacity-30 -mr-10 -mt-10"></div>
@@ -67,22 +69,31 @@
                     <div class="space-y-0 relative" id="tracker-steps">
                         <div class="relative pl-14 pb-8" id="step-teacher">
                             <div class="step-line"></div>
-                            <div class="absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 border-2 bg-slate-50 border-slate-200 text-slate-400" id="icon-teacher"><i class="fas fa-chalkboard-teacher"></i></div>
+                            <div class="absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 border-2 bg-slate-50 border-slate-200 text-slate-400" id="icon-teacher">
+                                <i class="fas fa-chalkboard-teacher"></i>
+                            </div>
                             <h4 class="font-bold text-slate-800 text-sm pt-2">Class Teacher</h4>
                             <p class="text-xs text-slate-400 mt-0.5" id="txt-teacher">Pending review...</p>
                         </div>
+
                         <div class="relative pl-14 pb-8 hidden" id="step-hod">
                             <div class="step-line"></div>
-                            <div class="absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 border-2 bg-slate-50 border-slate-200 text-slate-400" id="icon-hod"><i class="fas fa-user-tie"></i></div>
+                            <div class="absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 border-2 bg-slate-50 border-slate-200 text-slate-400" id="icon-hod">
+                                <i class="fas fa-user-tie"></i>
+                            </div>
                             <h4 class="font-bold text-slate-800 text-sm pt-2">HOD Authorization</h4>
                             <p class="text-xs text-slate-400 mt-0.5" id="txt-hod">Pending...</p>
                         </div>
+
                         <div class="relative pl-14 step-last" id="step-final">
-                            <div class="absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 border-2 bg-slate-50 border-slate-200 text-slate-400" id="icon-final"><i class="fas fa-flag-checkered"></i></div>
+                            <div class="absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 border-2 bg-slate-50 border-slate-200 text-slate-400" id="icon-final">
+                                <i class="fas fa-flag-checkered"></i>
+                            </div>
                             <h4 class="font-bold text-slate-800 text-sm pt-2">Final Status</h4>
                             <p class="text-xs text-slate-400 mt-0.5" id="txt-final">Waiting...</p>
                         </div>
                     </div>
+
                     <div class="mt-8 pt-6 border-t border-slate-100 flex flex-col gap-3" id="action-area"></div>
                 </div>
             </div>
@@ -94,22 +105,22 @@
                 <div class="text-center py-10 text-slate-400"><i class="fas fa-circle-notch fa-spin"></i></div>
             </div>
         </div>
+
     </main>
 
     <nav class="fixed bottom-0 w-full bg-white border-t border-slate-200 pb-safe z-40">
-        <div class="max-w-md mx-auto grid grid-cols-4 h-20">
+        <div class="max-w-md mx-auto grid grid-cols-3 h-20">
             <a href="portalA.html" class="flex flex-col items-center justify-center text-slate-400 hover:text-brand-600 transition">
                 <i class="fas fa-plus-circle text-xl mb-1"></i>
-                <span class="text-[10px] font-bold uppercase">Request</span>
+                <span class="text-[10px] font-bold uppercase mt-1">Request</span>
             </a>
             <a href="lab.html" class="flex flex-col items-center justify-center text-slate-400 hover:text-brand-600 transition">
                 <i class="fas fa-flask text-xl mb-1"></i>
-                <span class="text-[10px] font-bold uppercase">Lab</span>
+                <span class="text-[10px] font-bold uppercase mt-1">Lab</span>
             </a>
-
             <a href="portalB.html" class="flex flex-col items-center justify-center text-brand-600">
                 <i class="fas fa-history text-xl mb-1"></i>
-                <span class="text-[10px] font-bold uppercase">History</span>
+                <span class="text-[10px] font-bold uppercase mt-1">History</span>
             </a>
         </div>
     </nav>
@@ -118,67 +129,94 @@
         import { db, auth } from '../../assets/js/firebase-init.js';
         import { generateOfficialPDF } from '../../assets/js/permission-pdf.js';
 
-        // --- LOGOUT ---
+        // --- Standardized Logout Logic ---
         const handleLogout = async () => {
-            if(confirm("Logout from UNI-PASS?")) { sessionStorage.clear(); await auth.signOut(); location.href = '../../public/login.html'; }
+            if(confirm("Sign out of UNI-PASS tracker?")) {
+                sessionStorage.clear();
+                await auth.signOut();
+                location.href = '../../public/login.html';
+            }
         };
         document.getElementById('logout-btn').onclick = handleLogout;
         document.getElementById('logout-btn-mobile').onclick = handleLogout;
 
-        let currentPass = null;
-        auth.onAuthStateChanged(user => { if (user) loadHistory(user.uid); else location.href = '../../public/login.html'; });
+        let currentPassData = null;
+
+        auth.onAuthStateChanged(user => {
+            if (user) loadHistory(user.uid);
+            else location.href = '../../public/login.html';
+        });
 
         function loadHistory(uid) {
-            db.collection('permissions').where('studentID', '==', uid).orderBy('timestamp', 'desc').onSnapshot(snap => {
-                const list = document.getElementById('history-list');
-                list.innerHTML = '';
-                if (snap.empty) { list.innerHTML = `<div class="text-center py-8 text-slate-400 text-sm">No history found.</div>`; document.getElementById('active-container').classList.add('hidden'); return; }
-                const latest = snap.docs[0].data(); latest.id = snap.docs[0].id;
-                const isRecent = (new Date() - new Date(latest.timestamp)) < (7 * 24 * 60 * 60 * 1000);
-                if (latest.status !== 'REJECTED' || isRecent) { document.getElementById('active-container').classList.remove('hidden'); updateTracker(latest); }
-                else { document.getElementById('active-container').classList.add('hidden'); }
-                snap.forEach(doc => { list.appendChild(createHistoryRow(doc.id, doc.data())); });
-            });
+            db.collection('permissions')
+                .where('studentID', '==', uid)
+                .orderBy('timestamp', 'desc')
+                .onSnapshot(snap => {
+                    const list = document.getElementById('history-list');
+                    list.innerHTML = '';
+                    if (snap.empty) {
+                        list.innerHTML = `<div class="text-center py-8 text-slate-400 text-sm">No history found.</div>`;
+                        document.getElementById('active-container').classList.add('hidden');
+                        return;
+                    }
+                    const latest = snap.docs[0].data();
+                    latest.id = snap.docs[0].id;
+                    const isRecent = (new Date() - new Date(latest.timestamp)) < (7 * 24 * 60 * 60 * 1000);
+                    if (latest.status !== 'REJECTED' || isRecent) {
+                        document.getElementById('active-container').classList.remove('hidden');
+                        updateTracker(latest);
+                    } else {
+                        document.getElementById('active-container').classList.add('hidden');
+                    }
+                    snap.forEach(doc => { list.appendChild(createHistoryRow(doc.id, doc.data())); });
+                });
         }
 
-        // tracker update logic preserved...
         function updateTracker(data) {
-            currentPass = data;
+            currentPassData = data;
             document.getElementById('ref-id').innerText = `REF: ${data.id.substring(0,8).toUpperCase()}`;
             const status = data.status;
             const history = data.workflowHistory || [];
             
-            const styleActive = (id) => { const el = document.getElementById(id); el.parentElement.classList.add('step-active'); el.className = "absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 border-2 bg-brand-600 border-brand-600 text-white"; };
-            const styleDone = (id) => { const el = document.getElementById(id); el.parentElement.classList.add('step-active'); el.className = "absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 border-2 bg-brand-100 border-brand-200 text-brand-600"; el.innerHTML = '<i class="fas fa-check"></i>'; };
-            
-            if (status === 'PENDING_TEACHER') { styleActive('icon-teacher'); } else { styleDone('icon-teacher'); }
-            
+            const setStatusUI = (id, type) => {
+                const el = document.getElementById(id);
+                el.parentElement.classList.add('step-active');
+                if(type === 'active') el.className = "absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 border-2 bg-brand-600 border-brand-600 text-white shadow-glow";
+                else if(type === 'done') { el.className = "absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 border-2 bg-brand-100 border-brand-200 text-brand-600"; el.innerHTML = '<i class="fas fa-check"></i>'; }
+                else if(type === 'error') { el.className = "absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 border-2 bg-red-100 border-red-200 text-red-600"; el.innerHTML = '<i class="fas fa-times"></i>'; }
+            };
+
+            if (status === 'PENDING_TEACHER') setStatusUI('icon-teacher', 'active');
+            else if (status === 'REJECTED' && !history.some(h => h.role === 'HOD')) setStatusUI('icon-teacher', 'error');
+            else setStatusUI('icon-teacher', 'done');
+
             const hodStep = document.getElementById('step-hod');
             if (status === 'PENDING_HOD' || history.some(h => h.step.includes('HOD'))) {
                 hodStep.classList.remove('hidden');
-                if (status === 'PENDING_HOD') styleActive('icon-hod'); else styleDone('icon-hod');
+                if (status === 'PENDING_HOD') setStatusUI('icon-hod', 'active');
+                else if (status === 'REJECTED' && history.some(h => h.role === 'HOD')) setStatusUI('icon-hod', 'error');
+                else setStatusUI('icon-hod', 'done');
             } else hodStep.classList.add('hidden');
 
             const actionArea = document.getElementById('action-area');
             if (status === 'APPROVED') {
                 actionArea.innerHTML = `<button onclick="downloadPass()" class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold shadow-xl hover:bg-brand-600 transition flex items-center justify-center gap-3"><i class="fas fa-file-pdf"></i> Download Pass</button>`;
             } else if (status === 'REJECTED') {
-                actionArea.innerHTML = `<div class="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold flex items-center gap-3"><i class="fas fa-ban"></i><span>Request Denied.</span></div>`;
+                actionArea.innerHTML = `<div class="bg-red-50 text-red-600 p-4 rounded-xl text-sm font-bold flex items-center justify-center gap-3"><i class="fas fa-ban"></i> Request Denied.</div>`;
             } else {
                 actionArea.innerHTML = `<button disabled class="w-full py-4 bg-slate-100 text-slate-400 rounded-xl font-bold flex items-center justify-center gap-3 cursor-not-allowed"><i class="fas fa-clock"></i> Processing...</button>`;
             }
         }
 
-        window.downloadPass = () => { if(currentPass) generateOfficialPDF(currentPass.id, currentPass); };
+        window.downloadPass = () => { if(currentPassData) generateOfficialPDF(currentPassData.id, currentPassData); };
 
         function createHistoryRow(id, data) {
             const div = document.createElement('div');
             div.className = "p-4 hover:bg-slate-50 rounded-xl transition cursor-pointer flex justify-between items-center group mb-1";
             div.innerHTML = `<div><div class="flex items-center gap-3 mb-1"><span class="font-bold text-slate-800 text-sm">${data.reasonType}</span></div><p class="text-xs text-slate-400 font-mono">${new Date(data.timestamp).toLocaleDateString()}</p></div><i class="fas fa-chevron-right text-slate-300"></i>`;
-            div.onclick = () => { document.getElementById('active-container').classList.remove('hidden'); updateTracker({id, ...data}); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+            div.onclick = () => { window.scrollTo({ top: 0, behavior: 'smooth' }); updateTracker({id, ...data}); };
             return div;
         }
     </script>
 </body>
 </html>
-
