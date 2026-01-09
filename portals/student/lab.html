@@ -8,35 +8,16 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="../../assets/css/style.css">
     <script type="module" src="../../assets/js/route-guard.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { brand: { 50: '#eff6ff', 100: '#dbeafe', 600: '#2563eb', 900: '#1e3a8a' } }
-                }
-            }
-        }
-    </script>
 </head>
-<body class="bg-gray-50 font-sans min-h-screen pb-24">
+<body class="bg-gray-50 font-sans pb-24">
 
-    <header class="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-30">
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
         <div class="max-w-2xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <button id="logout-btn-mobile" class="md:hidden text-slate-400 hover:text-red-500 transition-colors">
-                    <i class="fas fa-power-off text-lg"></i>
-                </button>
-                <h1 class="font-bold text-lg text-gray-800">Lab Inventory</h1>
-            </div>
-            <button id="logout-btn" class="hidden md:flex items-center gap-2 text-slate-500 hover:text-red-600 font-bold text-xs uppercase tracking-widest transition-colors">
-                <span>Logout</span>
-                <i class="fas fa-sign-out-alt"></i>
-            </button>
-            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 shadow-sm">
+            <h1 class="font-bold text-lg text-gray-800">Lab Inventory</h1>
+            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600">
                 <i class="fas fa-flask text-sm"></i>
             </div>
         </div>
-        
         <div class="max-w-2xl mx-auto px-4 pb-4">
             <div class="relative">
                 <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
@@ -58,17 +39,17 @@
         </div>
     </main>
 
-    <nav class="fixed bottom-0 w-full bg-white border-t border-slate-200 pb-safe z-40">
-        <div class="max-w-md mx-auto grid grid-cols-3 h-20">
-            <a href="portalA.html" class="flex flex-col items-center justify-center text-slate-400 hover:text-brand-600 transition">
+    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 pb-safe z-40">
+        <div class="max-w-md mx-auto grid grid-cols-3 h-16">
+            <a href="portalA.html" class="flex flex-col items-center justify-center text-gray-400 hover:text-blue-600 transition">
                 <i class="fas fa-plus-circle text-xl mb-1"></i>
                 <span class="text-[10px] font-bold uppercase">Request</span>
             </a>
-            <a href="lab.html" class="flex flex-col items-center justify-center text-brand-600">
+            <a href="lab.html" class="flex flex-col items-center justify-center text-blue-600">
                 <i class="fas fa-flask text-xl mb-1"></i>
                 <span class="text-[10px] font-bold uppercase">Lab</span>
             </a>
-            <a href="portalB.html" class="flex flex-col items-center justify-center text-slate-400 hover:text-brand-600 transition">
+            <a href="portalB.html" class="flex flex-col items-center justify-center text-gray-400 hover:text-blue-600 transition">
                 <i class="fas fa-history text-xl mb-1"></i>
                 <span class="text-[10px] font-bold uppercase">History</span>
             </a>
@@ -76,82 +57,62 @@
     </nav>
 
     <script type="module">
-        import { db, auth } from '../../assets/js/firebase-init.js';
-
-        // --- Standardized Logout Logic ---
-        const handleLogout = async () => {
-            if(confirm("Sign out of UNI-PASS?")) {
-                sessionStorage.clear();
-                await auth.signOut();
-                location.href = '../../public/login.html';
-            }
-        };
-        document.getElementById('logout-btn').onclick = handleLogout;
-        document.getElementById('logout-btn-mobile').onclick = handleLogout;
+        import { db } from '../../assets/js/firebase-init.js';
 
         const list = document.getElementById('inventory-list');
         const searchInput = document.getElementById('search-input');
         let allItems = [];
 
-        // Authentication Guard
-        auth.onAuthStateChanged(user => {
-            if (!user) location.href = '../../public/login.html';
-        });
-
-        // Load Real-time Inventory Data
+        // Load Data
         db.collection('inventory').onSnapshot(snap => {
             allItems = [];
             snap.forEach(doc => allItems.push({ id: doc.id, ...doc.data() }));
             renderItems(allItems);
         });
 
-        // Search and Filter Logic
+        // Search Filter
         searchInput.addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
             const filtered = allItems.filter(item => 
-                (item.itemName || "").toLowerCase().includes(term) || 
-                (item.category || "").toLowerCase().includes(term)
+                item.itemName.toLowerCase().includes(term) || 
+                item.category.toLowerCase().includes(term)
             );
             renderItems(filtered);
         });
 
-        function renderItems(items) {
-            list.innerHTML = '';
-            if(items.length === 0) {
-                list.innerHTML = `<div class="text-center py-10 text-gray-400"><p>No items found.</p></div>`;
-                return;
-            }
+function renderItems(items) {
+    const list = document.getElementById('inventory-list');
+    list.innerHTML = '';
+    
+    if(items.length === 0) { 
+        list.innerHTML = `<div class="text-center py-10 text-gray-400"><p>No items found.</p></div>`; 
+        return; 
+    }
 
-            items.forEach(item => {
-                const isLow = item.quantity < 5 && item.quantity > 0;
-                const isOut = item.quantity <= 0;
-                
-                let badgeClass = 'bg-green-100 text-green-700';
-                let badgeText = 'Available';
-
-                if(isLow) { badgeClass = 'bg-orange-100 text-orange-700'; badgeText = 'Low Stock'; }
-                if(isOut) { badgeClass = 'bg-red-100 text-red-700'; badgeText = 'Out of Stock'; }
-
-                const card = document.createElement('div');
-                card.className = "bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center transition-all hover:shadow-md";
-                card.innerHTML = `
-                    <div class="flex items-center gap-4">
-                        <div class="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500 font-bold">
-                            ${(item.itemName || "L").charAt(0)}
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-gray-800 text-sm">${item.itemName || 'Unnamed Item'}</h3>
-                            <p class="text-xs text-gray-400">${item.category || 'General'} • ${item.location || 'N/A'}</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <span class="block px-2 py-1 rounded-md text-[10px] font-bold uppercase ${badgeClass} mb-1">${badgeText}</span>
-                        <p class="text-xs font-bold text-gray-600">${item.quantity || 0} units</p>
-                    </div>
-                `;
-                list.appendChild(card);
-            });
-        }
+    items.forEach(item => {
+        // Handle field name inconsistencies (itemName vs name)
+        const displayName = item.itemName || item.name || "Unnamed Item";
+        const category = item.category || "General";
+        
+        const card = document.createElement('div');
+        card.className = "bg-white p-4 rounded-xl border border-gray-100 shadow-sm flex justify-between items-center";
+        card.innerHTML = `
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 rounded-lg bg-gray-50 flex items-center justify-center text-gray-500 font-bold">
+                    ${displayName.charAt(0)}
+                </div>
+                <div>
+                    <h3 class="font-bold text-gray-800 text-sm">${displayName}</h3>
+                    <p class="text-xs text-gray-400">${category}</p>
+                </div>
+            </div>
+            <div class="text-right">
+                <p class="text-xs font-bold text-gray-600">${item.quantity || 0} units</p>
+            </div>
+        `;
+        list.appendChild(card);
+    });
+}
     </script>
 </body>
 </html>
