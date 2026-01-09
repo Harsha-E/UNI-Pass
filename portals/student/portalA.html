@@ -20,14 +20,18 @@
 
     <nav class="bg-white shadow-sm z-50">
         <div class="max-w-3xl mx-auto px-4">
-            <div class="flex justify-between h-16">
+            <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center gap-2">
                     <i class="fas fa-university text-blue-600 text-2xl"></i>
                     <span class="font-bold text-xl tracking-tight text-gray-900">UNI-PASS</span>
                 </div>
                 <div class="flex items-center gap-4">
-                     <a href="portalB.html" class="text-sm font-bold text-gray-500 hover:text-blue-600 transition"><i class="fas fa-history"></i> History</a>
-                    <button id="logout-btn" class="text-sm text-red-500 font-bold hover:text-red-700">Logout</button>
+                    <a href="portalB.html" class="hidden sm:flex text-sm font-bold text-gray-500 hover:text-blue-600 transition items-center gap-2">
+                        <i class="fas fa-history"></i> History
+                    </a>
+                    <button id="logout-btn" class="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center text-red-600 shadow-sm hover:bg-red-100 transition-all active:scale-95" title="Logout">
+                        <i class="fas fa-power-off"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -68,12 +72,11 @@
                 </div>
 
                 <form id="request-form" class="p-6 space-y-6">
-                    
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Select Category</label>
-                        <div class="grid grid-cols-4 gap-3">
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                             <label class="cursor-pointer group">
-                                <input type="radio" name="reasonType" value="Medical" class="peer sr-only">
+                                <input type="radio" name="reasonType" value="Medical" class="peer sr-only" required>
                                 <div class="reason-box p-3 border border-gray-200 rounded-xl hover:bg-gray-50 text-center">
                                     <div class="text-xl mb-1">💊</div>
                                     <span class="font-bold text-xs">Medical</span>
@@ -103,14 +106,14 @@
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase mb-1">From Date</label>
-                            <input type="text" id="start-date" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium" placeholder="Select...">
+                            <input type="text" id="start-date" required class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium" placeholder="Select...">
                         </div>
                         <div>
                             <label class="block text-xs font-bold text-gray-500 uppercase mb-1">To Date</label>
-                            <input type="text" id="end-date" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium" placeholder="Select...">
+                            <input type="text" id="end-date" required class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm font-medium" placeholder="Select...">
                         </div>
                     </div>
 
@@ -123,7 +126,7 @@
 
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Detailed Reason</label>
-                        <textarea id="custom-reason" rows="3" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm transition resize-none" placeholder="Please describe why you need this permission..."></textarea>
+                        <textarea id="custom-reason" required rows="3" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-3 focus:bg-white focus:ring-2 focus:ring-blue-500 outline-none text-sm transition resize-none" placeholder="Please describe why you need this permission..."></textarea>
                     </div>
 
                     <button type="submit" id="submit-btn" disabled class="w-full bg-gray-200 text-gray-400 font-bold py-4 rounded-xl transition-all shadow-none text-lg cursor-not-allowed">
@@ -141,23 +144,21 @@
         const startPicker = flatpickr("#start-date", { minDate: "today", dateFormat: "Y-m-d", onChange: updateFormState });
         const endPicker = flatpickr("#end-date", { minDate: "today", dateFormat: "Y-m-d", onChange: updateFormState });
 
+        // --- AUTH & PROFILE MANAGEMENT ---
         auth.onAuthStateChanged(async (user) => {
             if (!user) { window.location.href = '../../public/login.html'; return; }
 
             try {
-                // --- SECURITY: FETCH FRESH PROFILE ---
                 const doc = await db.collection('users').doc(user.uid).get();
                 if (!doc.exists) { alert("Profile Error"); return; }
                 const data = doc.data();
 
-                // 1. Check Block
                 if (data.isBlocked) {
                     document.getElementById('active-screen').classList.add('hidden');
                     document.getElementById('blocked-screen').classList.remove('hidden');
                     return;
                 }
 
-                // 2. Populate Header
                 document.getElementById('display-name').innerText = data.displayName;
                 document.getElementById('display-id').innerText = data.rollNumber || user.email;
                 document.getElementById('initials').innerText = (data.displayName || 'U').charAt(0);
@@ -169,21 +170,19 @@
 
                 userProfile = {
                     rollNumber: data.rollNumber,
-                    department: data.department,
-                    section: data.section || 'A'
+                    department: data.department
                 };
 
             } catch (err) { console.error(err); }
         });
 
-        // --- DYNAMIC FORM LOGIC ---
+        // --- DYNAMIC WORKFLOW LOGIC ---
         function updateFormState() {
             const reason = document.querySelector('input[name="reasonType"]:checked');
             const start = document.getElementById('start-date').value;
             const end = document.getElementById('end-date').value;
             const note = document.getElementById('custom-reason').value.trim();
             
-            // Progress Bar
             let progress = 5;
             if(reason) progress += 25;
             if(start) progress += 20;
@@ -191,7 +190,6 @@
             if(note.length > 5) progress += 30;
             document.getElementById('form-progress').style.width = `${progress}%`;
 
-            // Logic
             let isDateValid = false;
             const feedback = document.getElementById('duration-feedback');
             
@@ -201,22 +199,19 @@
                 
                 if (d2 < d1) {
                     feedback.classList.remove('hidden');
-                    feedback.className = "bg-red-50 text-red-700 p-3 rounded-lg text-sm font-bold border border-red-200 animate-pulse";
-                    feedback.innerHTML = '<i class="fas fa-exclamation-circle"></i> Invalid: End date cannot be before Start date.';
+                    feedback.className = "bg-red-50 text-red-700 p-3 rounded-lg text-sm font-bold border border-red-200";
+                    feedback.innerHTML = 'Invalid: End date cannot be before Start date.';
                 } else {
                     isDateValid = true;
-                    feedback.className = "bg-blue-50 text-blue-800 p-3 rounded-lg text-sm flex items-center justify-between border border-blue-100 animate-fade-in";
                     feedback.classList.remove('hidden');
+                    feedback.className = "bg-blue-50 text-blue-800 p-3 rounded-lg text-sm flex items-center justify-between border border-blue-100";
                     
                     const days = Math.ceil(Math.abs(d2 - d1) / (86400000)) + 1;
-                    
                     let warningHtml = '';
-                    // Escalation Rules: > 2 days OR Medical
                     if (days > 2 || (reason && reason.value === 'Medical')) {
-                        warningHtml = `<span class="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-1 rounded border border-orange-200"><i class="fas fa-arrow-up"></i> Requires HOD</span>`;
+                        warningHtml = `<span class="bg-orange-100 text-orange-700 text-xs font-bold px-2 py-1 rounded border border-orange-200">Requires HOD</span>`;
                     }
-
-                    feedback.innerHTML = `<span class="font-medium"><i class="fas fa-clock mr-2"></i> Duration: <strong>${days}</strong> Days</span> ${warningHtml}`;
+                    feedback.innerHTML = `<span>Duration: <strong>${days}</strong> Days</span> ${warningHtml}`;
                 }
             } else {
                 feedback.classList.add('hidden');
@@ -225,7 +220,7 @@
             const btn = document.getElementById('submit-btn');
             if (reason && start && end && note.length > 5 && isDateValid) {
                 btn.disabled = false;
-                btn.className = "w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200 text-lg transform hover:-translate-y-1";
+                btn.className = "w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 transition shadow-lg text-lg";
                 btn.innerText = "Submit Request";
             } else {
                 btn.disabled = true;
@@ -234,55 +229,48 @@
             }
         }
 
-        document.getElementById('request-form').addEventListener('change', updateFormState);
         document.getElementById('request-form').addEventListener('input', updateFormState);
 
-        document.getElementById('request-form').addEventListener('submit', async (e) => {
+        // --- SUBMISSION LOGIC ---
+        document.getElementById('request-form').onsubmit = async (e) => {
             e.preventDefault();
             const btn = document.getElementById('submit-btn');
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Submitting...';
 
-            const user = auth.currentUser;
-            const reasonType = document.querySelector('input[name="reasonType"]:checked').value;
-            const start = document.getElementById('start-date').value;
-            const end = document.getElementById('end-date').value;
-            const note = document.getElementById('custom-reason').value;
-
             try {
-                // Double Check Block Status Server-Side
-                const freshDoc = await db.collection('users').doc(user.uid).get();
-                if(freshDoc.data().isBlocked) throw new Error("Security Block: Action Denied.");
-
                 await db.collection('permissions').add({
-                    studentID: user.uid,
-                    studentName: freshDoc.data().displayName,
-                    email: user.email,
-                    rollNumber: freshDoc.data().rollNumber,
-                    department: freshDoc.data().department,
-                    reasonType: reasonType,
-                    reason: note,
-                    startDate: start,
-                    endDate: end,
+                    studentID: auth.currentUser.uid,
+                    studentName: document.getElementById('display-name').innerText,
+                    email: auth.currentUser.email,
+                    rollNumber: userProfile.rollNumber,
+                    department: userProfile.department,
+                    reasonType: document.querySelector('input[name="reasonType"]:checked').value,
+                    reason: document.getElementById('custom-reason').value,
+                    startDate: document.getElementById('start-date').value,
+                    endDate: document.getElementById('end-date').value,
                     status: 'PENDING_TEACHER',
                     timestamp: new Date().toISOString(),
-                    workflowHistory: [{
-                        step: 'SUBMITTED', actor: 'student', timestamp: new Date().toISOString(), note: 'Request initiated'
-                    }]
+                    workflowHistory: [{ step: 'SUBMITTED', actor: 'student', timestamp: new Date().toISOString() }]
                 });
 
                 window.location.href = 'portalB.html';
             } catch (err) {
-                alert(err.message);
+                alert("Submission Failed: " + err.message);
                 btn.disabled = false;
                 btn.innerText = "Submit Request";
             }
-        });
+        };
 
-        document.getElementById('logout-btn').addEventListener('click', () => {
-            sessionStorage.clear();
-            auth.signOut().then(() => window.location.href = '../../public/login.html');
-        });
+        // --- LOGOUT LOGIC ---
+        document.getElementById('logout-btn').onclick = async () => {
+            if(confirm("Are you sure you want to logout?")) {
+                sessionStorage.clear();
+                localStorage.clear();
+                await auth.signOut();
+                location.href = '../../public/login.html';
+            }
+        };
     </script>
 </body>
 </html>
