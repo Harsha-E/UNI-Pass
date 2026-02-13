@@ -3,104 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Faculty Dashboard | UNI-PASS</title>
+    <title>Teacher Dashboard | UNI-PASS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../assets/css/style.css">
-    <script src="../../assets/js/ui.js" defer></script>
+    <link rel="stylesheet" href="../../assets/css/styles.css">
+    <link rel="stylesheet" href="../../assets/css/table-view.css">
     <script type="module" src="../../assets/js/route-guard.js"></script>
-    <script>
-        tailwind.config = { theme: { extend: { colors: { brand: { 600: '#2563eb', 900: '#1e3a8a' } } } } }
-    </script>
 </head>
-<body class="bg-gray-50 font-sans h-screen flex overflow-hidden">
+<body class="bg-slate-100 font-sans h-screen flex overflow-hidden">
 
-    <div id="mobile-overlay" onclick="toggleSidebar()" class="fixed inset-0 bg-black/50 z-40 hidden md:hidden glass"></div>
-
-    <aside id="sidebar" class="fixed inset-y-0 left-0 w-64 bg-white border-r border-gray-200 z-50 transform -translate-x-full transition-transform duration-300 md:relative md:translate-x-0 flex flex-col shadow-xl md:shadow-none">
-        <div class="h-16 flex items-center justify-between px-6 border-b border-gray-100">
+    <aside class="fixed inset-y-0 left-0 w-64 bg-slate-900 text-white z-50 flex flex-col shadow-xl">
+        <!-- Sidebar content (similar to student portal) -->
+        <div class="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950">
             <div class="flex items-center gap-2">
-                <span class="font-bold text-xl text-gray-800 tracking-tight">UNI-PASS</span>
-                <span class="text-[10px] bg-brand-600 text-white px-2 py-0.5 rounded uppercase font-bold">Faculty</span>
-            </div>
-            <button onclick="toggleSidebar()" class="md:hidden text-gray-400"><i class="fas fa-times"></i></button>
-        </div>
-        
-        <div class="p-6">
-            <div class="flex items-center gap-3 mb-2">
-                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-brand-600 to-brand-900 text-white flex items-center justify-center font-bold text-xl shadow-md">
-                    <span id="avatar-initial">T</span>
-                </div>
-                <div>
-                    <h4 class="text-sm font-bold text-gray-900 truncate w-32" id="teacher-name">Loading...</h4>
-                    <p class="text-xs text-gray-500">Class Advisor</p>
-                </div>
+                <i class="fas fa-chalkboard-teacher text-blue-500"></i>
+                <span class="font-bold text-lg tracking-wider">TEACHER</span>
             </div>
         </div>
-
-        <nav class="flex-1 px-4 space-y-2 overflow-y-auto">
-            <button onclick="filterView('incoming')" id="tab-incoming" class="w-full flex items-center justify-between px-4 py-3 bg-brand-50 text-brand-900 rounded-xl font-bold transition border border-brand-100 shadow-sm">
-                <div class="flex items-center gap-3"><i class="fas fa-inbox"></i> Incoming</div>
-                <span id="badge-incoming" class="bg-brand-600 text-white text-xs px-2 py-0.5 rounded-full shadow-sm">0</span>
-            </button>
-            <button onclick="filterView('escalated')" id="tab-escalated" class="w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl font-medium transition">
-                <i class="fas fa-share w-5"></i> Escalated
-            </button>
-            <button onclick="filterView('history')" id="tab-history" class="w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl font-medium transition">
-                <i class="fas fa-history w-5"></i> History
-            </button>
+        <nav class="flex-1 px-4 space-y-2 mt-4">
+            <a href="portalA.html" class="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl font-bold transition-all">
+                <i class="fas fa-inbox w-4"></i> Inbox
+            </a>
+            <a href="history.html" id="nav-history" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl font-bold transition-all">
+                <i class="fas fa-history w-4"></i> History
+            </a>
+            <a href="myclass.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl font-bold transition-all">
+                <i class="fas fa-users w-4"></i> My Class
+            </a>
+            <a href="substitutes.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl font-bold transition-all">
+                <i class="fas fa-user-friends w-4"></i> Substitutes
+            </a>
         </nav>
 
-        <div class="p-4 border-t border-gray-100">
-            <button id="logout-btn" class="w-full py-2 flex items-center justify-center gap-2 text-red-500 hover:bg-red-50 rounded-lg transition text-sm font-bold">
+        <div class="p-4 border-t border-slate-800">
+            <button id="logout-btn" class="w-full py-2 flex items-center justify-center gap-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition text-sm font-bold">
                 <i class="fas fa-sign-out-alt"></i> Log Out
             </button>
         </div>
     </aside>
 
-    <main class="flex-1 flex flex-col h-full w-full overflow-hidden relative">
-        <header class="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 md:px-8 shrink-0 z-10 shadow-sm">
-            <div class="flex items-center gap-3">
-                <button onclick="toggleSidebar()" class="md:hidden text-gray-500 p-2 -ml-2"><i class="fas fa-bars text-xl"></i></button>
-                <h2 class="text-lg md:text-xl font-bold text-gray-800 truncate" id="view-title">Incoming Requests</h2>
-            </div>
-            <div class="hidden md:flex items-center gap-2 px-3 py-1 bg-green-50 rounded-full border border-green-100">
-                <span class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                <span class="text-xs font-bold text-green-700">System Live</span>
-            </div>
-        </header>
-
-        <div class="flex-1 overflow-y-auto p-4 md:p-8 bg-gray-50" id="main-scroll">
-            <div id="request-feed" class="max-w-3xl mx-auto space-y-4 pb-20">
+    <main class="flex-1 flex flex-col h-full w-full ml-64 overflow-y-auto p-8 bg-slate-100">
+        <div id="view-inbox">
+            <header class="mb-8">
+                <h1 class="text-2xl font-bold text-slate-800">Pending Requests</h1>
+                <p class="text-slate-500 text-sm">Manage pending requests with sorting and bulk actions.</p>
+            </header>
+            <div class="bg-white rounded-xl border border-slate-200 shadow-sm mb-4 p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <button id="bulk-approve-btn" disabled class="px-4 py-2 bg-slate-100 text-slate-400 font-bold text-xs rounded-lg cursor-not-allowed flex items-center gap-2 transition-all">
+                        <i class="fas fa-check-double"></i> Approve
+                    </button>
+                    <button id="bulk-reject-btn" disabled class="px-4 py-2 bg-slate-100 text-slate-400 font-bold text-xs rounded-lg cursor-not-allowed flex items-center gap-2 transition-all">
+                        <i class="fas fa-times-circle"></i> Reject
+                    </button>
+                    <span id="selection-count" class="text-xs font-bold text-slate-400"></span>
                 </div>
-            
-            <div id="empty-state" class="hidden flex flex-col items-center justify-center h-64 text-center">
-                <div class="w-16 h-16 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-300 text-3xl mb-4 shadow-sm">
-                    <i class="fas fa-check"></i>
+                <div class="relative w-full md:w-64">
+                    <i class="fas fa-search absolute left-3 top-2.5 text-slate-400"></i>
+                    <input type="text" id="inbox-search" placeholder="Search inbox..." class="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm">
                 </div>
-                <h3 class="text-gray-900 font-bold">All caught up!</h3>
-                <p class="text-gray-500 text-sm">No pending requests in this category.</p>
+            </div>
+            <div class="table-viewport">
+                <table class="w-full text-sm text-left text-slate-500">
+                    <thead class="text-xs text-slate-700 uppercase">
+                        <tr>
+                            <th class="px-4 py-4 w-10"><input type="checkbox" id="select-all-checkbox" class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"></th>
+                            <th scope="col" class="px-6 py-4 sortable cursor-pointer hover:bg-slate-100 transition" data-sort="student.name">Student <i class="fas fa-sort ml-1 text-slate-300"></i></th>
+                            <th scope="col" class="px-6 py-4 sortable cursor-pointer hover:bg-slate-100 transition" data-sort="startDate">Dates <i class="fas fa-sort ml-1 text-slate-300"></i></th>
+                            <th scope="col" class="px-6 py-4">Reason</th>
+                            <th scope="col" class="px-6 py-4 text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="inbox-table-body"></tbody>
+                </table>
             </div>
         </div>
+
     </main>
 
-    <div id="action-modal" class="fixed inset-0 z-50 hidden">
-        <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm transition-opacity" onclick="closeModal()"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl p-6 w-[90%] max-w-md scale-100 transition-transform">
-            <h3 class="text-lg font-bold text-gray-900 mb-2" id="modal-title">Confirm Action</h3>
-            <p class="text-sm text-gray-500 mb-4" id="modal-desc">Are you sure?</p>
-            
-            <div id="reject-controls" class="hidden space-y-3">
-                <textarea id="reason-input" class="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-500 outline-none" placeholder="Reason for rejection..." rows="3"></textarea>
-                <label class="flex items-center gap-3 p-3 border border-red-100 bg-red-50 rounded-lg cursor-pointer">
-                    <input type="checkbox" id="block-check" class="w-4 h-4 text-red-600 focus:ring-red-500 rounded border-gray-300">
-                    <span class="text-sm font-bold text-red-700">Block Student (Spam)</span>
-                </label>
+    <!-- Quick View Modal -->
+    <div id="quick-view-modal" class="fixed inset-0 z-[60] hidden">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeQuickView()"></div>
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div class="bg-slate-900 p-6 text-white flex justify-between items-center">
+                <h3 class="font-bold text-lg">Request Details</h3>
+                <button onclick="closeQuickView()" class="text-slate-400 hover:text-white transition"><i class="fas fa-times"></i></button>
             </div>
-
-            <div class="flex gap-3 justify-end mt-6">
-                <button onclick="closeModal()" class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg font-medium transition text-sm">Cancel</button>
-                <button id="confirm-btn" class="px-6 py-2 bg-brand-600 text-white rounded-lg font-bold shadow-lg hover:bg-brand-700 transition text-sm">Confirm</button>
+            <div class="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+                <div class="grid grid-cols-2 gap-4">
+                    <div><p class="text-[10px] font-bold text-slate-400 uppercase">Student</p><p id="qv-name" class="font-bold text-slate-800"></p></div>
+                    <div><p class="text-[10px] font-bold text-slate-400 uppercase">Roll Number</p><p id="qv-roll" class="font-mono text-slate-600"></p></div>
+                    <div><p class="text-[10px] font-bold text-slate-400 uppercase">Type</p><p id="qv-type" class="font-bold text-blue-600"></p></div>
+                    <div><p class="text-[10px] font-bold text-slate-400 uppercase">Duration</p><p id="qv-duration" class="font-bold text-slate-800"></p></div>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-1">Reason</p>
+                    <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 text-sm text-slate-700 italic" id="qv-reason"></div>
+                </div>
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase mb-3">Workflow History</p>
+                    <div id="qv-logs" class="space-y-3 border-l-2 border-slate-100 ml-2 pl-4">
+                        <!-- Logs injected here -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -109,217 +114,236 @@
         import { db, auth } from '../../assets/js/firebase-init.js';
         import { PermissionService } from '../../assets/js/permission-flow.js';
 
-        let currentView = 'incoming';
-        let activeRequestId = null;
-        let activeStudentId = null;
+        let teacherProfile = null;
+        let inboxData = [];
+        let sortState = { key: null, dir: 'asc' };
 
-        // --- UI TOGGLE ---
-        window.toggleSidebar = () => {
-            const sb = document.getElementById('sidebar');
-            const ov = document.getElementById('mobile-overlay');
-            sb.classList.toggle('-translate-x-full');
-            ov.classList.toggle('hidden');
-        };
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                db.collection('users').doc(user.uid).get().then(doc => {
+                    if (!doc.exists) return;
+                    teacherProfile = { uid: doc.id, ...doc.data() };
 
-        // --- AUTH ---
-        auth.onAuthStateChanged(async user => {
-            if (!user) location.href = '../../public/login.html';
-            const profile = await db.collection('users').doc(user.uid).get();
-            const data = profile.data();
+                    loadAllData();
+                });
+            } else {
+                window.location.href = '../../public/login.html';
+            }
+        });
+
+        function loadAllData() {
+            db.collection('permissions')
+              .where('currentHandlerUid', '==', teacherProfile.uid)
+              .onSnapshot(snap => {
+                  inboxData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                  renderInboxTable();
+              });
+        }
+
+        function renderInboxTable() {
+            const tbody = document.getElementById('inbox-table-body');
+            const searchTerm = document.getElementById('inbox-search').value.toLowerCase();
+            tbody.innerHTML = '';
             
-            // Security Check
-            if (data.role !== 'teacher') {
-                alert("Unauthorized: Access restricted to Faculty.");
-                location.href = '../../public/login.html';
+            document.querySelectorAll('.sortable i').forEach(icon => {
+                icon.className = 'fas fa-sort ml-1 text-slate-300';
+            });
+            if (sortState.key) {
+                const activeIcon = document.querySelector(`.sortable[data-sort="${sortState.key}"] i`);
+                if (activeIcon) activeIcon.className = `fas fa-sort-${sortState.dir === 'asc' ? 'up' : 'down'} ml-1 text-blue-600`;
+            }
+
+            if (inboxData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-slate-400 p-8">Your inbox is empty.</td></tr>`;
                 return;
             }
 
-            document.getElementById('teacher-name').innerText = data.displayName || "Faculty";
-            document.getElementById('avatar-initial').innerText = (data.displayName || "T").charAt(0);
-            loadData();
+            const filteredData = inboxData.filter(req => 
+                req.student.name.toLowerCase().includes(searchTerm) || 
+                req.student.rollNumber.toLowerCase().includes(searchTerm) ||
+                req.reason.toLowerCase().includes(searchTerm)
+            );
+
+            if (sortState.key) {
+                filteredData.sort((a, b) => {
+                    let valA = a[sortState.key];
+                    let valB = b[sortState.key];
+                    if (sortState.key.includes('.')) {
+                        valA = sortState.key.split('.').reduce((o, i) => o[i], a);
+                        valB = sortState.key.split('.').reduce((o, i) => o[i], b);
+                    }
+                    if (valA < valB) return sortState.dir === 'asc' ? -1 : 1;
+                    if (valA > valB) return sortState.dir === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
+
+            if (filteredData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center text-slate-400 p-8">No matching requests found.</td></tr>`;
+                return;
+            }
+
+            filteredData.forEach(request => {
+                const duration = Math.ceil((new Date(request.endDate) - new Date(request.startDate)) / 86400000) + 1;
+                const row = document.createElement('tr');
+                row.className = 'bg-white border-b hover:bg-slate-50';
+                row.innerHTML = `
+                    <td class="px-4 py-4"><input type="checkbox" class="row-checkbox w-4 h-4 text-blue-600 rounded" data-id="${request.id}"></td>
+                    <td class="px-6 py-4"><div class="font-bold text-slate-800">${request.student.name}</div><div class="text-xs text-slate-500">${request.student.rollNumber}</div></td>
+                    <td class="px-6 py-4"><div class="font-bold text-slate-800">${request.startDate} to ${request.endDate}</div><div class="text-xs text-slate-500">${duration} Day(s)</div></td>
+                    <td class="px-6 py-4"><p class="max-w-xs truncate" title="${request.reason}">${request.reason}</p></td>
+                    <td class="px-6 py-4 text-center space-x-2 action-cell">
+                        <button onclick="openQuickView('${request.id}')" class="px-3 py-1 text-xs font-bold text-slate-600 bg-slate-100 rounded-md hover:bg-slate-200"><i class="fas fa-eye"></i></button>
+                        <button onclick="handleAction('${request.id}', 'APPROVE')" class="action-btn px-3 py-1 text-xs font-bold text-white bg-blue-600 rounded-md hover:bg-blue-700">Approve</button>
+                        <button onclick="handleAction('${request.id}', 'REJECT')" class="action-btn px-3 py-1 text-xs font-bold text-white bg-red-600 rounded-md hover:bg-red-700">Reject</button>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            addSelectionListeners();
+        }
+
+        window.openQuickView = (id) => {
+            const req = inboxData.find(r => r.id === id);
+            if (!req) return;
+
+            document.getElementById('qv-name').innerText = req.student.name;
+            document.getElementById('qv-roll').innerText = req.student.rollNumber;
+            document.getElementById('qv-type').innerText = req.type;
+            document.getElementById('qv-reason').innerText = req.reason;
+            
+            const duration = Math.ceil((new Date(req.endDate) - new Date(req.startDate)) / 86400000) + 1;
+            document.getElementById('qv-duration').innerText = `${duration} Day(s) (${req.startDate} to ${req.endDate})`;
+
+            const logsContainer = document.getElementById('qv-logs');
+            logsContainer.innerHTML = req.logs.map(log => `
+                <div class="relative">
+                    <div class="absolute -left-[21px] top-1.5 w-3 h-3 rounded-full bg-white border-2 border-blue-500"></div>
+                    <p class="text-xs font-bold text-slate-800">${log.action}</p>
+                    <p class="text-[10px] text-slate-500">${log.by} • ${new Date(log.at).toLocaleString()}</p>
+                    ${log.reason ? `<p class="text-[10px] text-red-500 mt-1 italic">"${log.reason}"</p>` : ''}
+                </div>
+            `).join('');
+
+            document.getElementById('quick-view-modal').classList.remove('hidden');
+            document.body.style.overflow = 'hidden';
+        };
+
+        window.closeQuickView = () => {
+            document.getElementById('quick-view-modal').classList.add('hidden');
+            document.body.style.overflow = '';
+        };
+
+        window.handleAction = async (docId, action) => {
+            const button = event.target;
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                let details = {};
+                if (action === 'REJECT') {
+                    details.reason = prompt("Please provide a reason for rejection:");
+                    if (!details.reason) { button.disabled = false; button.innerHTML = 'Reject'; return; }
+                }
+                await PermissionService.processRequestAction(docId, action, details);
+                // The onSnapshot listener will automatically remove the row from the UI.
+            } catch (err) {
+                alert("Error: " + err.message);
+                button.disabled = false;
+                button.innerHTML = action === 'APPROVE' ? 'Approve' : 'Reject';
+            }
+        };
+
+        document.querySelectorAll('.sortable').forEach(header => {
+            header.addEventListener('click', () => {
+                const key = header.dataset.sort;
+                if (sortState.key === key) {
+                    sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortState.key = key;
+                    sortState.dir = 'asc';
+                }
+                renderInboxTable();
+            });
         });
 
-        // --- NAVIGATION ---
-        window.filterView = (view) => {
-            currentView = view;
-            if(window.innerWidth < 768) window.toggleSidebar(); // Auto-close on mobile
-
-            // Reset Tabs
-            document.querySelectorAll('nav button').forEach(b => {
-                b.className = "w-full flex items-center gap-3 px-4 py-3 text-gray-500 hover:bg-gray-50 rounded-xl font-medium transition";
-                if(b.id === 'tab-incoming') b.innerHTML = `<div class="flex items-center gap-3"><i class="fas fa-inbox"></i> Incoming</div><span id="badge-incoming" class="bg-gray-200 text-gray-600 text-xs px-2 py-0.5 rounded-full">0</span>`;
+        function addSelectionListeners() {
+            document.getElementById('select-all-checkbox').addEventListener('change', (e) => {
+                document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = e.target.checked);
+                updateBulkButtonState();
             });
-            
-            const activeTab = document.getElementById(`tab-${view}`);
-            activeTab.className = "w-full flex items-center justify-between px-4 py-3 bg-brand-50 text-brand-900 rounded-xl font-bold transition shadow-sm border border-brand-100";
-            
-            if(view === 'incoming') {
-                document.getElementById('view-title').innerText = "Incoming Requests";
-                activeTab.innerHTML = `<div class="flex items-center gap-3"><i class="fas fa-inbox"></i> Incoming</div><span id="badge-incoming" class="bg-brand-600 text-white text-xs px-2 py-0.5 rounded-full shadow-sm">0</span>`;
-            } else if (view === 'escalated') {
-                document.getElementById('view-title').innerText = "Escalated to HOD";
-            } else {
-                document.getElementById('view-title').innerText = "History";
-            }
-            
-            loadData();
-        };
-
-        // --- DATA LOAD ---
-        async function loadData() {
-            const feed = document.getElementById('request-feed');
-            const empty = document.getElementById('empty-state');
-            feed.innerHTML = '<div class="p-12 text-center text-gray-400"><i class="fas fa-circle-notch fa-spin text-2xl"></i></div>';
-
-            const user = auth.currentUser;
-            const profileSnap = await db.collection('users').doc(user.uid).get();
-            const myDept = profileSnap.data().department;
-
-            let query = db.collection('permissions');
-
-            if (currentView === 'incoming') {
-                query = query.where('status', '==', 'PENDING_TEACHER').where('department', '==', myDept);
-            } else if (currentView === 'escalated') {
-                query = query.where('status', '==', 'PENDING_HOD').where('department', '==', myDept);
-            } else {
-                query = query.where('approvals.teacher.uid', '==', user.uid);
-            }
-
-            query.orderBy('timestamp', 'desc').onSnapshot(snap => {
-                if(currentView === 'incoming') document.getElementById('badge-incoming').innerText = snap.size;
-                
-                if(snap.empty) {
-                    feed.innerHTML = '';
-                    empty.classList.remove('hidden');
-                    return;
-                }
-                
-                empty.classList.add('hidden');
-                feed.innerHTML = '';
-
-                snap.forEach(doc => {
-                    const data = doc.data();
-                    feed.appendChild(createCard(doc.id, data));
-                });
-            });
+            document.querySelectorAll('.row-checkbox').forEach(cb => cb.addEventListener('change', updateBulkButtonState));
         }
 
-        function createCard(id, data) {
-            const d1 = new Date(data.startDate);
-            const d2 = new Date(data.endDate);
-            const days = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
-            const isMedical = data.reasonType === 'Medical';
-            const willEscalate = (days > 2 || isMedical) && currentView === 'incoming';
-
-            const card = document.createElement('div');
-            card.className = "bg-white p-5 rounded-2xl border border-gray-200 shadow-sm hover:shadow-md transition relative overflow-hidden";
-            
-            // Priority Styling
-            if(isMedical) card.classList.add('border-l-4', 'border-l-red-500');
-            else if(days > 2) card.classList.add('border-l-4', 'border-l-orange-500');
-            else card.classList.add('border-l-4', 'border-l-brand-600');
-
-            card.innerHTML = `
-                <div class="flex justify-between items-start mb-3">
-                    <div class="flex items-center gap-3">
-                        <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center font-bold text-gray-500 text-lg border border-gray-200">
-                            ${data.studentName.charAt(0)}
-                        </div>
-                        <div>
-                            <h4 class="text-base font-bold text-gray-900 leading-tight">${data.studentName}</h4>
-                            <p class="text-xs text-gray-500 font-mono">${data.rollNumber}</p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <span class="block text-xl font-black text-gray-800 leading-none">${days}d</span>
-                        <span class="text-[10px] uppercase font-bold text-gray-400 tracking-wide">${data.reasonType}</span>
-                    </div>
-                </div>
-
-                <div class="flex gap-2 mb-3">
-                    ${willEscalate ? '<span class="bg-orange-50 text-orange-700 px-2 py-1 rounded text-[10px] font-bold border border-orange-100 flex items-center gap-1 w-fit"><i class="fas fa-arrow-up"></i> HOD Required</span>' : ''}
-                    <span class="bg-gray-50 text-gray-600 px-2 py-1 rounded text-[10px] font-bold border border-gray-100 w-fit">${new Date(data.startDate).toLocaleDateString()} - ${new Date(data.endDate).toLocaleDateString()}</span>
-                </div>
-
-                <div class="bg-gray-50 p-3 rounded-xl text-sm text-gray-600 italic border border-gray-100 mb-4">
-                    "${data.reason}"
-                </div>
-
-                ${currentView === 'incoming' ? `
-                <div class="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100">
-                    <button onclick="prepAction('${id}', '${data.studentID}', 'reject')" class="py-2.5 border border-red-100 text-red-600 bg-white hover:bg-red-50 rounded-lg font-bold text-sm transition">Reject</button>
-                    <button onclick="prepAction('${id}', '${data.studentID}', 'approve', ${willEscalate})" class="py-2.5 bg-gray-900 text-white hover:bg-gray-800 rounded-lg font-bold text-sm shadow-md transition">
-                        ${willEscalate ? 'Endorse' : 'Approve'}
-                    </button>
-                </div>` : ''}
-            `;
-            return card;
+        function updateBulkButtonState() {
+            const selected = document.querySelectorAll('.row-checkbox:checked');
+            const approveBtn = document.getElementById('bulk-approve-btn');
+            const rejectBtn = document.getElementById('bulk-reject-btn');
+            document.getElementById('selection-count').textContent = selected.length > 0 ? `${selected.length} selected` : '';
+            if (selected.length > 0) {
+                approveBtn.disabled = false;
+                approveBtn.className = "px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg hover:bg-blue-700 flex items-center gap-2 shadow-lg shadow-blue-200 transition-all";
+                rejectBtn.disabled = false;
+                rejectBtn.className = "px-4 py-2 bg-red-600 text-white font-bold text-xs rounded-lg hover:bg-red-700 flex items-center gap-2 shadow-lg shadow-red-200 transition-all";
+            } else {
+                approveBtn.disabled = true;
+                approveBtn.className = "px-4 py-2 bg-slate-100 text-slate-400 font-bold text-xs rounded-lg cursor-not-allowed flex items-center gap-2 transition-all";
+                rejectBtn.disabled = true;
+                rejectBtn.className = "px-4 py-2 bg-slate-100 text-slate-400 font-bold text-xs rounded-lg cursor-not-allowed flex items-center gap-2 transition-all";
+            }
         }
 
-        // --- ACTIONS ---
-        window.prepAction = (id, studentId, action, isEscalation) => {
-            activeRequestId = id;
-            activeStudentId = studentId;
-            const modal = document.getElementById('action-modal');
-            const title = document.getElementById('modal-title');
-            const desc = document.getElementById('modal-desc');
-            const rejectControls = document.getElementById('reject-controls');
-            const btn = document.getElementById('confirm-btn');
+        document.getElementById('bulk-approve-btn').addEventListener('click', async () => {
+            const selected = document.querySelectorAll('.row-checkbox:checked');
+            if (selected.length === 0 || !confirm(`Approve ${selected.length} requests at once?`)) return;
 
-            modal.classList.remove('hidden');
+            const btn = document.getElementById('bulk-approve-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
 
-            if (action === 'approve') {
-                rejectControls.classList.add('hidden');
-                title.innerText = isEscalation ? "Endorse Escalation?" : "Approve Request?";
-                desc.innerHTML = isEscalation 
-                    ? "This request requires HOD approval. Confirm endorsement?" 
-                    : "This will generate a valid pass immediately.";
-                
-                btn.className = "px-6 py-2 bg-brand-600 text-white rounded-lg font-bold hover:bg-brand-700 shadow-lg";
-                btn.innerText = "Confirm";
-                
-                btn.onclick = async () => {
-                    btn.disabled = true; btn.innerText = "Processing...";
-                    try {
-                        const freshDoc = await db.collection('permissions').doc(activeRequestId).get();
-                        await PermissionService.approveRequest(activeRequestId, freshDoc.data());
-                        closeModal();
-                    } catch(e) { alert(e.message); } 
-                    finally { btn.disabled = false; }
-                };
-
-            } else {
-                rejectControls.classList.remove('hidden');
-                title.innerText = "Reject Request";
-                desc.innerText = "Please provide a reason.";
-                
-                btn.className = "px-6 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 shadow-lg";
-                btn.innerText = "Reject";
-
-                btn.onclick = async () => {
-                    const reason = document.getElementById('reason-input').value;
-                    const shouldBlock = document.getElementById('block-check').checked;
-                    
-                    if(!reason) { alert("Please enter a reason."); return; }
-                    
-                    btn.disabled = true; btn.innerText = "Processing...";
-                    try {
-                        if(shouldBlock) {
-                            if(confirm("Confirm BLOCK user?")) await PermissionService.blockStudent(activeRequestId, activeStudentId, reason);
-                        } else {
-                            await PermissionService.rejectRequest(activeRequestId, reason);
-                        }
-                        closeModal();
-                    } catch(e) { alert(e.message); }
-                    finally { btn.disabled = false; }
-                };
+            const promises = Array.from(selected).map(cb => PermissionService.processRequestAction(cb.dataset.id, 'APPROVE'));
+            
+            try {
+                await Promise.all(promises);
+                alert(`${promises.length} requests approved successfully.`);
+            } catch (err) {
+                alert(`An error occurred during bulk approval: ${err.message}`);
+            } finally {
+                btn.innerHTML = '<i class="fas fa-check-double"></i> Approve Selected';
+                document.getElementById('select-all-checkbox').checked = false;
+                updateBulkButtonState();
             }
-        };
+        });
 
-        window.closeModal = () => document.getElementById('action-modal').classList.add('hidden');
-        document.getElementById('logout-btn').onclick = () => {
-            auth.signOut().then(() => location.href = '../../public/login.html');
-        };
+        document.getElementById('bulk-reject-btn').addEventListener('click', async () => {
+            const selected = document.querySelectorAll('.row-checkbox:checked');
+            if (selected.length === 0) return;
+            
+            const reason = prompt(`Reject ${selected.length} requests? Enter reason for all:`);
+            if (!reason) return;
+
+            const btn = document.getElementById('bulk-reject-btn');
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+
+            try {
+                const promises = Array.from(selected).map(cb => PermissionService.processRequestAction(cb.dataset.id, 'REJECT', { reason }));
+                await Promise.all(promises);
+                alert(`${promises.length} requests rejected.`);
+            } catch (err) {
+                alert(`Error: ${err.message}`);
+            } finally {
+                btn.innerHTML = originalHTML;
+                document.getElementById('select-all-checkbox').checked = false;
+                updateBulkButtonState();
+            }
+        });
+
+        document.getElementById('inbox-search').addEventListener('input', renderInboxTable);
+
+        document.getElementById('logout-btn').onclick = () => auth.signOut().then(() => location.href = '../../public/login.html');
+
     </script>
 </body>
 </html>

@@ -3,378 +3,256 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Analytics Intelligence | UNI-PASS Admin</title>
-    
+    <title>Analytics | UNI-PASS Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        dark: { 800: '#1f2937', 900: '#111827' },
-                        brand: { 500: '#8b5cf6', 600: '#7c3aed' } // Violet Theme
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        /* --- CUSTOM PROFESSIONAL CURSOR --- */
-        body {
-            cursor: default; /* Fallback */
-        }
-        
-        /* The outer circle */
-        .cursor-dot-outline {
-            width: 32px;
-            height: 32px;
-            border: 2px solid rgba(139, 92, 246, 0.5); /* Brand Color */
-            border-radius: 50%;
-            position: fixed;
-            top: 0;
-            left: 0;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            z-index: 9999;
-            transition: width 0.2s, height 0.2s, background-color 0.2s;
-        }
-
-        /* The inner dot */
-        .cursor-dot {
-            width: 8px;
-            height: 8px;
-            background-color: #7c3aed;
-            border-radius: 50%;
-            position: fixed;
-            top: 0;
-            left: 0;
-            transform: translate(-50%, -50%);
-            pointer-events: none;
-            z-index: 9999;
-        }
-
-        /* Hover effect for links/buttons */
-        body.hovering .cursor-dot-outline {
-            width: 50px;
-            height: 50px;
-            background-color: rgba(139, 92, 246, 0.1);
-            border-color: transparent;
-        }
-    /* 1. HIDE DEFAULT CURSOR */
-    body, a, button, input {
-        cursor: none !important; /* Forces custom cursor everywhere */
-    }
-    
-    /* 2. CUSTOM CURSOR STYLES */
-    .cursor-dot-outline {
-        width: 32px;
-        height: 32px;
-        border: 2px solid rgba(139, 92, 246, 0.5);
-        border-radius: 50%;
-        position: fixed;
-        top: 0;
-        left: 0;
-        transform: translate(-50%, -50%);
-        pointer-events: none; /* Allows clicking through */
-        z-index: 9999;
-        transition: width 0.2s, height 0.2s, background-color 0.2s;
-    }
-
-    .cursor-dot {
-        width: 8px;
-        height: 8px;
-        background-color: #7c3aed;
-        border-radius: 50%;
-        position: fixed;
-        top: 0;
-        left: 0;
-        transform: translate(-50%, -50%);
-        pointer-events: none;
-        z-index: 9999;
-    }
-
-    /* Hover State */
-    body.hovering .cursor-dot-outline {
-        width: 50px;
-        height: 50px;
-        background-color: rgba(139, 92, 246, 0.1);
-        border-color: transparent;
-    }
-    </style>
+    <link rel="stylesheet" href="../../assets/css/styles.css">
+    <script src="../../assets/js/ui.js" defer></script>
+    <script type="module" src="../../assets/js/route-guard.js"></script>
 </head>
-<body class="bg-gray-100 font-sans text-gray-800 flex h-screen overflow-hidden">
+<body class="bg-slate-100 font-sans h-screen flex overflow-hidden">
 
-    <div class="cursor-dot-outline"></div>
-    <div class="cursor-dot"></div>
-
-    <aside class="w-64 bg-dark-900 text-gray-300 flex flex-col flex-shrink-0 transition-all duration-300 z-20 shadow-2xl">
-        <div class="h-16 flex items-center px-6 bg-dark-800 border-b border-gray-700">
-            <i class="fas fa-shield-alt text-brand-500 text-xl mr-3"></i>
-            <span class="font-bold text-lg text-white tracking-wider">ADMIN<span class="text-brand-500">_CONSOLE</span></span>
-        </div>
-
-        <nav class="flex-1 px-2 py-4 space-y-2 overflow-y-auto">
-            <a href="admin.html" class="flex items-center px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition group">
-                <i class="fas fa-arrow-left w-6 group-hover:-translate-x-1 transition-transform"></i> Back to Dashboard
-            </a>
-            <div class="pt-4 border-t border-gray-700 mt-2">
-                <p class="px-4 text-xs font-bold text-gray-500 uppercase mb-2">Reports</p>
-                <a href="#" class="flex items-center px-4 py-3 bg-gray-800 text-white rounded-lg transition shadow-inner">
-                    <i class="fas fa-chart-pie w-6 text-brand-500"></i> Permission Analytics
-                </a>
-                <a href="#" class="flex items-center px-4 py-3 text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition">
-                    <i class="fas fa-user-clock w-6"></i> Student Attendance
-                </a>
+    <aside class="fixed inset-y-0 left-0 w-64 bg-slate-900 text-white z-50 flex flex-col shadow-xl">
+        <div class="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-chart-pie text-blue-500"></i>
+                <span class="font-bold text-lg tracking-wider">ADMIN</span>
             </div>
+        </div>
+        <nav class="flex-1 px-4 space-y-2 mt-4">
+            <a href="admin.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl transition">
+                <i class="fas fa-th-large w-4"></i> Dashboard
+            </a>
+            <a href="analytics.html" class="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg transition">
+                <i class="fas fa-chart-line w-4"></i> Analytics
+            </a>
         </nav>
+        <div class="p-4 border-t border-slate-800">
+            <button id="logout-btn" class="w-full py-2 flex items-center justify-center gap-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition text-sm font-bold">
+                <i class="fas fa-sign-out-alt"></i> Log Out
+            </button>
+        </div>
     </aside>
 
-    <main class="flex-1 flex flex-col overflow-hidden relative">
+    <main class="flex-1 flex flex-col h-full w-full ml-64 overflow-y-auto p-8 bg-slate-100">
         
-        <header class="h-16 bg-white shadow-sm flex items-center justify-between px-8 z-10 border-b border-gray-200">
-            <h2 class="text-xl font-bold text-gray-800 flex items-center gap-2">
-                <i class="fas fa-chart-line text-brand-600"></i> Analytics Intelligence
-            </h2>
-            <div class="flex items-center gap-3">
-                <button onclick="loadAnalytics()" class="p-2 text-gray-400 hover:text-brand-600 transition rounded-full hover:bg-gray-100" title="Refresh Data">
-                    <i class="fas fa-sync-alt"></i>
-                </button>
-                <div class="text-xs text-gray-400 font-mono" id="last-updated">Updated: Just now</div>
+        <div class="flex justify-between items-center mb-8">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800">System Analytics</h1>
+                <p class="text-slate-500 text-sm">Real-time insights and trends.</p>
             </div>
-        </header>
-
-        <div class="flex-1 overflow-auto p-8 bg-gray-50">
-            
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Total Requests</p>
-                            <h3 class="text-3xl font-extrabold text-gray-900 mt-2" id="count-total">--</h3>
-                        </div>
-                        <div class="p-3 bg-indigo-50 text-indigo-600 rounded-lg"><i class="fas fa-layer-group"></i></div>
-                    </div>
-                </div>
-                
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition border-l-4 border-green-500">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Approved</p>
-                            <h3 class="text-3xl font-extrabold text-gray-900 mt-2" id="count-approved">--</h3>
-                        </div>
-                        <div class="p-3 bg-green-50 text-green-600 rounded-lg"><i class="fas fa-check-circle"></i></div>
-                    </div>
-                </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition border-l-4 border-yellow-500">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Pending Action</p>
-                            <h3 class="text-3xl font-extrabold text-gray-900 mt-2" id="count-pending">--</h3>
-                        </div>
-                        <div class="p-3 bg-yellow-50 text-yellow-600 rounded-lg"><i class="fas fa-hourglass-half"></i></div>
-                    </div>
-                </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <p class="text-xs text-gray-500 uppercase font-bold tracking-wider">Rejection Rate</p>
-                            <h3 class="text-3xl font-extrabold text-gray-900 mt-2" id="stat-rate">0%</h3>
-                        </div>
-                        <div class="p-3 bg-red-50 text-red-600 rounded-lg"><i class="fas fa-chart-bar"></i></div>
-                    </div>
-                </div>
+            <div class="flex gap-2">
+                <select id="time-range" class="bg-white border border-slate-200 text-slate-600 text-sm rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-blue-500" onchange="loadAnalytics()">
+                    <option value="7">Last 7 Days</option>
+                    <option value="30" selected>Last 30 Days</option>
+                    <option value="90">Last 3 Months</option>
+                </select>
+                <button onclick="loadAnalytics()" class="p-2 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 text-slate-500 transition"><i class="fas fa-sync-alt"></i></button>
             </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                    <h3 class="font-bold text-gray-800 mb-6">Approval Distribution</h3>
-                    <div class="relative h-64 w-full flex justify-center">
-                        <canvas id="statusChart"></canvas>
-                    </div>
-                </div>
-
-                <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
-                    <h3 class="font-bold text-gray-800 mb-6">Common Reasons</h3>
-                    <div class="relative h-64 w-full">
-                        <canvas id="reasonChart"></canvas>
-                    </div>
-                </div>
-
-            </div>
-
         </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <p class="text-xs font-bold text-slate-400 uppercase">Total Requests</p>
+                <h3 class="text-3xl font-black text-slate-800 mt-1" id="kpi-total">0</h3>
+                <div class="mt-2 text-xs text-green-600 font-bold flex items-center gap-1">
+                    <i class="fas fa-arrow-up"></i> 12% <span class="text-slate-400 font-normal">vs last period</span>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <p class="text-xs font-bold text-slate-400 uppercase">Approval Rate</p>
+                <h3 class="text-3xl font-black text-slate-800 mt-1" id="kpi-rate">0%</h3>
+                <div class="w-full bg-slate-100 h-1.5 rounded-full mt-3 overflow-hidden">
+                    <div class="bg-green-500 h-full" id="kpi-rate-bar" style="width: 0%"></div>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <p class="text-xs font-bold text-slate-400 uppercase">Active Students</p>
+                <h3 class="text-3xl font-black text-slate-800 mt-1" id="kpi-users">0</h3>
+                <p class="text-xs text-slate-400 mt-1">On platform</p>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <p class="text-xs font-bold text-slate-400 uppercase">Avg Response Time</p>
+                <h3 class="text-3xl font-black text-slate-800 mt-1">4.2h</h3>
+                <p class="text-xs text-slate-400 mt-1">Faster than goal (6h)</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="font-bold text-slate-800 mb-4">Request Trends</h3>
+                <div class="h-72 w-full">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="font-bold text-slate-800 mb-4">Reasons Breakdown</h3>
+                <div class="h-64 w-full flex items-center justify-center">
+                    <canvas id="doughnutChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="font-bold text-slate-800 mb-4">Department Activity</h3>
+                <div class="h-64 w-full">
+                    <canvas id="deptChart"></canvas>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h3 class="font-bold text-slate-800 mb-4">Top 5 Frequent Requesters</h3>
+                <ul class="space-y-3" id="top-users-list">
+                    <li class="text-center text-slate-400 text-sm p-4">Loading data...</li>
+                </ul>
+            </div>
+        </div>
+
     </main>
 
     <script type="module">
-        import { db, auth } from '../assets/js/firebase-init.js';
+        import { db, auth } from '../../assets/js/firebase-init.js';
 
-        // --- 1. AUTH GUARD (SECURED) ---
-        auth.onAuthStateChanged(async (user) => {
-            if (!user) {
-                window.location.href = '../public/login.html';
-                return;
-            }
+        let trendChart, doughnutChart, deptChart;
 
-            // SECURITY CHECK: Verify Admin Role
-            try {
-                const userDoc = await db.collection('users').doc(user.uid).get();
-                
-                if (!userDoc.exists || userDoc.data().role !== 'admin') {
-                    alert("SECURITY ALERT: Access Denied.");
-                    window.location.href = '../public/login.html';
-                    return;
-                }
-
-                // If role is confirmed, load data
-                window.loadAnalytics();
-
-            } catch (error) {
-                console.error("Auth Check Failed", error);
-                window.location.href = '../public/login.html';
-            }
+        auth.onAuthStateChanged(user => {
+            if (!user) location.href = '../public/login.html';
+            loadAnalytics();
         });
 
-        // --- 2. ANALYTICS LOGIC ---
         window.loadAnalytics = async () => {
-            document.getElementById('last-updated').innerText = "Updating...";
-            
-            const stats = {
-                total: 0,
-                approved: 0,
-                rejected: 0,
-                pending: 0,
-                reasons: { 'Medical': 0, 'On-Duty': 0, 'Personal': 0 }
-            };
+            const range = parseInt(document.getElementById('time-range').value);
+            const cutoffDate = new Date();
+            cutoffDate.setDate(cutoffDate.getDate() - range);
 
-            try {
-                const snapshot = await db.collection('permissions').get();
-                
-                snapshot.forEach(doc => {
-                    const data = doc.data();
-                    stats.total++;
-                    
-                    // Count Status
-                    if (data.status === 'APPROVED') stats.approved++;
-                    else if (data.status === 'REJECTED') stats.rejected++;
-                    else stats.pending++;
+            // Fetch Permissions
+            const pSnap = await db.collection('permissions')
+                .where('timestamp', '>=', cutoffDate.toISOString())
+                .get();
 
-                    // Count Reasons (Handle messy data)
-                    const r = data.reasonType || 'Personal';
-                    if (stats.reasons[r] !== undefined) stats.reasons[r]++;
-                    else stats.reasons['Personal']++;
-                });
+            // Fetch Users (for KPI)
+            const uSnap = await db.collection('users').where('role', '==', 'student').get();
+            document.getElementById('kpi-users').innerText = uSnap.size;
 
-                // Update DOM
-                document.getElementById('count-total').innerText = stats.total;
-                document.getElementById('count-approved').innerText = stats.approved;
-                document.getElementById('count-pending').innerText = stats.pending;
-                
-                const rate = stats.total > 0 ? Math.round((stats.rejected / stats.total) * 100) : 0;
-                document.getElementById('stat-rate').innerText = `${rate}%`;
-                
-                document.getElementById('last-updated').innerText = `Updated: ${new Date().toLocaleTimeString()}`;
+            let total = 0, approved = 0;
+            let reasons = {};
+            let depts = {};
+            let students = {};
+            let timeline = {};
 
-                // Render Charts
-                renderCharts(stats);
+            pSnap.forEach(doc => {
+                const d = doc.data();
+                total++;
+                if (d.status === 'APPROVED') approved++;
 
-            } catch (err) {
-                console.error("Analytics Error:", err);
-                alert("Failed to load data.");
-            }
-        };
+                // Reasons
+                const r = d.reasonType || 'Other';
+                reasons[r] = (reasons[r] || 0) + 1;
 
-        // --- 3. CHART JS RENDERER ---
-        function renderCharts(stats) {
-            // Doughnut Chart (Status)
-            const ctx1 = document.getElementById('statusChart').getContext('2d');
-            if(window.chart1) window.chart1.destroy(); // Prevent overlap
-            
-            window.chart1 = new Chart(ctx1, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Approved', 'Rejected', 'Pending'],
-                    datasets: [{
-                        data: [stats.approved, stats.rejected, stats.pending],
-                        backgroundColor: ['#10b981', '#ef4444', '#f59e0b'],
-                        borderWidth: 0,
-                        hoverOffset: 10
-                    }]
-                },
-                options: {
-                    cutout: '75%',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { position: 'bottom', labels: { padding: 20, usePointStyle: true } }
-                    }
+                // Departments
+                const dept = d.department || 'General';
+                depts[dept] = (depts[dept] || 0) + 1;
+
+                // Top Users
+                if (d.studentName) {
+                    students[d.studentName] = (students[d.studentName] || 0) + 1;
                 }
+
+                // Timeline
+                const date = new Date(d.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                timeline[date] = (timeline[date] || 0) + 1;
             });
 
-            // Bar Chart (Reasons)
-            const ctx2 = document.getElementById('reasonChart').getContext('2d');
-            if(window.chart2) window.chart2.destroy();
+            // Update KPIs
+            document.getElementById('kpi-total').innerText = total;
+            const rate = total > 0 ? Math.round((approved / total) * 100) : 0;
+            document.getElementById('kpi-rate').innerText = `${rate}%`;
+            document.getElementById('kpi-rate-bar').style.width = `${rate}%`;
 
-            window.chart2 = new Chart(ctx2, {
-                type: 'bar',
+            renderCharts(timeline, reasons, depts);
+            renderTopUsers(students);
+        };
+
+        function renderCharts(timeline, reasons, depts) {
+            // Trend Chart
+            const ctx1 = document.getElementById('trendChart').getContext('2d');
+            if(trendChart) trendChart.destroy();
+            trendChart = new Chart(ctx1, {
+                type: 'line',
                 data: {
-                    labels: Object.keys(stats.reasons),
+                    labels: Object.keys(timeline),
                     datasets: [{
-                        label: 'Requests by Type',
-                        data: Object.values(stats.reasons),
-                        backgroundColor: '#8b5cf6',
-                        borderRadius: 6
+                        label: 'Requests',
+                        data: Object.values(timeline),
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        tension: 0.4,
+                        fill: true
                     }]
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true, grid: { display: false } },
-                        x: { grid: { display: false } }
-                    },
-                    plugins: {
-                        legend: { display: false }
-                    }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+
+            // Doughnut Chart (Reasons)
+            const ctx2 = document.getElementById('doughnutChart').getContext('2d');
+            if(doughnutChart) doughnutChart.destroy();
+            doughnutChart = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: Object.keys(reasons),
+                    datasets: [{
+                        data: Object.values(reasons),
+                        backgroundColor: ['#3b82f6', '#10b981', '#f59e0b', '#6366f1'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { cutout: '70%', responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right' } } }
+            });
+
+            // Bar Chart (Depts)
+            const ctx3 = document.getElementById('deptChart').getContext('2d');
+            if(deptChart) deptChart.destroy();
+            deptChart = new Chart(ctx3, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(depts),
+                    datasets: [{
+                        label: 'Requests',
+                        data: Object.values(depts),
+                        backgroundColor: '#slate-800',
+                        backgroundColor: '#1e293b',
+                        borderRadius: 4
+                    }]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false, 
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, grid: { display: false } }, x: { grid: { display: false } } }
                 }
             });
         }
 
-        // --- 4. CUSTOM CURSOR LOGIC ---
-        const cursorOutline = document.querySelector('.cursor-dot-outline');
-        const cursorDot = document.querySelector('.cursor-dot');
+        function renderTopUsers(students) {
+            const list = document.getElementById('top-users-list');
+            const sorted = Object.entries(students).sort((a,b) => b[1] - a[1]).slice(0, 5);
+            
+            list.innerHTML = sorted.length ? '' : '<li class="text-center text-slate-400 text-sm p-4">No data available.</li>';
 
-        window.addEventListener('mousemove', (e) => {
-            const posX = e.clientX;
-            const posY = e.clientY;
+            sorted.forEach(([name, count], index) => {
+                list.innerHTML += `
+                    <li class="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 flex items-center justify-center bg-white rounded-full text-xs font-bold text-slate-500 shadow-sm border border-slate-200">${index + 1}</span>
+                            <span class="font-bold text-slate-700 text-sm">${name}</span>
+                        </div>
+                        <span class="text-xs font-bold bg-blue-100 text-blue-600 px-2 py-1 rounded-full">${count} req</span>
+                    </li>
+                `;
+            });
+        }
 
-            // Dot follows instantly
-            cursorDot.style.left = `${posX}px`;
-            cursorDot.style.top = `${posY}px`;
-
-            // Outline follows with slight delay (smooth physics)
-            cursorOutline.animate({
-                left: `${posX}px`,
-                top: `${posY}px`
-            }, { duration: 500, fill: "forwards" });
-        });
-
-        // Hover Effect on clickable items
-        const clickables = document.querySelectorAll('a, button');
-        clickables.forEach(el => {
-            el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
-            el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
-        });
-
+        document.getElementById('logout-btn').onclick = () => auth.signOut().then(() => location.href = '../public/login.html');
     </script>
 </body>
 </html>

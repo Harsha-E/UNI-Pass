@@ -1,104 +1,90 @@
 import { auth, db } from './firebase-init.js';
 
-const PROTECTED_PATHS = {
-    '/portals/teacher/': 'teacher',
-    '/portals/hod/': 'hod',
-    '/portals/student/': 'student',
-    '/portals/lab-assistant/': 'lab_assistant', // <--- ADDED NEW PATH
-    '/admin/': 'admin'
-};
+// Pages that don't require login
+const PUBLIC_PAGES = [
+    'login.html', 
+    'signup.html', 
+    'index.html', 
+    'unauthorized.html', 
+    'reset-password.html', 
+    'error-404.html',
+    'checker.html',
+    'alumni-chatbot.html'
+];
 
-// --- LOGOUT HELPER ---
-async function forceLogout(reason) {
-    console.warn(`Security Alert: ${reason}`);
-    alert(`Access Denied: ${reason}`);
-    sessionStorage.clear();
-    localStorage.clear();
-    await auth.signOut();
-    window.location.href = '/public/login.html';
-}
-
-// --- ACCESS CHECKER ---
-async function verifyAccess(user) {
-    const currentPath = window.location.pathname;
-    
-    // 1. Identify Target Role for this Path
-    const matchedPath = Object.keys(PROTECTED_PATHS).find(path => currentPath.includes(path));
-    if (!matchedPath) return; // Not a protected path (e.g., public profile)
-
-    const requiredRole = PROTECTED_PATHS[matchedPath];
-
-    // 2. Fetch LIVE User Profile
-    try {
-        const doc = await db.collection('users').doc(user.uid).get();
-        
-        if (!doc.exists) {
-            await forceLogout("User profile not found. Please contact IT.");
-            return;
-        }
-
-        const data = doc.data();
-        const dbRole = data.role;
-        const isBlocked = data.isBlocked || false;
-
-        // 3. Security Checks
-        
-        // CHECK A: Account Blocking
-        if (isBlocked) {
-            await forceLogout("Your account has been BLOCKED by the Administrator.");
-            return;
-        }
-
-        // CHECK B: Role Mismatch
-        if (dbRole !== requiredRole) {
-            if (dbRole !== 'admin') { 
-                await forceLogout(`Unauthorized. You are a ${dbRole.toUpperCase()}, not a ${requiredRole.toUpperCase()}.`);
-                return;
-            }
-        }
-
-        // 4. Update Session Storage (Sync with DB)
-        sessionStorage.setItem('uni_pass_role', dbRole);
-
-    } catch (error) {
-        console.error("Route Guard Error:", error);
-    }
-}
-
-// --- MAIN LISTENER ---
 auth.onAuthStateChanged(async (user) => {
-    const currentPath = window.location.pathname;
-    const isPublic = currentPath.includes('login.html') || 
-                     currentPath.includes('signup.html') || 
-                     currentPath.includes('checker.html') ||
-                     currentPath.includes('lab-resources.html');
+    const path = window.location.pathname;
+    const page = path.split('/').pop();
 
-    // 1. No User on Protected Page -> Kick
-    if (!user && !isPublic) {
-        window.location.href = '/public/login.html';
+    // 1. REDIRECT TO LOGIN if not authenticated on a private page
+    if (!user && !PUBLIC_PAGES.includes(page)) {
+        // Dynamic path adjustment based on folder depth
+        const depth = path.split('/').length - 2;
+        const prefix = depth === 1 ? '../' : depth === 2 ? '../../' : '';
+        window.location.href = prefix + 'public/login.html';
         return;
     }
 
-    // 2. User Logged In -> Verify Logic
-    if (user) {
-        // Redirect from Login Page if already logged in
-        if (currentPath.includes('login.html') || currentPath.includes('signup.html')) {
-            const cachedRole = sessionStorage.getItem('uni_pass_role');
+    // 2. CHECK ROLE & BLOCK STATUS if authenticated
+    if (user && !PUBLIC_PAGES.includes(page)) {
+        try {
+            const doc = await db.collection('users').doc(user.uid).get();
             
-            // SPECIFIC REDIRECT FOR LAB ASSISTANT
-            if (cachedRole === 'lab_assistant') {
-                window.location.href = '/portals/lab-assistant/dashboard.html';
+            if (!doc.exists) {
+                console.warn("User profile missing. Signing out...");
+                await auth.signOut();
                 return;
             }
 
-            // GENERIC REDIRECT FOR OTHERS
-            if (cachedRole && PROTECTED_PATHS[`/portals/${cachedRole}/`]) {
-                window.location.href = `/portals/${cachedRole}/portalA.html`;
-            }
-            return;
-        }
+            const data = doc.data();
 
-        // Perform Deep Verification
-        await verifyAccess(user);
+            // A. Check Block Status
+            if (data.isBlocked) {
+                alert("Your account has been suspended. Please contact the Administrator.");
+                await auth.signOut();
+                window.location.href = '../../public/login.html';
+                return;
+            }
+
+            // B. Role-Based Access Control (RBAC)
+            const role = data.role;
+            
+            // STRICT PATH CHECKING
+            if (path.includes('/student/') && role !== 'student') {
+                handleUnauthorized();
+            } 
+            else if (path.includes('/teacher/') && role !== 'teacher') {
+                handleUnauthorized();
+            }
+            else if (path.includes('/hod/') && role !== 'hod') {
+                handleUnauthorized();
+            }
+            else if (path.includes('/principal/') && role !== 'principal') {
+                handleUnauthorized();
+            }
+            else if (path.includes('/lab-assistant/') && role !== 'lab_assistant') {
+                handleUnauthorized();
+            }
+            else if (path.includes('/admin/') && role !== 'admin') {
+                // Admin pages are strictly for IT Admin now. 
+                // Principal has their own portal.
+                handleUnauthorized();
+            }
+
+        } catch (error) {
+            console.error("Route Guard Error:", error);
+            // Optional: Redirect to error page
+        }
     }
 });
+
+function handleUnauthorized() {
+    alert("Unauthorized Access: You do not have permission to view this portal.");
+    // Redirect to the correct portal based on role would be better, 
+    // but for now, we send them back or to login.
+    history.back(); 
+    // Fallback if history is empty
+    setTimeout(() => {
+        window.location.href = '../../public/login.html';
+    }, 500);
+}

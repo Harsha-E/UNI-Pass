@@ -7,238 +7,299 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <link rel="stylesheet" href="../../assets/css/styles.css">
+    <script src="../../assets/js/ui.js" defer></script>
     <script type="module" src="../../assets/js/route-guard.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { brand: { 50: '#eff6ff', 100: '#dbeafe', 600: '#2563eb', 900: '#1e3a8a' } },
-                    boxShadow: { 'glow': '0 0 20px rgba(37, 99, 235, 0.15)' }
-                }
-            }
-        }
-    </script>
     <style>
-        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); border: 1px solid rgba(226, 232, 240, 0.8); }
-        .step-line { position: absolute; left: 19px; top: 40px; bottom: -20px; width: 2px; background: #e2e8f0; z-index: 0; }
+        .step-line { position: absolute; left: 15px; top: 35px; bottom: -10px; width: 2px; background: #e2e8f0; z-index: 0; }
         .step-active .step-line { background: #2563eb; }
         .step-last .step-line { display: none; }
     </style>
 </head>
-<body class="bg-slate-50 font-sans min-h-screen pb-24">
+<body class="bg-slate-100 font-sans h-screen flex overflow-hidden">
 
-    <header class="bg-white/80 backdrop-blur-md border-b border-slate-200 sticky top-0 z-30">
-        <div class="max-w-md mx-auto px-6 h-20 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <button id="logout-btn-mobile" class="md:hidden text-slate-400 hover:text-red-500 transition-colors">
-                    <i class="fas fa-power-off text-lg"></i>
-                </button>
-                <div>
-                    <h1 class="font-bold text-xl text-slate-800 tracking-tight">Status Tracker</h1>
-                    <p class="text-[10px] font-bold text-brand-600 uppercase tracking-wider">Live Updates</p>
-                </div>
-            </div>
-            <button id="logout-btn" class="hidden md:flex items-center gap-2 text-slate-500 hover:text-red-600 font-bold text-xs uppercase tracking-widest transition-colors">
-                <span>Logout</span>
-                <i class="fas fa-sign-out-alt"></i>
-            </button>
-            <div class="md:hidden w-10 h-10 bg-blue-50 rounded-full flex items-center justify-center text-blue-600 shadow-sm">
-                <i class="fas fa-history"></i>
+    <aside class="fixed inset-y-0 left-0 w-64 bg-slate-900 text-white z-50 flex flex-col shadow-xl">
+        <div class="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-user-graduate text-blue-500"></i>
+                <span class="font-bold text-lg tracking-wider">STUDENT</span>
             </div>
         </div>
-    </header>
-
-    <main class="max-w-md mx-auto p-4 sm:p-6 space-y-8">
-
-        <div id="active-container" class="hidden">
-            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 ml-1">Current Request</h3>
+        
+        <div class="p-6 border-b border-slate-800">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-800 text-white flex items-center justify-center font-bold text-xl shadow-md border border-blue-500/30">
+                    <span id="initials">A</span>
+                </div>
+                <div class="overflow-hidden">
+                    <h4 class="text-sm font-bold text-slate-100 truncate w-32" id="display-name">Arjun</h4>
+                    <p class="text-xs text-slate-400 font-mono truncate" id="display-id">24331A4200</p>
+                </div>
+            </div>
             
-            <div class="glass-panel rounded-3xl overflow-hidden shadow-lg border-0 ring-1 ring-slate-200">
-                <div class="bg-slate-900 p-6 text-white flex justify-between items-center relative overflow-hidden">
-                    <div class="absolute top-0 right-0 w-32 h-32 bg-brand-600 rounded-full blur-[60px] opacity-30 -mr-10 -mt-10"></div>
-                    <div class="relative z-10">
-                        <h2 class="text-xl font-bold" id="status-header">Processing</h2>
+            <div class="mt-4 bg-slate-800 rounded-lg p-3 flex justify-between items-center border border-slate-700">
+                <span class="text-xs text-slate-400 font-bold uppercase">Attendance</span>
+                <span class="text-sm font-black text-green-400" id="attendance-display">80%</span>
+            </div>
+        </div>
+
+        <nav class="flex-1 px-4 space-y-2 mt-4">
+            <a href="portalA.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl transition">
+                <i class="fas fa-paper-plane w-4"></i> New Request
+            </a>
+            <a href="portalB.html" class="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg shadow-blue-900/20 transition">
+                <i class="fas fa-history w-4"></i> Track Status
+            </a>
+        </nav>
+        <div class="p-4 border-t border-slate-800">
+            <button id="logout-btn" class="w-full py-2 flex items-center justify-center gap-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition text-sm font-bold">
+                <i class="fas fa-sign-out-alt"></i> Log Out
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full w-full ml-64 overflow-y-auto p-8 bg-slate-100">
+        
+        <h1 class="text-2xl font-bold text-slate-800 mb-6">Request History</h1>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            
+            <div id="active-container" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="bg-slate-900 p-6 text-white flex justify-between items-center">
+                    <div>
+                        <h2 class="text-lg font-bold" id="status-header">Processing</h2>
                         <p class="text-slate-400 text-xs mt-1 font-mono" id="ref-id">REF: ...</p>
                     </div>
-                    <div class="relative z-10 w-10 h-10 bg-white/10 rounded-full flex items-center justify-center backdrop-blur-sm border border-white/10" id="status-icon">
+                    <div class="w-10 h-10 bg-white/10 rounded-full flex items-center justify-center border border-white/10">
                         <i class="fas fa-sync-alt fa-spin"></i>
                     </div>
                 </div>
 
-                <div class="p-6">
+                <div class="p-8">
                     <div class="space-y-0 relative" id="tracker-steps">
-                        
-                        <div class="relative pl-14 pb-8" id="step-teacher">
+                        <div class="relative pl-12 pb-8" id="step-teacher">
                             <div class="step-line"></div>
-                            <div class="absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 border-2 bg-slate-50 border-slate-200 text-slate-400 icon-box" id="icon-teacher">
+                            <div class="absolute left-0 top-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs z-10 border-2 bg-slate-100 border-slate-200 text-slate-400" id="icon-teacher">
                                 <i class="fas fa-chalkboard-teacher"></i>
                             </div>
-                            <h4 class="font-bold text-slate-800 text-sm pt-2">Class Teacher Review</h4>
-                            <p class="text-xs text-slate-400 mt-0.5 status-text">Pending review...</p>
+                            <h4 class="font-bold text-slate-800 text-sm">Class Teacher</h4>
+                            <p class="text-xs text-slate-500 mt-0.5 status-text">Pending review...</p>
                         </div>
 
-                        <div class="relative pl-14 pb-8 hidden" id="step-hod">
+                        <div class="relative pl-12 pb-8 hidden" id="step-hod">
                             <div class="step-line"></div>
-                            <div class="absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 border-2 bg-slate-50 border-slate-200 text-slate-400 icon-box" id="icon-hod">
+                            <div class="absolute left-0 top-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs z-10 border-2 bg-slate-100 border-slate-200 text-slate-400" id="icon-hod">
                                 <i class="fas fa-user-tie"></i>
                             </div>
-                            <h4 class="font-bold text-slate-800 text-sm pt-2">HOD Authorization</h4>
-                            <p class="text-xs text-slate-400 mt-0.5 status-text">Required for >2 days</p>
+                            <h4 class="font-bold text-slate-800 text-sm">HOD Authorization</h4>
+                            <p class="text-xs text-slate-500 mt-0.5 status-text">Required for >2 days</p>
                         </div>
 
-                        <div class="relative pl-14 step-last" id="step-final">
-                            <div class="absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 border-2 bg-slate-50 border-slate-200 text-slate-400 icon-box" id="icon-final">
+                        <div class="relative pl-12 step-last" id="step-final">
+                            <div class="absolute left-0 top-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs z-10 border-2 bg-slate-100 border-slate-200 text-slate-400" id="icon-final">
                                 <i class="fas fa-flag-checkered"></i>
                             </div>
-                            <h4 class="font-bold text-slate-800 text-sm pt-2">Final Status</h4>
-                            <p class="text-xs text-slate-400 mt-0.5 status-text">Waiting...</p>
+                            <h4 class="font-bold text-slate-800 text-sm">Final Decision</h4>
+                            <p class="text-xs text-slate-500 mt-0.5 status-text">Waiting...</p>
                         </div>
                     </div>
 
-                    <div class="mt-8 pt-6 border-t border-slate-100 flex flex-col gap-3" id="action-area">
+                    <div class="mt-8 pt-6 border-t border-slate-100" id="action-area">
                         </div>
                 </div>
             </div>
-        </div>
 
-        <div>
-            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 ml-1">Past History</h3>
-            <div class="glass-panel rounded-2xl p-2 min-h-[200px]" id="history-list">
-                <div class="text-center py-10 text-slate-400"><i class="fas fa-circle-notch fa-spin"></i></div>
+            <div class="space-y-4" id="history-list">
+                <div class="text-center py-10 text-slate-400">Loading history...</div>
             </div>
         </div>
     </main>
-
-    <nav class="fixed bottom-0 w-full bg-white border-t border-slate-200 pb-safe z-40">
-        <div class="max-w-md mx-auto grid grid-cols-3 h-20">
-            <a href="portalA.html" class="flex flex-col items-center justify-center text-slate-400 hover:text-brand-600 transition">
-                <i class="fas fa-plus-circle text-xl mb-1"></i>
-                <span class="text-[10px] font-bold uppercase">Request</span>
-            </a>
-            <a href="lab.html" class="flex flex-col items-center justify-center text-slate-400 hover:text-brand-600 transition">
-                <i class="fas fa-flask text-xl mb-1"></i>
-                <span class="text-[10px] font-bold uppercase">Lab</span>
-            </a>
-            <a href="portalB.html" class="flex flex-col items-center justify-center text-brand-600">
-                <i class="fas fa-history text-xl mb-1"></i>
-                <span class="text-[10px] font-bold uppercase">History</span>
-            </a>
-        </div>
-    </nav>
 
     <script type="module" src="../../assets/js/permission-pdf.js"></script>
     <script type="module">
         import { db, auth } from '../../assets/js/firebase-init.js';
 
-        // --- Standardized Logout Logic ---
-        const handleLogout = async () => {
-            if(confirm("Sign out of status tracker?")) {
-                sessionStorage.clear();
-                await auth.signOut();
-                location.href = '../../public/login.html';
-            }
-        };
-        document.getElementById('logout-btn').onclick = handleLogout;
-        document.getElementById('logout-btn-mobile').onclick = handleLogout;
-
         let currentPassData = null;
+        window.currentPassData = null;
 
         auth.onAuthStateChanged(user => {
+            console.log('auth.onAuthStateChanged ->', user);
             if (user) loadHistory(user.uid);
             else location.href = '../../public/login.html';
         });
 
         function loadHistory(uid) {
+            console.log('loadHistory uid=', uid);
             db.collection('permissions')
-                .where('studentID', '==', uid)
-                .orderBy('timestamp', 'desc')
+                .where('student.uid', '==', uid)
                 .onSnapshot(snap => {
+                    console.log('permissions snapshot:', snap.empty, snap.size, snap.docs.map(d => ({ id: d.id, data: d.data() }))); 
                     const list = document.getElementById('history-list');
                     list.innerHTML = '';
+                    
                     if (snap.empty) {
-                        list.innerHTML = `<div class="text-center py-8 text-slate-400 text-sm">No history found.</div>`;
+                        list.innerHTML = `<div class="p-8 text-center bg-white rounded-xl border border-slate-200 text-slate-400">No requests found.</div>`;
                         document.getElementById('active-container').classList.add('hidden');
                         return;
                     }
 
-                    const latest = snap.docs[0].data();
-                    latest.id = snap.docs[0].id;
-                    
-                    // Show tracker for active or very recent requests (last 3 days)
-                    const isRecent = (new Date() - new Date(latest.timestamp)) < (3 * 24 * 60 * 60 * 1000);
-                    if (latest.status.includes('PENDING') || isRecent) {
-                        document.getElementById('active-container').classList.remove('hidden');
-                        updateTracker(latest);
-                    } else {
-                        document.getElementById('active-container').classList.add('hidden');
-                    }
+                    // Sort docs client-side by creation date (from logs)
+                    const allRequests = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    allRequests.sort((a, b) => new Date(b.logs[0].at) - new Date(a.logs[0].at));
 
-                    snap.forEach(doc => { list.appendChild(createHistoryRow(doc.id, doc.data())); });
+                    const latest = allRequests[0];
+                    
+                    document.getElementById('active-container').classList.remove('hidden');
+                    updateTracker(latest);
+
+                    allRequests.forEach(req => { 
+                        list.appendChild(createHistoryRow(req)); 
+                    });
+                }, err => {
+                    console.error('onSnapshot error for permissions:', err);
+                    const list = document.getElementById('history-list');
+                    list.innerHTML = `<div class="p-8 text-center bg-white rounded-xl border border-red-200 text-red-600">Error loading history</div>`;
                 });
         }
 
+        const ICONS = {
+            'TEACHER': 'fa-chalkboard-teacher',
+            'HOD': 'fa-user-tie',
+            'COUNSELLOR': 'fa-heartbeat',
+            'PRINCIPAL': 'fa-school'
+        };
+        const TITLES = {
+            'TEACHER': 'Class Teacher',
+            'HOD': 'HOD Authorization',
+            'COUNSELLOR': 'Wellness Team Review',
+            'PRINCIPAL': 'Principal Approval'
+        };
+
         function updateTracker(data) {
             currentPassData = data;
-            document.getElementById('ref-id').innerText = `REF: ${data.id.substring(0,8).toUpperCase()}`;
-            const status = data.status;
-            const history = data.workflowHistory || [];
+            window.currentPassData = data;
+            document.getElementById('ref-id').innerText = `ID: ${data.id.slice(0,8).toUpperCase()}`;
             
-            const setUI = (id, state, text) => {
-                const icon = document.getElementById(`icon-${id}`);
-                const el = document.getElementById(`step-${id}`);
-                const txt = el.querySelector('.status-text');
-                txt.innerText = text;
-                el.classList.add('step-active');
-                
-                if(state === 'active') icon.className = "absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 border-2 bg-brand-600 border-brand-600 text-white shadow-glow";
-                else if(state === 'done') {
-                    icon.className = "absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 border-2 bg-brand-100 border-brand-200 text-brand-600";
-                    icon.innerHTML = '<i class="fas fa-check"></i>';
+            const status = data.status;
+            const routingPath = data.routingPath || ['TEACHER'];
+            const trackerSteps = document.getElementById('tracker-steps');
+            trackerSteps.innerHTML = ''; // Clear existing steps
+
+            // Determine how many steps are completed based on status
+            // This is more robust than a simple counter. It finds the index of the next step in the path.
+            let completedSteps = 0;
+            if (status.startsWith('PENDING_')) {
+                const nextRole = status.replace('PENDING_', '');
+                const nextRoleIndex = routingPath.indexOf(nextRole);
+                // If the next role is found in the path, all previous steps are considered complete.
+                if (nextRoleIndex !== -1) {
+                    completedSteps = nextRoleIndex;
                 }
-                else if(state === 'error') {
-                    icon.className = "absolute left-0 top-0 w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm z-10 border-2 bg-red-100 border-red-200 text-red-600";
-                    icon.innerHTML = '<i class="fas fa-times"></i>';
-                }
-            };
-
-            // HOD Escalation logic
-            const hodStep = document.getElementById('step-hod');
-            const isEscalated = status === 'PENDING_HOD' || history.some(h => h.step.includes('HOD'));
-
-            // Step 1: Faculty
-            if (status === 'PENDING_TEACHER') setUI('teacher', 'active', 'Reviewing...');
-            else if (status === 'REJECTED' && !isEscalated) setUI('teacher', 'error', 'Rejected');
-            else setUI('teacher', 'done', 'Approved');
-
-            // Step 2: HOD
-            if (isEscalated) {
-                hodStep.classList.remove('hidden');
-                if (status === 'PENDING_HOD') setUI('hod', 'active', 'Awaiting HOD...');
-                else if (status === 'REJECTED') setUI('hod', 'error', 'HOD Rejected');
-                else setUI('hod', 'done', 'HOD Approved');
+            } else if (status === 'APPROVED' || status === 'REJECTED') {
+                completedSteps = routingPath.length;
             }
 
-            // Step 3: Action & Pass Download
+            // Generate steps from routingPath
+            routingPath.forEach((role, index) => {
+                const isDone = index < completedSteps;
+                const isActive = index === completedSteps && !['APPROVED', 'REJECTED'].includes(status);
+                
+                let state = 'pending';
+                let text = 'Waiting...';
+                if (isDone) {
+                    state = 'done';
+                    text = 'Verified';
+                }
+                if (isActive) {
+                    state = 'active';
+                    text = 'Under Review';
+                }
+
+                // Never mark routing path steps as last—FINAL is the actual last step
+                trackerSteps.innerHTML += createStepHTML(role, state, text, false);
+            });
+
+            // Final Logic
+            let finalState = 'waiting';
+            let finalText = 'Awaiting final decision';
+            if (status === 'APPROVED') {
+                finalState = 'done';
+                finalText = `Approved on ${new Date(data.logs[data.logs.length - 1].at).toLocaleDateString()}`;
+            } else if (status === 'REJECTED') {
+                finalState = 'error';
+                finalText = `Rejected on ${new Date(data.logs[data.logs.length - 1].at).toLocaleDateString()}`;
+            }
+            // FINAL is the only step marked as last, so step-line shows for all routing steps
+            trackerSteps.innerHTML += createStepHTML('FINAL', finalState, finalText, true);
+
             const actionArea = document.getElementById('action-area');
             if (status === 'APPROVED') {
-                setUI('final', 'done', 'Pass Ready');
-                actionArea.innerHTML = `<button onclick="window.generateOfficialPDF('${data.id}', currentPassData)" class="w-full py-4 bg-slate-900 text-white rounded-xl font-bold shadow-xl hover:bg-brand-600 transition flex items-center justify-center gap-3"><i class="fas fa-file-pdf"></i> Download Pass</button>`;
+                actionArea.innerHTML = `<button onclick="window.generateOfficialPDF('${data.id}', window.currentPassData)" class="w-full py-3 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-blue-700 transition flex items-center justify-center gap-2"><i class="fas fa-file-pdf"></i> Download Pass</button>`;
             } else if (status === 'REJECTED') {
-                setUI('final', 'error', 'Denied');
-                actionArea.innerHTML = `<div class="bg-red-50 text-red-600 p-4 rounded-xl text-xs font-bold text-center border border-red-100 uppercase">Permission Rejected</div>`;
+                actionArea.innerHTML = `<div class="p-3 bg-red-50 text-red-600 rounded-lg text-sm text-center font-bold">Request was rejected.</div>`;
             } else {
-                actionArea.innerHTML = `<button disabled class="w-full py-4 bg-slate-100 text-slate-400 rounded-xl font-bold cursor-not-allowed uppercase text-[10px] tracking-widest"><i class="fas fa-clock mr-2"></i> In Review</button>`;
+                actionArea.innerHTML = `<div class="p-3 bg-blue-50 text-blue-600 rounded-lg text-sm text-center font-bold">In Progress</div>`;
             }
         }
 
-        function createHistoryRow(id, data) {
+        function createStepHTML(role, state, text, isLast = false) {
+            const icon = role === 'FINAL' ? 'fa-flag-checkered' : (ICONS[role] || 'fa-question');
+            const title = role === 'FINAL' ? 'Final Decision' : (TITLES[role] || 'Unknown Step');
+
+            let iconClass = 'bg-slate-100 border-slate-200 text-slate-400';
+            let iconContent = `<i class="fas ${icon}"></i>`;
+            let lineClass = '';
+
+            if (state === 'done') {
+                iconClass = 'bg-green-100 border-green-200 text-green-600';
+                iconContent = '<i class="fas fa-check"></i>';
+                lineClass = 'step-active';
+            } else if (state === 'active') {
+                iconClass = 'bg-blue-600 border-blue-600 text-white shadow-lg';
+                iconContent = '<i class="fas fa-circle-notch fa-spin"></i>';
+                lineClass = 'step-active';
+            } else if (state === 'error') {
+                iconClass = 'bg-red-100 border-red-200 text-red-600';
+                iconContent = '<i class="fas fa-times"></i>';
+            }
+
+            const lastClass = isLast ? 'step-last' : '';
+
+            return `
+                <div class="relative pl-12 pb-8 ${lastClass} ${lineClass}">
+                    <div class="step-line"></div>
+                    <div class="absolute left-0 top-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs z-10 border-2 ${iconClass}">
+                        ${iconContent}
+                    </div>
+                    <h4 class="font-bold text-slate-800 text-sm">${title}</h4>
+                    <p class="text-xs text-slate-500 mt-0.5 status-text">${text}</p>
+                </div>
+            `;
+        }
+
+        function createHistoryRow(data) {
             const div = document.createElement('div');
-            div.className = "p-4 hover:bg-slate-50 rounded-xl transition cursor-pointer flex justify-between items-center group mb-1 border border-transparent hover:border-slate-200";
-            let color = data.status === 'APPROVED' ? 'text-green-600 bg-green-50' : data.status === 'REJECTED' ? 'text-red-600 bg-red-50' : 'text-amber-600 bg-amber-50';
-            div.innerHTML = `<div><div class="flex items-center gap-3 mb-1"><span class="font-bold text-slate-800 text-sm">${data.reasonType}</span><span class="px-2 py-0.5 rounded text-[10px] font-bold ${color}">${data.status}</span></div><p class="text-xs text-slate-400">${new Date(data.timestamp).toLocaleDateString()}</p></div><i class="fas fa-chevron-right text-slate-300"></i>`;
-            div.onclick = () => { window.scrollTo({ top: 0, behavior: 'smooth' }); updateTracker({id, ...data}); document.getElementById('active-container').classList.remove('hidden'); };
+            div.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-200 hover:border-blue-300 transition cursor-pointer flex justify-between items-center";
+            
+            let badgeClass = 'bg-slate-100 text-slate-600';
+            if (data.status === 'APPROVED') badgeClass = 'bg-green-100 text-green-700';
+            if (data.status === 'REJECTED') badgeClass = 'bg-red-100 text-red-700';
+            if (data.status.includes('PENDING')) badgeClass = 'bg-blue-50 text-blue-700';
+
+            const creationDate = data.logs && data.logs.length > 0 ? new Date(data.logs[0].at).toLocaleDateString() : 'N/A';
+
+            div.innerHTML = `
+                <div>
+                    <h4 class="font-bold text-slate-800 text-sm">${data.type}</h4>
+                    <p class="text-xs text-slate-500">${creationDate}</p>
+                </div>
+                <span class="px-2 py-1 rounded text-[10px] font-bold uppercase ${badgeClass}">${data.status.replace('_', ' ')}</span>
+            `;
+            div.onclick = () => updateTracker(data);
             return div;
         }
+
+        document.getElementById('logout-btn').onclick = () => auth.signOut().then(() => location.href = '../../public/login.html');
     </script>
 </body>
 </html>

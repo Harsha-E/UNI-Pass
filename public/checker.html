@@ -3,278 +3,487 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gate Security | UNI-PASS</title>
+    <title>Gate Security | UNI-PASS Verification</title>
+
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <script type="module" src="../assets/js/firebase-init.js"></script>
+    
+    <style>
+        /* Custom Design Tokens & Animations 
+        ========================================================================
+        */
+        :root {
+            --brand-primary: #2563eb;
+            --brand-dark: #1e3a8a;
+            --security-green: #22c55e;
+            --error-red: #ef4444;
+        }
+
+        @keyframes pulse-ring {
+            0% { transform: scale(0.33); opacity: 1; }
+            80%, 100% { opacity: 0; }
+        }
+
+        .scanner-ring {
+            animation: pulse-ring 1.25s cubic-bezier(0.455, 0.03, 0.515, 0.955) infinite;
+        }
+
+        .glass-morphism {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+        }
+
+        .slide-up {
+            animation: slideUp 0.4s ease-out forwards;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(30px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        input::placeholder {
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        /* Print View Optimizations 
+        (Useful for security logs) 
+        */
+        @media print {
+            .no-print { display: none; }
+            body { background: white; }
+            .print-card { border: 1px solid #e2e8f0; box-shadow: none; }
+        }
+    </style>
+
     <script>
+        // Tailwind Configuration
         tailwind.config = {
             theme: {
                 extend: {
-                    colors: { brand: { 600: '#2563eb', 900: '#1e3a8a' } },
-                    animation: { 'slide-up': 'slideUp 0.4s ease-out', 'pulse-slow': 'pulse 3s infinite' },
-                    keyframes: { slideUp: { '0%': { transform: 'translateY(20px)', opacity: '0' }, '100%': { transform: 'translateY(0)', opacity: '1' } } }
+                    colors: {
+                        brand: {
+                            50: '#eff6ff',
+                            600: '#2563eb',
+                            900: '#1e3a8a'
+                        }
+                    },
+                    borderRadius: {
+                        '3xl': '1.5rem',
+                        '4xl': '2rem'
+                    }
                 }
             }
         }
     </script>
 </head>
-<body class="bg-slate-50 text-slate-800 font-sans min-h-screen flex flex-col items-center">
+<body class="bg-slate-100 text-slate-800 font-sans min-h-screen flex flex-col items-center">
 
-    <div id="offline-banner" class="hidden w-full bg-red-600 text-white text-center py-2 text-xs font-bold uppercase tracking-widest sticky top-0 z-50 shadow-md">
-        <i class="fas fa-wifi-slash mr-2"></i> No Internet Connection
+    <div id="offline-banner" class="hidden w-full bg-red-600 text-white text-center py-2.5 text-xs font-bold uppercase tracking-[0.2em] sticky top-0 z-50 shadow-lg">
+        <i class="fas fa-wifi-slash mr-2"></i> Connection Lost: Offline Mode
     </div>
 
-    <nav class="w-full bg-white border-b border-slate-200 p-4 relative z-40 shadow-sm sticky top-0">
+    <nav class="w-full bg-white/80 border-b border-slate-200 p-4 relative z-40 backdrop-blur-md sticky top-0">
         <div class="max-w-md mx-auto flex justify-between items-center">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-brand-600 rounded-lg flex items-center justify-center font-bold text-white shadow-md shadow-blue-200">
-                    <i class="fas fa-shield-alt"></i>
+            <div class="flex items-center gap-4">
+                <div class="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-blue-200 ring-4 ring-blue-50">
+                    <i class="fas fa-shield-halved text-lg"></i>
                 </div>
-                <span class="font-bold text-lg tracking-tight text-slate-900">GATE CHECK</span>
+                <div>
+                    <span class="font-black text-lg tracking-tight text-slate-900 block leading-none">UNI-PASS</span>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Security Desk</span>
+                </div>
             </div>
-            <a href="../index.html" class="text-xs font-bold text-slate-500 hover:text-brand-600 transition uppercase flex items-center gap-2">
-                <i class="fas fa-power-off"></i> Exit
+            <a href="../index.html" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-xs font-black text-slate-600 transition-all uppercase flex items-center gap-2 no-print">
+                <i class="fas fa-sign-out-alt"></i> Exit
             </a>
         </div>
     </nav>
 
-    <main class="flex-1 w-full max-w-md p-6 flex flex-col justify-center gap-6">
+    <main class="flex-1 w-full max-w-md p-6 flex flex-col justify-center gap-8 min-h-[calc(100vh-100px)]">
 
-        <div id="scanner-card" class="bg-white p-8 rounded-3xl shadow-xl border border-slate-100 relative overflow-hidden transition-all duration-300">
-            <div class="absolute top-0 right-0 w-32 h-32 bg-blue-50 rounded-full blur-3xl -mr-10 -mt-10"></div>
+        <div id="scanner-card" class="bg-white p-8 rounded-4xl shadow-[0_20px_50px_rgba(0,0,0,0.05)] border border-white/20 relative overflow-hidden transition-all duration-500">
+            <div class="absolute -top-10 -right-10 w-40 h-40 bg-blue-50 rounded-full blur-3xl opacity-50"></div>
             
-            <h1 class="text-center text-slate-400 text-xs font-bold uppercase tracking-[0.2em] mb-8">Scan or Enter ID</h1>
-
-            <div class="relative group">
-                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <i class="fas fa-qrcode text-slate-400 text-xl group-focus-within:text-brand-600 transition-colors"></i>
-                </div>
-                <input type="text" id="hashInput" class="w-full bg-slate-50 border border-slate-200 text-slate-900 pl-12 pr-4 py-4 rounded-2xl outline-none focus:border-brand-600 focus:ring-1 focus:ring-brand-600 transition-all font-mono text-lg placeholder-slate-400 shadow-inner tracking-wider font-bold normal-case" placeholder="Pass ID / Roll No" autocomplete="off">
+            <div class="text-center mb-10">
+                <h1 class="text-slate-400 text-[11px] font-bold uppercase tracking-[0.3em] mb-2">Gate Authorization</h1>
+                <p class="text-slate-900 font-black text-2xl tracking-tight">Verify Digital Pass</p>
             </div>
 
-            <button id="checkBtn" class="w-full mt-6 bg-brand-600 hover:bg-brand-900 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-blue-200 flex items-center justify-center gap-3 text-lg active:scale-95 group">
-                <span>VERIFY ACCESS</span>
-                <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
-            </button>
+            <div class="space-y-4 relative z-10">
+                <div class="relative group">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <i class="fas fa-qrcode text-slate-300 text-xl group-focus-within:text-brand-600 transition-colors"></i>
+                    </div>
+                    <input 
+                        type="text" 
+                        id="hashInput" 
+                        class="w-full bg-slate-50 border-2 border-slate-100 text-slate-900 pl-12 pr-4 py-5 rounded-2xl outline-none focus:border-brand-600 focus:bg-white transition-all font-mono text-lg placeholder-slate-400 font-bold uppercase" 
+                        placeholder="Scan QR or Enter Roll No" 
+                        autocomplete="off"
+                    >
+                </div>
+
+                <button 
+                    id="checkBtn" 
+                    class="w-full bg-brand-600 hover:bg-brand-900 text-white font-black py-5 rounded-2xl transition-all shadow-xl shadow-blue-200 flex items-center justify-center gap-3 text-lg active:scale-[0.98] group"
+                >
+                    <span id="btn-text">VERIFY ACCESS</span>
+                    <i class="fas fa-arrow-right group-hover:translate-x-1 transition-transform"></i>
+                </button>
+            </div>
+
+            <div class="mt-8 pt-8 border-t border-slate-50">
+                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest text-center mb-4">Gate Instructions</p>
+                <div class="grid grid-cols-2 gap-3">
+                    <div class="bg-slate-50 p-3 rounded-xl text-center">
+                        <i class="fas fa-id-card text-blue-500 mb-1"></i>
+                        <p class="text-[9px] font-bold text-slate-500 leading-tight">CHECK COLLEGE ID</p>
+                    </div>
+                    <div class="bg-slate-50 p-3 rounded-xl text-center">
+                        <i class="fas fa-camera text-blue-500 mb-1"></i>
+                        <p class="text-[9px] font-bold text-slate-500 leading-tight">MATCH PHOTO</p>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div id="resultContainer" class="hidden"></div>
+        <div id="resultContainer" class="hidden space-y-6 slide-up">
+            </div>
+
+        <div class="text-center no-print">
+            <p class="text-slate-400 text-xs font-medium">Issue with pass? <a href="#" class="text-brand-600 font-bold underline">Contact IT Support</a></p>
+        </div>
 
     </main>
 
     <script type="module">
         import { db } from '../assets/js/firebase-init.js';
         
-        const input = document.getElementById("hashInput");
-        const btn = document.getElementById("checkBtn");
-        const container = document.getElementById("resultContainer");
-        const offlineBanner = document.getElementById("offline-banner");
+        // DOM Element Mapping
+        const domElements = {
+            input: document.getElementById("hashInput"),
+            btn: document.getElementById("checkBtn"),
+            btnText: document.getElementById("btn-text"),
+            container: document.getElementById("resultContainer"),
+            offlineBanner: document.getElementById("offline-banner"),
+            scannerCard: document.getElementById("scanner-card")
+        };
 
-        // --- NETWORK LISTENER ---
-        function updateOnlineStatus() {
+        // --- AUTH & NETWORK PROTOCOLS ---
+        
+        /**
+         * Listens for connection changes to alert security staff
+         * of potential database sync issues.
+         */
+        function checkNetworkStatus() {
             if (navigator.onLine) {
-                offlineBanner.classList.add('hidden');
-                btn.disabled = false;
-                btn.classList.remove('bg-slate-400', 'cursor-not-allowed');
-                btn.classList.add('bg-brand-600');
+                domElements.offlineBanner.classList.add('hidden');
+                domElements.btn.classList.remove('opacity-50', 'pointer-events-none');
             } else {
-                offlineBanner.classList.remove('hidden');
-                btn.disabled = true;
-                btn.classList.add('bg-slate-400', 'cursor-not-allowed');
-                btn.classList.remove('bg-brand-600');
-                showResult("OFFLINE", "slate", "wifi-slash", "Please reconnect to verify.");
+                domElements.offlineBanner.classList.remove('hidden');
+                domElements.btn.classList.add('opacity-50', 'pointer-events-none');
             }
         }
-        window.addEventListener('online', updateOnlineStatus);
-        window.addEventListener('offline', updateOnlineStatus);
-        if (!navigator.onLine) updateOnlineStatus();
+        window.addEventListener('online', checkNetworkStatus);
+        window.addEventListener('offline', checkNetworkStatus);
 
-        // --- INITIALIZATION ---
+        // --- PAGE INITIALIZATION ---
+        
         window.addEventListener('DOMContentLoaded', () => {
             const urlParams = new URLSearchParams(window.location.search);
             const passId = urlParams.get('id');
+            
+            // Auto-check if ID is passed in URL (e.g. from scanned QR)
             if (passId) {
-                input.value = passId;
-                if(navigator.onLine) verifyPass(passId);
+                domElements.input.value = passId;
+                if(navigator.onLine) startVerification(passId);
             }
-            input.focus();
+            domElements.input.focus();
+            checkNetworkStatus();
         });
 
-        // --- TRIGGER LOGIC ---
-        input.addEventListener('keydown', (e) => {
+        // --- INTERACTION HANDLERS ---
+
+        domElements.input.addEventListener('keydown', (e) => {
             if (e.key === 'Enter') {
-                const val = input.value.trim();
-                if (val) verifyPass(val);
+                const val = domElements.input.value.trim();
+                if (val) startVerification(val);
             }
         });
 
-        btn.onclick = () => {
-            const val = input.value.trim();
+        domElements.btn.onclick = () => {
+            const val = domElements.input.value.trim();
             if (!val) {
-                input.parentElement.classList.add('animate-pulse', 'border-red-500');
-                setTimeout(() => input.parentElement.classList.remove('animate-pulse', 'border-red-500'), 500);
-                input.focus();
+                shakeElement(domElements.input.parentElement);
                 return;
             }
-            verifyPass(val);
+            startVerification(val);
         };
 
-        // --- CORE VERIFICATION LOGIC ---
-        async function verifyPass(queryVal) {
-            btn.disabled = true;
-            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> CONNECTING...';
-            container.innerHTML = '';
-            container.classList.add('hidden');
+        // --- CORE VERIFICATION ENGINE ---
+
+        /**
+         * Handles the multi-stage lookup process for permissions.
+         * Logic: Try Document ID -> Fallback to Roll Number (Nested Schema).
+         */
+        async function startVerification(queryVal) {
+            // Set UI State: Loading
+            domElements.btn.disabled = true;
+            domElements.btnText.innerHTML = '<i class="fas fa-circle-notch fa-spin mr-2"></i> SECURITY CHECK...';
+            domElements.container.innerHTML = '';
+            domElements.container.classList.add('hidden');
 
             try {
-                let data = null;
-                let docId = null;
+                let permissionData = null;
+                let finalDocId = null;
 
-                // 1. Check Exact ID (Case Sensitive)
+                // Stage 1: Exact Document ID Check (Case Sensitive)
                 const docRef = await db.collection('permissions').doc(queryVal).get();
+                
                 if (docRef.exists) {
-                    data = docRef.data();
-                    docId = docRef.id;
+                    permissionData = docRef.data();
+                    finalDocId = docRef.id;
                 } else {
-                    // 2. Fallback to Roll No (Case Insensitive Uppercase)
+                    // Stage 2: Roll Number Lookup (Supporting nested student.rollNumber)
                     const rollQuery = queryVal.toUpperCase();
+                    
+                    // Search using the Golden Schema structure
                     const snap = await db.collection('permissions')
-                        .where('rollNumber', '==', rollQuery)
+                        .where('student.rollNumber', '==', rollQuery)
                         .where('status', '==', 'APPROVED')
                         .orderBy('endDate', 'desc')
                         .limit(1)
                         .get();
 
                     if (!snap.empty) {
-                        data = snap.docs[0].data();
-                        docId = snap.docs[0].id;
+                        permissionData = snap.docs[0].data();
+                        finalDocId = snap.docs[0].id;
                     }
                 }
 
-                if (!data) {
-                    showResult("NOT FOUND", "red", "search-minus", "No record found for this ID.");
+                // Stage 3: Data Availability Validation
+                if (!permissionData) {
+                    renderErrorView("PASS NOT FOUND", "No record exists for the provided ID or Roll Number.", "search-minus", "slate");
                     return;
                 }
 
-                // --- VALIDATION ---
-                const today = new Date();
-                today.setHours(0, 0, 0, 0); // Ignore time
+                // Stage 4: Logical Access Validation (Status & Dates)
+                performSecurityValidation(finalDocId, permissionData);
 
-                const startDate = new Date(data.startDate + "T00:00:00");
-                const endDate = new Date(data.endDate + "T23:59:59");
-
-                if (data.status !== 'APPROVED') {
-                    showResult("ACCESS DENIED", "red", "ban", `Status: ${data.status}`);
-                } else if (today < startDate) {
-                    showResult("NOT YET VALID", "orange", "clock", `Starts: ${startDate.toLocaleDateString()}`);
-                } else if (today > endDate) {
-                    showResult("EXPIRED", "red", "history", `Ended: ${endDate.toLocaleDateString()}`);
-                } else {
-                    showValidPass(docId, data);
-                }
-
-            } catch (err) {
-                console.error("Verification Error:", err);
-                if (!navigator.onLine) {
-                    showResult("OFFLINE", "slate", "wifi-slash", "Internet connection lost.");
-                } else {
-                    showResult("SYSTEM ERROR", "slate", "server", "Database Check Failed.");
-                }
+            } catch (error) {
+                console.error("Verification Critical Failure:", error);
+                renderErrorView("SYSTEM TIMEOUT", "Unable to reach verification servers. Check campus intranet.", "server", "slate");
             } finally {
-                btn.disabled = false;
-                btn.innerHTML = '<span>VERIFY ACCESS</span><i class="fas fa-arrow-right"></i>';
-                input.value = '';
-                input.focus();
+                // Restore UI State
+                domElements.btn.disabled = false;
+                domElements.btnText.innerText = 'VERIFY ACCESS';
             }
         }
 
-        // --- UI FUNCTIONS ---
-        function showResult(title, color, icon, msg) {
-            container.innerHTML = `
-                <div class="bg-white rounded-3xl shadow-xl overflow-hidden animate-slide-up relative border border-slate-100">
-                    <div class="bg-${color}-500 h-2 w-full"></div>
-                    <div class="p-8 text-center">
-                        <div class="w-20 h-20 bg-${color}-50 rounded-full flex items-center justify-center mx-auto mb-4 text-${color}-600 text-4xl border border-${color}-100">
-                            <i class="fas fa-${icon}"></i>
-                        </div>
-                        <h2 class="text-2xl font-black text-slate-800 uppercase tracking-tight mb-2">${title}</h2>
-                        <div class="inline-block bg-${color}-50 text-${color}-700 px-4 py-2 rounded-xl font-bold text-sm border border-${color}-100">
-                            ${msg}
-                        </div>
-                    </div>
-                </div>`;
-            container.classList.remove('hidden');
+        /**
+         * Validates the status and timeframe of an existing pass.
+         */
+        function performSecurityValidation(id, data) {
+            const now = new Date();
+            now.setHours(0, 0, 0, 0); // Normalize to date only for comparison
+
+            const validFrom = new Date(data.startDate + "T00:00:00");
+            const validTo = new Date(data.endDate + "T23:59:59");
+
+            if (data.status !== 'APPROVED') {
+                renderErrorView("DENIED: " + data.status, "This pass has not been authorized by the HOD/Principal.", "ban", "red");
+            } else if (now < validFrom) {
+                renderErrorView("NOT YET VALID", `Authorized for use starting ${validFrom.toLocaleDateString()}.`, "clock", "orange");
+            } else if (now > validTo) {
+                renderErrorView("PASS EXPIRED", `This pass expired on ${validTo.toLocaleDateString()}.`, "history", "red");
+            } else {
+                renderPassDetails(id, data);
+            }
         }
 
-        function showValidPass(id, data) {
-            const teacher = data.approvals?.teacher?.name || "Faculty";
-            const hod = data.approvals?.hod?.name;
-            const description = data.reason || "No description provided.";
+        // --- UI RENDERER FUNCTIONS ---
 
-            container.innerHTML = `
-                <div class="bg-white rounded-3xl shadow-xl overflow-hidden animate-slide-up relative border border-slate-100">
+        /**
+         * Renders the Success state showing student info and approval chain.
+         * Resolves approver names dynamically from logs.
+         */
+        function renderPassDetails(id, data) {
+            // Data Resolution from Golden Schema
+            const name = data.student?.name || "Unknown Identity";
+            const roll = data.student?.rollNumber || "N/A";
+            const type = data.type || "General";
+            const reason = data.reason || "No detail provided.";
+
+            // Multi-Tier Approver Resolution Logic
+            // -----------------------------------------------------------------
+            
+            // 1. Resolve Class Teacher (The first human approver)
+            const teacherLog = data.logs?.find(l => 
+                ['VERIFIED', 'APPROVED'].includes(l.action) && 
+                l.by !== 'Student' && 
+                !l.by.includes('Sekhar') // Ensure we don't pick Principal
+            );
+            const teacherName = data.approvals?.teacher?.name || teacherLog?.by || "Department Faculty";
+
+            // 2. Resolve HOD (Explicit match or second log)
+            const hodLog = data.logs?.find(l => 
+                (l.role === 'hod' || l.by.toLowerCase().includes('hod')) || 
+                (l.action === 'VERIFIED' && l.by !== teacherName && !l.by.includes('Sekhar'))
+            );
+            const hodName = data.approvals?.hod?.name || hodLog?.by || "Head of Dept";
+
+            // 3. Resolve Principal (Strict check for Name or Role)
+            const principalLog = data.logs?.find(l => 
+                l.by.includes('Sekhar') || l.role === 'principal' || l.action === 'APPROVED' && l.by !== teacherName && l.by !== hodName
+            );
+            const principalName = data.approvals?.principal?.name || principalLog?.by || (data.routingPath?.includes('PRINCIPAL') ? "Dr. Y.M.C. Sekhar" : null);
+
+            // Construct Template
+            domElements.container.innerHTML = `
+                <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-100 print-card">
                     <div class="bg-green-500 h-3 w-full"></div>
                     
-                    <div class="p-6 pb-0 text-center">
-                        <div class="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-1.5 rounded-full text-xs font-black uppercase tracking-wider mb-4 border border-green-200">
-                            <i class="fas fa-check-circle"></i> Official Pass
+                    <div class="p-8 pb-0 text-center relative">
+                        <div class="absolute top-4 right-4" style="padding-top: 0.25rem;">
+                            <i class="fas fa-check text-green-500 text-2xl opacity-20"></i>
                         </div>
-                        <h2 class="text-3xl font-black text-slate-900 leading-none tracking-tight">${data.studentName}</h2>
-                        <p class="text-slate-500 font-mono text-lg mt-1 font-bold">${data.rollNumber}</p>
+                        <div class="inline-flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest mb-6 border border-green-100">
+                            <i class="fas fa-verified"></i> Authorized Access
+                        </div>
+                        <h2 class="text-4xl font-black text-slate-900 leading-none tracking-tight">${name}</h2>
+                        <p class="text-slate-400 font-mono text-xl mt-2 font-bold">${roll}</p>
                     </div>
 
-                    <div class="p-6 space-y-4">
-                        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-200 flex justify-between items-center shadow-inner">
+                    <div class="p-8 space-y-6">
+                        <div class="bg-slate-50 rounded-2xl p-5 border border-slate-100 flex justify-between items-center shadow-inner">
                             <div class="text-left">
-                                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">From</p>
-                                <p class="font-bold text-slate-800 text-lg">${new Date(data.startDate).toLocaleDateString()}</p>
+                                <p class="text-[9px] uppercase font-black text-slate-400 tracking-wider">Valid From</p>
+                                <p class="font-bold text-slate-700">${new Date(data.startDate).toLocaleDateString()}</p>
                             </div>
-                            <div class="h-10 w-px bg-slate-300"></div>
+                            <div class="h-10 w-[2px] bg-slate-200"></div>
                             <div class="text-right">
-                                <p class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">To</p>
-                                <p class="font-bold text-slate-800 text-lg">${new Date(data.endDate).toLocaleDateString()}</p>
+                                <p class="text-[9px] uppercase font-black text-slate-400 tracking-wider">Valid Until</p>
+                                <p class="font-bold text-slate-700">${new Date(data.endDate).toLocaleDateString()}</p>
                             </div>
                         </div>
 
-                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                            <p class="text-[10px] uppercase font-bold text-blue-400 mb-1 tracking-wider">
-                                Permission: <span class="text-blue-600 font-black">${data.reasonType}</span>
-                            </p>
-                            <p class="text-sm text-blue-900 font-medium italic">"${description}"</p>
+                        <div class="bg-blue-50/50 p-5 rounded-2xl border border-blue-100/50">
+                            <div class="flex justify-between items-start mb-2">
+                                <span class="text-[10px] uppercase font-black text-blue-400 tracking-widest">Purpose: ${type}</span>
+                            </div>
+                            <p class="text-sm text-blue-900 font-bold leading-relaxed italic">"${reason}"</p>
                         </div>
 
-                        <div class="space-y-2 pt-2">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xs">
+                        <div class="space-y-4 pt-4">
+                            <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest text-center border-b border-slate-50 pb-2">Verification Chain</p>
+                            
+                            <div class="flex items-center gap-4 bg-slate-50/50 p-3 rounded-xl">
+                                <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-blue-600 shadow-sm border border-slate-100">
                                     <i class="fas fa-chalkboard-teacher"></i>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase">Approved By</p>
-                                    <p class="text-sm font-bold text-slate-800">${teacher}</p>
+                                    <p class="text-[9px] font-black text-slate-400 uppercase leading-none mb-1">Class Teacher</p>
+                                    <p class="text-sm font-bold text-slate-800">${teacherName}</p>
                                 </div>
+                                <div class="ml-auto text-green-500"><i class="fas fa-check-circle"></i></div>
                             </div>
                             
-                            ${hod ? `
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 text-xs">
+                            <div class="flex items-center gap-4 bg-slate-50/50 p-3 rounded-xl">
+                                <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-purple-600 shadow-sm border border-slate-100">
                                     <i class="fas fa-user-tie"></i>
                                 </div>
                                 <div>
-                                    <p class="text-[10px] font-bold text-slate-400 uppercase">HOD Authorization</p>
-                                    <p class="text-sm font-bold text-slate-800">${hod}</p>
+                                    <p class="text-[9px] font-black text-slate-400 uppercase leading-none mb-1">HOD Authorization</p>
+                                    <p class="text-sm font-bold text-slate-800">${hodName}</p>
                                 </div>
+                                <div class="ml-auto text-green-500"><i class="fas fa-check-circle"></i></div>
+                            </div>
+
+                            ${principalName ? `
+                            <div class="flex items-center gap-4 bg-brand-50 p-3 rounded-xl border border-brand-100">
+                                <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-brand-600 shadow-sm border border-brand-100">
+                                    <i class="fas fa-university"></i>
+                                </div>
+                                <div>
+                                    <p class="text-[9px] font-black text-brand-400 uppercase leading-none mb-1">Principal</p>
+                                    <p class="text-sm font-black text-brand-900">${principalName}</p>
+                                </div>
+                                <div class="ml-auto text-green-500"><i class="fas fa-shield-check"></i></div>
                             </div>
                             ` : ''}
                         </div>
                     </div>
 
-                    <div class="bg-slate-100 p-3 text-center border-t border-slate-200">
-                        <p class="text-[10px] font-mono text-slate-500 truncate tracking-widest">REF: ${id}</p>
+                    <div class="bg-slate-900 p-4 text-center">
+                        <p class="text-[9px] font-mono text-slate-400 tracking-widest uppercase">System Audit ID</p>
+                        <p class="text-[11px] font-mono text-white font-bold">${id}</p>
                     </div>
-                </div>`;
-            container.classList.remove('hidden');
+                </div>
+                
+                <button onclick="window.location.reload()" class="w-full py-4 text-slate-400 hover:text-slate-600 font-bold text-sm transition-all flex items-center justify-center gap-2 no-print">
+                    <i class="fas fa-redo-alt"></i> SCAN NEXT PASS
+                </button>`;
+            
+            domElements.container.classList.remove('hidden');
+            domElements.scannerCard.classList.add('hidden'); // Hide scanner when showing results
         }
+
+        /**
+         * Renders error/failure states with color-coded iconography.
+         */
+        function renderErrorView(title, message, icon, color) {
+            const colors = {
+                red: 'bg-red-500 text-red-600 border-red-100 ring-red-50',
+                orange: 'bg-orange-500 text-orange-600 border-orange-100 ring-orange-50',
+                slate: 'bg-slate-500 text-slate-600 border-slate-100 ring-slate-50'
+            };
+
+            const activeColor = colors[color] || colors.slate;
+
+            domElements.container.innerHTML = `
+                <div class="bg-white rounded-3xl shadow-2xl overflow-hidden p-10 text-center animate-slide-up border border-slate-100">
+                    <div class="w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-6 text-4xl shadow-inner border-4 ${activeColor.split(' ')[2]}">
+                        <i class="fas fa-${icon} ${activeColor.split(' ')[1]}"></i>
+                    </div>
+                    <h2 class="text-2xl font-black text-slate-900 uppercase tracking-tight mb-3">${title}</h2>
+                    <p class="text-slate-500 text-sm font-medium leading-relaxed mb-8 px-4">${message}</p>
+                    
+                    <button onclick="window.location.reload()" class="w-full py-4 bg-slate-900 text-white rounded-2xl font-black shadow-lg shadow-slate-200 transition-all active:scale-[0.98]">
+                        TRY AGAIN
+                    </button>
+                </div>`;
+            domElements.container.classList.remove('hidden');
+            domElements.scannerCard.classList.add('hidden');
+        }
+
+        // --- UTILITY HELPERS ---
+
+        /**
+         * Visual feedback for empty or invalid input.
+         */
+        function shakeElement(el) {
+            el.classList.add('translate-x-2', 'border-red-500');
+            setTimeout(() => el.classList.remove('translate-x-2'), 100);
+            setTimeout(() => el.classList.add('-translate-x-2'), 200);
+            setTimeout(() => el.classList.remove('-translate-x-2'), 300);
+            setTimeout(() => el.classList.add('translate-x-1'), 400);
+            setTimeout(() => {
+                el.classList.remove('translate-x-1', 'border-red-500');
+            }, 500);
+            domElements.input.focus();
+        }
+
+        // Expose to window for inline onclicks
+        window.startVerification = startVerification;
+
     </script>
+
+    <div class="fixed bottom-0 left-0 w-full h-1/2 bg-gradient-to-t from-slate-200 to-transparent -z-10 opacity-30"></div>
+    <div class="fixed top-0 left-1/4 w-[500px] h-[500px] bg-blue-100 rounded-full blur-[120px] -z-10 opacity-20"></div>
+
 </body>
 </html>

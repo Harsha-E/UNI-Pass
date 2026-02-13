@@ -7,6 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.3.2/papaparse.min.js"></script>
     <script type="module" src="../assets/js/route-guard.js"></script>
     <link rel="stylesheet" href="../../assets/css/style.css">
     <script src="../../assets/js/ui.js" defer></script>
@@ -38,6 +39,10 @@
 
             <button onclick="switchTab('users')" id="nav-users" class="nav-item w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl transition group">
                 <i class="fas fa-users w-5 mr-3 group-hover:text-blue-400"></i> Directory
+            </button>
+
+            <button onclick="switchTab('uploader')" id="nav-uploader" class="nav-item w-full flex items-center px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl transition group">
+                <i class="fas fa-upload w-5 mr-3 group-hover:text-blue-400"></i> Bulk Upload
             </button>
             
             </nav>
@@ -160,6 +165,71 @@
                 </div>
             </div>
 
+            <div id="view-uploader" class="hidden animate-fade-in space-y-6">
+                <div class="bg-white rounded-2xl shadow-sm border border-slate-200">
+                    <div class="p-6 border-b border-slate-100">
+                        <h3 class="font-bold text-slate-800">Smart Bulk User Uploader</h3>
+                        <p class="text-xs text-slate-500">Upload a CSV to create or update user profiles in batches.</p>
+                    </div>
+                    <div class="p-6 space-y-6">
+                        <div class="p-4 bg-blue-50 text-blue-800 rounded-lg border border-blue-100 flex items-start gap-3">
+                            <i class="fas fa-info-circle mt-1"></i>
+                            <div>
+                                <p class="font-bold text-sm">Instructions</p>
+                                <ol class="list-decimal list-inside text-xs space-y-1 mt-1">
+                                    <li>Download the template to ensure correct column headers.</li>
+                                    <li>Fill the CSV with user data. Required fields: `email`, `displayName`, `role`.</li>
+                                    <li>Upload the file. The system will validate it and show a preview.</li>
+                                    <li>Review for errors (highlighted in red). Fix your CSV and re-upload if needed.</li>
+                                    <li>Click "Commit to Database" to begin the batch upload.</li>
+                                </ol>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-4">
+                            <button id="download-template-btn" class="px-4 py-2 bg-slate-100 text-slate-700 border border-slate-200 rounded-lg text-sm font-bold hover:bg-slate-200 transition">
+                                <i class="fas fa-download mr-2"></i> Download CSV Template
+                            </button>
+                            <label for="csv-file-input" class="cursor-pointer px-5 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold shadow-md hover:bg-blue-700 transition">
+                                <i class="fas fa-upload mr-2"></i> Upload File
+                            </label>
+                            <input type="file" id="csv-file-input" accept=".csv" class="hidden">
+                        </div>
+                    </div>
+                </div>
+
+                <div id="staging-area" class="hidden bg-white rounded-2xl shadow-sm border border-slate-200">
+                    <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                        <h3 class="font-bold text-slate-800">Staging Area - Preview</h3>
+                        <div id="upload-summary" class="text-sm font-bold"></div>
+                    </div>
+                    <div class="table-viewport">
+                        <table class="w-full text-sm text-left">
+                            <thead id="preview-thead"></thead>
+                            <tbody id="preview-tbody" class="divide-y divide-slate-100"></tbody>
+                        </table>
+                    </div>
+                    <div class="p-6 border-t border-slate-100">
+                        <div id="progress-container" class="hidden space-y-2">
+                            <div class="w-full bg-slate-200 rounded-full h-2.5">
+                                <div id="progress-bar" class="bg-blue-600 h-2.5 rounded-full" style="width: 0%"></div>
+                            </div>
+                            <p id="progress-text" class="text-xs text-slate-500 font-bold text-center"></p>
+                        </div>
+                        <button id="commit-btn" disabled class="w-full md:w-auto px-8 py-3 bg-slate-300 text-slate-500 font-bold rounded-lg cursor-not-allowed transition flex items-center justify-center gap-2">
+                            <i class="fas fa-database"></i> Commit to Database
+                        </button>
+                    </div>
+                </div>
+
+                <div id="report-area" class="hidden p-6 bg-green-50 text-green-800 rounded-lg border border-green-200">
+                    <h4 class="font-bold">Upload Complete!</h4>
+                    <p id="report-summary" class="text-sm"></p>
+                    <div id="report-errors" class="text-xs mt-2"></div>
+                </div>
+
+            </div>
+
         </div>
     </main>
 
@@ -234,7 +304,7 @@
             if (!user) location.href = '../public/login.html';
             
             const doc = await db.collection('users').doc(user.uid).get();
-            if(!doc.exists || doc.data().role !== 'admin') {
+            if(!doc.exists || !['admin', 'principal'].includes(doc.data().role)) { 
                 alert("Unauthorized Access");
                 await auth.signOut();
                 location.href = '../public/login.html';
@@ -246,7 +316,7 @@
         });
 
         window.switchTab = (tab) => {
-            ['dashboard', 'approvals', 'users'].forEach(t => {
+            ['dashboard', 'approvals', 'users', 'uploader'].forEach(t => {
                 document.getElementById(`view-${t}`).classList.add('hidden');
                 document.getElementById(`nav-${t}`).classList.remove('bg-blue-600', 'text-white', 'shadow-lg');
                 document.getElementById(`nav-${t}`).classList.add('text-slate-400', 'hover:bg-slate-800');
@@ -279,10 +349,12 @@
                 rollInput.disabled = true;
                 rollInput.classList.add('bg-slate-100', 'text-slate-400', 'cursor-not-allowed');
                 rollInput.classList.remove('bg-white');
-                rollInput.placeholder = "Not applicable";
-                hint.innerText = "ID not required for staff roles.";
+                rollInput.placeholder = "Auto-assigned by System";
+                hint.innerText = "ID will be set to 'Staff' automatically.";
             }
         });
+      
+        // CHANGE THIS LINE:
 
         // --- 1. STATISTICS & CHARTS ---
         async function loadStats() {
@@ -365,7 +437,7 @@
                     snap.forEach(doc => {
                         const u = doc.data();
                         let reqRole = u.requestedRole ? u.requestedRole.toUpperCase() : 'FACULTY';
-                        if(reqRole === 'LAB_ASSISTANT') reqRole = 'LAB ASSIST'; // Pretty print
+                        if(reqRole === 'LAB_ASSISTANT') reqRole = 'LAB ASSIST'; 
                         
                         const item = document.createElement('div');
                         item.className = "p-6 flex items-center justify-between hover:bg-slate-50 transition";
@@ -399,7 +471,7 @@
 
             if (action === 'approve') {
                 await db.collection('users').doc(uid).update({
-                    role: reqRole || 'teacher', // Fallback
+                    role: reqRole || 'teacher', 
                     isBlocked: false,
                     approvedAt: new Date().toISOString()
                 });
@@ -456,7 +528,30 @@
             }
         };
 
-        // --- 4. MANUAL USER ADD ---
+        /**
+         * Derives a student's academic year based on their roll number.
+         * Implements standard and lateral entry logic.
+         */
+        function getYearFromRollNumber(rollNumber) {
+            const roll = String(rollNumber).toUpperCase();
+            if (roll.includes('L')) {
+                return '2'; // Lateral entry students are directly in 2nd year.
+            }
+            const joinYear = parseInt(roll.substring(0, 2), 10);
+            if (isNaN(joinYear) || joinYear < 20) return '1'; // Default
+
+            // Determine current academic year (assuming it runs July-June)
+            const now = new Date();
+            const currentMonth = now.getMonth(); // 0-11
+            const currentYearShort = now.getFullYear() % 100;
+            const academicYearShort = currentMonth < 6 ? currentYearShort - 1 : currentYearShort;
+            
+            const yearOfStudy = academicYearShort - joinYear + 1;
+            
+            return (yearOfStudy > 0 && yearOfStudy <= 4) ? String(yearOfStudy) : '1';
+        }
+
+        // --- 4. MANUAL USER ADD (FIXED SCHEMA) ---
         window.saveUser = async (e) => {
             e.preventDefault();
             const btn = e.target.querySelector('button[type="submit"]');
@@ -470,18 +565,48 @@
                 const dept = document.getElementById('new-dept').value;
                 const roll = document.getElementById('new-roll').value;
 
-                await db.collection('users').add({
+                // --- GOLDEN SCHEMA LOGIC ---
+                let finalRoll = null;
+                let section = "A"; // Default for manual entry
+                let year = "1"; // Default
+
+                if (role === 'student') {
+                    finalRoll = roll.toUpperCase();
+                    year = getYearFromRollNumber(finalRoll);
+                } else {
+                    // Force Staff ID logic
+                    if (role === 'teacher') {
+                        finalRoll = "Staff";
+                        section = "Faculty";
+                    } else if (role === 'hod') {
+                        finalRoll = "HOD";
+                        section = "Head";
+                    } else if (role === 'lab_assistant') {
+                        finalRoll = "LAB";
+                        section = "Labs";
+                    } else {
+                        finalRoll = "Admin";
+                        section = "IT";
+                    }
+                }
+
+                await db.collection('users').doc(email).set({
                     displayName: name,
                     email: email,
                     role: role,
                     department: dept,
-                    rollNumber: role === 'student' ? roll : null,
+                    
+                    // Critical Fields for Permissions
+                    rollNumber: finalRoll,
+                    section: section,
+                    year: year,
+                    
                     attendance: 75,
                     isBlocked: false,
                     createdAt: new Date().toISOString()
                 });
 
-                alert("User profile created!");
+                alert("User profile created successfully!");
                 window.toggleModal(false);
                 loadUsers();
                 e.target.reset(); 
@@ -492,6 +617,233 @@
                 btn.disabled = false;
             }
         };
+
+        // --- 5. BULK UPLOADER LOGIC ---
+        const fileInput = document.getElementById('csv-file-input');
+        const stagingArea = document.getElementById('staging-area');
+        const previewThead = document.getElementById('preview-thead');
+        const previewTbody = document.getElementById('preview-tbody');
+        const commitBtn = document.getElementById('commit-btn');
+        const uploadSummary = document.getElementById('upload-summary');
+        let stagedData = [];
+
+        document.getElementById('download-template-btn').onclick = () => {
+            const headers = "displayName,email,role,department,section,rollNumber";
+            const example = "John Doe,john.doe@college.edu,student,CSE,A,24331A4201";
+            const csvContent = "data:text/csv;charset=utf-s8," + headers + "\n" + example;
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "unipass_template.csv");
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+        };
+
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            stagingArea.classList.remove('hidden');
+            commitBtn.disabled = true;
+            commitBtn.innerHTML = '<i class="fas fa-database"></i> Commit to Database';
+            commitBtn.classList.add('bg-slate-300', 'text-slate-500', 'cursor-not-allowed');
+            commitBtn.classList.remove('bg-blue-600', 'text-white');
+            previewTbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center"><i class="fas fa-spinner fa-spin"></i> Parsing file...</td></tr>';
+
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    validateAndRenderPreview(results.data);
+                }
+            });
+        });
+
+        function validateAndRenderPreview(data) {
+            previewThead.innerHTML = '';
+            previewTbody.innerHTML = '';
+            stagedData = [];
+            let errorCount = 0;
+
+            if (data.length === 0) {
+                previewTbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-red-500">File is empty or invalid.</td></tr>';
+                return;
+            }
+
+            const headers = Object.keys(data[0]);
+            let headerRow = '<tr>';
+            headers.forEach(h => headerRow += `<th class="px-6 py-3 text-xs font-bold uppercase text-slate-500">${h}</th>`);
+            headerRow += '</tr>';
+            previewThead.innerHTML = headerRow;
+
+            data.forEach((row, index) => {
+                let rowHTML = '';
+                const errors = [];
+                const sanitizedRow = {};
+
+                // Validation Logic
+                const email = (row.email || '').trim().toLowerCase();
+                if (!email || !/^\S+@\S+\.\S+$/.test(email)) errors.push('Invalid email format');
+                
+                const role = (row.role || '').trim().toLowerCase();
+                if (!['student', 'teacher', 'hod', 'admin'].includes(role)) errors.push('Invalid role');
+
+                if (role === 'student') {
+                    const roll = (row.rollNumber || '').trim();
+                    if (!roll) {
+                        errors.push('Roll Number is mandatory');
+                    } else if (!/^2\d/.test(roll) || roll.length !== 10) {
+                        errors.push('Invalid Roll format (e.g., 24331A4228)');
+                    }
+                }
+
+                const hasError = errors.length > 0;
+                if (hasError) errorCount++;
+
+                const rowClass = hasError ? 'bg-red-50' : '';
+                rowHTML += `<tr class="${rowClass}" title="${errors.join(', ')}">`;
+
+                headers.forEach(header => {
+                    const value = (row[header] || '').trim();
+                    const cellError = (header === 'email' && !/^\S+@\S+\.\S+$/.test(value)) || (header === 'role' && !['student', 'teacher', 'hod', 'admin'].includes(value.toLowerCase()));
+                    const cellClass = cellError ? 'border-l-2 border-red-500' : '';
+                    rowHTML += `<td class="px-6 py-3 text-xs ${cellClass}">${value}</td>`;
+
+                    // Sanitize for commit
+                    if (header === 'email') sanitizedRow[header] = value.toLowerCase();
+                    else if (header === 'department' || header === 'section' || header === 'rollNumber') sanitizedRow[header] = value.toUpperCase();
+                    else sanitizedRow[header] = value;
+                });
+
+                rowHTML += '</tr>';
+                previewTbody.innerHTML += rowHTML;
+                if (!hasError) {
+                    stagedData.push(sanitizedRow);
+                }
+            });
+
+            // Update summary and commit button state
+            if (errorCount > 0) {
+                uploadSummary.innerHTML = `<span class="text-red-600">${errorCount} Error(s) Found</span> | <span class="text-green-600">${stagedData.length} Valid Rows</span>`;
+                commitBtn.disabled = true;
+                commitBtn.innerHTML = `<i class="fas fa-times-circle"></i> Fix Errors to Commit`;
+                commitBtn.classList.add('bg-red-200', 'text-red-700', 'cursor-not-allowed');
+                commitBtn.classList.remove('bg-blue-600', 'text-white', 'bg-slate-300', 'text-slate-500');
+            } else {
+                uploadSummary.innerHTML = `<span class="text-green-600">${stagedData.length} Valid Rows</span>`;
+                commitBtn.disabled = false;
+                commitBtn.innerHTML = `<i class="fas fa-database"></i> Commit ${stagedData.length} Users`;
+                commitBtn.classList.remove('bg-slate-300', 'text-slate-500', 'cursor-not-allowed', 'bg-red-200', 'text-red-700');
+                commitBtn.classList.add('bg-blue-600', 'text-white');
+            }
+        }
+
+        commitBtn.addEventListener('click', async () => {
+            // --- 1. SETUP & PRE-CHECKS ---
+            commitBtn.disabled = true;
+            commitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Checking for duplicates...';
+            const progressContainer = document.getElementById('progress-container');
+            const progressBar = document.getElementById('progress-bar');
+            const progressText = document.getElementById('progress-text');
+            const reportArea = document.getElementById('report-area');
+            const reportSummary = document.getElementById('report-summary');
+            const reportErrors = document.getElementById('report-errors');
+            reportErrors.innerHTML = '';
+
+            const emailsInCsv = stagedData.map(user => user.email);
+            const existingEmails = new Set();
+            const queryChunks = [];
+            // Firestore 'in' query supports up to 10 items in compat mode
+            for (let i = 0; i < emailsInCsv.length; i += 10) {
+                queryChunks.push(emailsInCsv.slice(i, i + 10));
+            }
+
+            try {
+                for (const chunk of queryChunks) {
+                    const snap = await db.collection('users').where('email', 'in', chunk).get();
+                    snap.forEach(doc => existingEmails.add(doc.data().email));
+                }
+            } catch (err) {
+                alert("Error checking for duplicates: " + err.message);
+                commitBtn.disabled = false;
+                commitBtn.innerHTML = `<i class="fas fa-database"></i> Commit ${stagedData.length} Users`;
+                return;
+            }
+
+            const usersToCreate = stagedData.filter(user => !existingEmails.has(user.email));
+            const skippedUsers = stagedData.filter(user => existingEmails.has(user.email));
+
+            // --- 2. CONFIRMATION ---
+            if (!confirm(`This will create ${usersToCreate.length} new users and skip ${skippedUsers.length} who already exist. Continue?`)) {
+                commitBtn.disabled = false;
+                commitBtn.innerHTML = `<i class="fas fa-database"></i> Commit ${usersToCreate.length} Users`;
+                return;
+            }
+
+            if (usersToCreate.length === 0) {
+                reportArea.classList.remove('hidden');
+                reportSummary.innerText = `Upload finished. No new users to create.`;
+                reportErrors.innerHTML = skippedUsers.length > 0 ? `<b>Skipped ${skippedUsers.length} existing users.</b>` : '';
+                commitBtn.innerHTML = `<i class="fas fa-check-circle"></i> Nothing to commit`;
+                return;
+            }
+
+            // --- 3. BATCH COMMIT LOGIC ---
+            progressContainer.classList.remove('hidden');
+            commitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Uploading...';
+            const batchSize = 400;
+            const totalUsersToCreate = usersToCreate.length;
+            let processedUsers = 0;
+
+            while (processedUsers < totalUsersToCreate) {
+                const batch = db.batch();
+                const currentBatch = usersToCreate.slice(processedUsers, processedUsers + batchSize);
+
+                currentBatch.forEach(user => {
+                    const userRef = db.collection('users').doc(user.email); // Use email as predictable ID
+
+                    // Ensure schema consistency by adding defaults if missing from CSV
+                    const payload = {
+                        displayName: user.displayName,
+                        email: user.email,
+                        role: user.role,
+                        department: user.department || 'General',
+                        section: user.section || (user.role === 'student' ? 'A' : 'Faculty'), // Default section
+                        year: user.role === 'student' ? (user.year || getYearFromRollNumber(user.rollNumber)) : 'N/A', // Derive year if not provided
+                        rollNumber: user.rollNumber || (user.role === 'student' ? 'N/A' : null),
+                        isBlocked: false,
+                        createdAt: new Date().toISOString()
+                    };
+
+                    Object.keys(payload).forEach(key => (payload[key] === undefined || payload[key] === '') && delete payload[key]);
+                    batch.set(userRef, payload);
+                });
+
+                try {
+                    await batch.commit();
+                    processedUsers += currentBatch.length;
+                    const progress = Math.min(100, (processedUsers / totalUsersToCreate) * 100);
+                    progressBar.style.width = `${progress}%`;
+                    progressText.innerText = `Uploading: ${processedUsers} / ${totalUsersToCreate} (${progress.toFixed(0)}%)`;
+                } catch (error) {
+                    console.error("Batch upload error:", error);
+                    alert(`Batch upload failed: ${error.message}`);
+                    commitBtn.disabled = false;
+                    commitBtn.innerHTML = `<i class="fas fa-database"></i> Commit to Database`;
+                    return;
+                }
+            }
+
+            // --- 4. FINAL REPORT ---
+            progressContainer.classList.add('hidden');
+            reportArea.classList.remove('hidden');
+            reportSummary.innerText = `Successfully created ${totalUsersToCreate} new users.`;
+            reportErrors.innerHTML = skippedUsers.length > 0 ? `<b>Skipped ${skippedUsers.length} existing users.</b>` : '';
+            commitBtn.innerHTML = `<i class="fas fa-check-circle"></i> Upload Complete`;
+            fileInput.value = ''; // Reset file input
+        });
+
 
         document.getElementById('logout-btn').onclick = () => {
             sessionStorage.clear();

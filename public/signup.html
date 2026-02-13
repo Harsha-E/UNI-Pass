@@ -25,7 +25,7 @@
 
     <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
 
-    <div class="max-w-lg w-full bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden m-4 mt-16">
+    <div class="max-w-xl w-full bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden m-4 mt-16">
         <div class="bg-gradient-to-r from-slate-900 to-slate-800 p-8 text-center relative overflow-hidden">
             <div class="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
             <h2 class="text-3xl font-bold text-white tracking-tight">Create Account</h2>
@@ -36,7 +36,7 @@
             
             <div>
                 <label class="block text-xs font-bold text-slate-500 uppercase mb-2">Select Identity</label>
-                <div class="grid grid-cols-3 gap-3">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
                     <label class="identity-card cursor-pointer border border-slate-200 rounded-xl p-3 flex flex-col items-center transition-all hover:border-blue-300">
                         <input type="radio" name="role" value="student" checked class="sr-only" onchange="window.toggleRollField(true)">
                         <div class="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-1">
@@ -54,11 +54,19 @@
                     </label>
 
                     <label class="identity-card cursor-pointer border border-slate-200 rounded-xl p-3 flex flex-col items-center transition-all hover:border-blue-300">
-                        <input type="radio" name="role" value="lab_assistant" class="sr-only" onchange="window.toggleRollField(false)">
-                        <div class="w-8 h-8 rounded-full bg-green-100 text-green-600 flex items-center justify-center mb-1">
-                            <i class="fas fa-flask"></i>
+                        <input type="radio" name="role" value="hod" class="sr-only" onchange="window.toggleRollField(false)">
+                        <div class="w-8 h-8 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mb-1">
+                            <i class="fas fa-crown"></i>
                         </div>
-                        <span class="font-bold text-slate-700 text-xs">Lab Assist</span>
+                        <span class="font-bold text-slate-700 text-xs">HOD</span>
+                    </label>
+
+                    <label class="identity-card cursor-pointer border border-slate-200 rounded-xl p-3 flex flex-col items-center transition-all hover:border-blue-300">
+                        <input type="radio" name="role" value="counselor" class="sr-only" onchange="window.toggleRollField(false)">
+                        <div class="w-8 h-8 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center mb-1">
+                            <i class="fas fa-user-friends"></i>
+                        </div>
+                        <span class="font-bold text-slate-700 text-xs">Counselor</span>
                     </label>
                 </div>
             </div>
@@ -196,6 +204,7 @@
             }
         };
 
+        // --- SUBMIT: GOLDEN SCHEMA ---
         document.getElementById('signup-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btn-signup');
@@ -213,7 +222,7 @@
                     return; 
                 }
                 if (!STRICT_ROLL_REGEX.test(roll) || roll.length !== 10) {
-                    showToast("Invalid Roll Number Format (Must be 10 chars)", "error");
+                    showToast("Invalid Roll Number Format", "error");
                     return;
                 }
             }
@@ -226,40 +235,61 @@
                 const user = userCredential.user;
                 await user.sendEmailVerification();
 
-                let section = 'N/A';
-                let department = 'General';
-                let finalRole = 'student';
-                let isBlocked = false;
-                
+                // DEFAULTS FOR GOLDEN SCHEMA
+                let finalRoll = null;
+                let section = "N/A";
+                let year = "4"; // Staff Level
+                let department = "General";
+                let finalRole = "pending";
+                let isBlocked = true;
+
                 if (selectedRole === 'student') {
                     finalRole = 'student';
-                    if (roll) {
-                        if (roll.includes('42')) department = 'CSE';
-                        else if (roll.includes('01')) department = 'CIVIL';
-                        else if (roll.includes('03')) department = 'MECH';
-                        else if (roll.includes('04')) department = 'ECE';
-                        else if (roll.includes('05')) department = 'EEE';
-                        else if (roll.includes('12')) department = 'IT';
-                        else if (roll.includes('54')) department = 'AI & DS';
-                        
-                        const lastTwo = parseInt(roll.slice(-2));
-                        if (!isNaN(lastTwo)) section = (lastTwo <= 66) ? 'A' : 'B';
-                    }
+                    isBlocked = false;
+                    finalRoll = roll.toUpperCase();
+                    year = "2"; // Default student year
+                    
+                    // Logic to extract Dept from Roll Number (e.g., 24331A4228 -> 42 -> CSE)
+                    if (finalRoll.includes('42')) department = 'CSE';
+                    else if (finalRoll.includes('01')) department = 'CIVIL';
+                    else if (finalRoll.includes('03')) department = 'MECH';
+                    else if (finalRoll.includes('04')) department = 'ECE';
+                    else if (finalRoll.includes('05')) department = 'EEE';
+                    else if (finalRoll.includes('12')) department = 'IT';
+                    else if (finalRoll.includes('54')) department = 'AI & DS';
+                    
+                    const lastTwo = parseInt(finalRoll.slice(-2));
+                    if (!isNaN(lastTwo)) section = (lastTwo <= 66) ? 'A' : 'B';
                 } else {
-                    // STAFF LOGIC: Both 'teacher' and 'lab_assistant' are blocked pending approval
-                    finalRole = 'pending'; 
-                    isBlocked = true;
+                    // STAFF LOGIC: Explicit Strings to satisfy "Is String" Security Rules
+                    if (selectedRole === 'teacher') {
+                        finalRoll = "Staff";
+                        section = "Faculty";
+                    } else if (selectedRole === 'hod') {
+                        finalRoll = "HOD";
+                        section = "Head";
+                    } else if (selectedRole === 'counselor') {
+                        finalRoll = "Counselor";
+                        section = "Admin";
+                    } else {
+                        finalRoll = "Staff"; // Fallback
+                        section = "General";
+                    }
                 }
 
-                // MERGE: true is critical to avoid overwriting if admin already set up user
+                // Create User Document
                 await db.collection('users').doc(user.uid).set({
                     displayName: name,
                     email: email,
                     role: finalRole,
-                    requestedRole: selectedRole, // Admin sees this to know what permission to give
-                    rollNumber: selectedRole === 'student' ? roll.toUpperCase() : null,
+                    requestedRole: selectedRole,
+                    
+                    // CRITICAL FIELDS
+                    rollNumber: finalRoll, // Must be String "Staff" or "21A...", NEVER null
                     department: department,
                     section: section,
+                    year: year,
+                    
                     attendance: 75,
                     isBlocked: isBlocked,
                     createdAt: new Date().toISOString()

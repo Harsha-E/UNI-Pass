@@ -1,107 +1,171 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>HOD Portal • UNIPASS</title>
-  <link rel="stylesheet" href="../../assets/css/main.css" />
-  <script type="module" src="../../assets/js/route-guard.js"></script>
-  <link rel="stylesheet" href="../../assets/css/style.css">
-<script src="../../assets/js/ui.js" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOD Archive | UNI-PASS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/styles.css">
+    <script src="../../assets/js/ui.js" defer></script>
+    <script type="module" src="../../assets/js/route-guard.js"></script>
 </head>
-<body>
+<body class="bg-slate-100 font-sans h-screen flex overflow-hidden">
 
-  <main class="hod-portal">
-    <h2>All Permissions</h2>
-    <ul id="allList"></ul>
+    <aside class="fixed inset-y-0 left-0 w-64 bg-slate-900 text-white z-50 flex flex-col shadow-xl">
+        <div class="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-shield-alt text-blue-500"></i>
+                <span class="font-bold text-lg tracking-wider">HOD PORTAL</span>
+            </div>
+        </div>
+        <nav class="flex-1 px-4 space-y-2 mt-4">
+            <a href="portalA.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl transition">
+                <i class="fas fa-inbox w-4"></i> Dashboard
+            </a>
+            <a href="portalC.html" class="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl font-bold shadow-lg transition">
+                <i class="fas fa-history w-4"></i> Archive
+            </a>
+        </nav>
+        <div class="p-4 border-t border-slate-800">
+            <button id="logout-btn" class="w-full py-2 flex items-center justify-center gap-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition text-sm font-bold">
+                <i class="fas fa-sign-out-alt"></i> Log Out
+            </button>
+        </div>
+    </aside>
 
-    <h2>Pending My Approval</h2>
-    <ul id="pendingList"></ul>
-  </main>
+    <main class="flex-1 flex flex-col h-full w-full ml-64 overflow-y-auto p-8 bg-slate-100">
+        <header class="flex justify-between items-center mb-6">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-800">Department Archive</h1>
+                <p class="text-slate-500 text-sm">History of all approvals and rejections.</p>
+            </div>
+            
+            <div class="relative w-64">
+                <i class="fas fa-search absolute left-3 top-2.5 text-slate-400 text-sm"></i>
+                <input type="text" id="search" placeholder="Search by Name or ID..." class="w-full pl-9 pr-4 py-2 text-sm bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" onkeyup="filterTable()">
+            </div>
+        </header>
 
-  <script type="module">
-    import { auth } from "../../assets/js/firebase-init.js";
-    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-slate-50 border-b border-slate-200">
+                    <tr>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Date</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Applicant</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Type</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Status</th>
+                        <th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">Approver</th>
+                    </tr>
+                </thead>
+                <tbody id="archive-list" class="text-sm divide-y divide-slate-100">
+                    <tr><td colspan="5" class="p-8 text-center text-slate-400"><i class="fas fa-circle-notch fa-spin"></i> Loading records...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
 
-    import {
-      fetchHodPermissions
-    } from "../../assets/js/permission-events.js";
+    <script type="module">
+        import { db, auth } from '../../assets/js/firebase-init.js';
 
-    import {
-      approveAsHod,
-      rejectAsHod
-    } from "../../assets/js/permission-flow.js";
+        let allRecords = [];
+        let hodDept = '';
 
-    const allList = document.getElementById("allList");
-    const pendingList = document.getElementById("pendingList");
+        auth.onAuthStateChanged(async user => {
+            if(!user) {
+                location.href = '../../public/login.html';
+                return;
+            }
+            
+            // Get HOD Dept to filter archive
+            const doc = await db.collection('users').doc(user.uid).get();
+            if(doc.exists) {
+                hodDept = doc.data().department;
+                loadArchive();
+            }
+        });
 
-    function renderPermission(p, actions = false) {
-      const li = document.createElement("li");
+        async function loadArchive() {
+            const tbody = document.getElementById('archive-list');
+            
+            try {
+                // Fetch all finalized requests for this department
+                const snap = await db.collection('permissions')
+                    .where('department', '==', hodDept)
+                    .where('status', 'in', ['APPROVED', 'REJECTED']) // Only completed items
+                    .orderBy('timestamp', 'desc')
+                    .limit(50)
+                    .get();
 
-      li.innerHTML = `
-        <strong>${p.student.name}</strong> — ${p.reason.label}
-        ${p.reason.customText ? `<div>${p.reason.customText}</div>` : ""}
-        <div>Teacher: ${p.status.teacher}</div>
-        <div>HOD: ${p.status.hod}</div>
-        <div>Final: ${p.status.final}</div>
-      `;
+                tbody.innerHTML = '';
+                allRecords = [];
 
-      if (actions) {
-        const approve = document.createElement("button");
-        approve.textContent = "Approve";
-        approve.onclick = async () => {
-          const user = auth.currentUser;
-          if (!user) return;
-          await approveAsHod(p.id, {
-            uid: user.uid,
-            name: user.email,
-            email: user.email
-          });
-          load();
-        };
+                if(snap.empty) {
+                    tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400">No history found.</td></tr>';
+                    return;
+                }
 
-        const reject = document.createElement("button");
-        reject.textContent = "Reject";
-        reject.onclick = async () => {
-          const user = auth.currentUser;
-          if (!user) return;
-          await rejectAsHod(p.id, {
-            uid: user.uid,
-            name: user.email,
-            email: user.email
-          });
-          load();
-        };
+                snap.forEach(doc => {
+                    const data = doc.data();
+                    allRecords.push(data);
+                    tbody.appendChild(createRow(data));
+                });
 
-        li.appendChild(approve);
-        li.appendChild(reject);
-      }
-
-      return li;
-    }
-
-    async function load() {
-      const list = await fetchHodPermissions();
-      allList.innerHTML = "";
-      pendingList.innerHTML = "";
-
-      list.forEach(p => {
-        allList.appendChild(renderPermission(p));
-
-        if (
-          p.approvalType === "TEACHER_HOD" &&
-          p.status.teacher === "approved" &&
-          p.status.hod === "pending"
-        ) {
-          pendingList.appendChild(renderPermission(p, true));
+            } catch (err) {
+                console.error(err);
+                tbody.innerHTML = `<tr><td colspan="5" class="p-8 text-center text-red-400">Error loading data.</td></tr>`;
+            }
         }
-      });
-    }
 
-    onAuthStateChanged(auth, user => {
-      if (!user) return;
-      load();
-    });
-  </script>
+        function createRow(data) {
+            const tr = document.createElement('tr');
+            tr.className = "hover:bg-slate-50 transition";
+            
+            const dateStr = data.timestamp ? new Date(data.timestamp).toLocaleDateString() : 'N/A';
+            
+            // Badge Logic
+            let statusBadge = `<span class="px-2 py-1 rounded text-xs font-bold bg-slate-100 text-slate-600">${data.status}</span>`;
+            if(data.status === 'APPROVED') statusBadge = `<span class="px-2 py-1 rounded text-xs font-bold bg-green-100 text-green-700 flex w-fit items-center gap-1"><i class="fas fa-check-circle"></i> Approved</span>`;
+            if(data.status === 'REJECTED') statusBadge = `<span class="px-2 py-1 rounded text-xs font-bold bg-red-100 text-red-700 flex w-fit items-center gap-1"><i class="fas fa-times-circle"></i> Rejected</span>`;
 
+            // Role Badge
+            const isStaff = data.role === 'teacher';
+            const roleBadge = isStaff ? `<span class="bg-purple-100 text-purple-700 text-[10px] font-bold px-1.5 py-0.5 rounded ml-2">FACULTY</span>` : '';
+
+            // Approver Info
+            const approver = data.approvals?.hod?.name || 'System';
+
+            tr.innerHTML = `
+                <td class="px-6 py-4 text-slate-500 font-mono text-xs">${dateStr}</td>
+                <td class="px-6 py-4">
+                    <div class="font-bold text-slate-800 flex items-center">${data.studentName} ${roleBadge}</div>
+                    <div class="text-xs text-slate-400 font-mono">${data.rollNumber || 'N/A'}</div>
+                </td>
+                <td class="px-6 py-4"><span class="bg-slate-100 px-2 py-1 rounded text-xs font-bold uppercase text-slate-600">${data.reasonType}</span></td>
+                <td class="px-6 py-4">${statusBadge}</td>
+                <td class="px-6 py-4 text-right text-xs font-bold text-slate-500">${approver}</td>
+            `;
+            return tr;
+        }
+
+        window.filterTable = () => {
+            const term = document.getElementById('search').value.toLowerCase();
+            const tbody = document.getElementById('archive-list');
+            tbody.innerHTML = '';
+            
+            const filtered = allRecords.filter(r => 
+                (r.studentName && r.studentName.toLowerCase().includes(term)) || 
+                (r.rollNumber && r.rollNumber.toLowerCase().includes(term))
+            );
+            
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-400">No matches found.</td></tr>';
+            } else {
+                filtered.forEach(data => tbody.appendChild(createRow(data)));
+            }
+        };
+
+        document.getElementById('logout-btn').onclick = () => auth.signOut().then(() => location.href = '../../public/login.html');
+    </script>
 </body>
 </html>

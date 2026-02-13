@@ -1,0 +1,49 @@
+/* assets/css/table-view.css */
+
+/* --- 1. TABLE WRAPPER (The Scroll Engine) --- */
+.table-viewport {
+    position: relative;
+    width: 100%;
+    /* HEIGHT LIMIT: Triggers vertical scroll if rows exceed 500px */
+    max-height: 500px; 
+    /* WIDTH: Triggers horizontal scroll if columns are too wide */
+    overflow: auto; 
+    
+    background: white;
+    border: 1px solid #e2e8f0; /* slate-200 */
+    border-radius: 0.75rem;     /* rounded-xl */
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* --- 2. STICKY HEADER --- */
+.table-viewport thead th {
+    position: sticky;
+    top: 0;
+    z-index: 20; 
+    background-color: #f8fafc; /* slate-50 */
+    box-shadow: 0 1px 0 0 #e2e8f0;
+}
+
+/* --- 3. SCROLLBAR STYLING --- */
+.table-viewport::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.table-viewport::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+.table-viewport::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+    border: 2px solid #f1f5f9;
+}
+
+/* --- 4. ACTION BUTTONS (Visibility Fix) --- */
+.action-cell {
+    position: relative;
+    z-index: 10;
+}
+.action-btn {
+    flex-shrink: 0; 
+    transition: all 0.2s;
+}

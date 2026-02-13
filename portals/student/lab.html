@@ -3,156 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lab Inventory | UNI-PASS</title>
+    <title>Lab Resources | UNI-PASS</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../assets/css/style.css">
+    
+    <link rel="stylesheet" href="../../assets/css/styles.css">
+    
+    <script src="../../assets/js/ui.js" defer></script>
     <script type="module" src="../../assets/js/route-guard.js"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: { brand: { 600: '#2563eb' } }
-                }
-            }
-        }
-    </script>
 </head>
-<body class="bg-gray-50 font-sans pb-24">
+<body class="bg-slate-50 font-sans min-h-screen flex flex-col">
 
-    <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
-        <div class="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <button id="logout-btn-mobile" class="md:hidden text-slate-400 hover:text-red-500 transition-colors">
-                    <i class="fas fa-power-off text-lg"></i>
-                </button>
-                <h1 class="font-bold text-lg text-gray-800 tracking-tight">Lab Inventory</h1>
-            </div>
-            
-            <div class="flex items-center gap-4">
-                <button id="logout-btn" class="hidden md:flex items-center gap-2 text-slate-500 hover:text-red-600 font-bold text-xs uppercase tracking-widest transition-colors">
-                    <span>Sign Out</span>
-                    <i class="fas fa-sign-out-alt"></i>
-                </button>
-                <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-green-600 shadow-sm">
-                    <i class="fas fa-flask text-sm"></i>
+    <nav class="bg-white shadow-sm z-50 sticky top-0">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <i class="fas fa-flask text-blue-600 text-2xl"></i>
+                    <span class="font-bold text-xl tracking-tight text-slate-900">Lab Portal</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <a href="portalA.html" class="text-sm font-bold text-slate-500 hover:text-blue-600 transition">Dashboard</a>
+                    <button id="logout-btn" class="w-9 h-9 bg-red-50 rounded-full flex items-center justify-center text-red-600 hover:bg-red-100 transition">
+                        <i class="fas fa-power-off text-sm"></i>
+                    </button>
                 </div>
             </div>
         </div>
+    </nav>
+
+    <main class="flex-1 max-w-5xl w-full mx-auto p-4 md:p-8">
         
-        <div class="max-w-4xl mx-auto px-4 pb-4">
-            <div class="relative">
-                <i class="fas fa-search absolute left-4 top-3.5 text-gray-400"></i>
-                <input type="text" id="search-input" placeholder="Search chemicals, equipment..." class="w-full pl-10 pr-4 py-3 bg-gray-100 rounded-xl border-none focus:ring-2 focus:ring-blue-500 outline-none transition text-sm font-medium">
+        <div class="mb-8 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-slate-900">Lab Resources</h1>
+                <p class="text-slate-500 text-sm">Book equipment and view availability.</p>
+            </div>
+            <button onclick="document.getElementById('booking-modal').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl font-bold text-sm shadow-lg shadow-blue-200 transition flex items-center gap-2">
+                <i class="fas fa-plus"></i> New Booking
+            </button>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+            <div class="px-6 py-4 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+                <h3 class="font-bold text-slate-800">My Active Bookings</h3>
+                <span class="text-xs font-bold text-slate-400 uppercase tracking-wider">Status</span>
+            </div>
+            <div id="my-bookings-list" class="divide-y divide-slate-100">
+                <div class="p-8 text-center text-slate-400">
+                    <i class="fas fa-circle-notch fa-spin mb-2"></i> Loading your bookings...
+                </div>
             </div>
         </div>
-    </header>
 
-    <div class="max-w-4xl mx-auto px-4 pt-4 overflow-x-auto no-scrollbar flex gap-3 mb-4" id="category-filters">
-        <button class="px-4 py-2 bg-blue-600 text-white rounded-full text-xs font-bold whitespace-nowrap shadow-md">All</button>
-        <button class="px-4 py-2 bg-white text-gray-500 border border-gray-200 rounded-full text-xs font-bold whitespace-nowrap">Chemicals</button>
-        <button class="px-4 py-2 bg-white text-gray-500 border border-gray-200 rounded-full text-xs font-bold whitespace-nowrap">Electronics</button>
-        <button class="px-4 py-2 bg-white text-gray-500 border border-gray-200 rounded-full text-xs font-bold whitespace-nowrap">Instruments</button>
-    </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="resources-grid">
+            </div>
 
-    <main class="max-w-4xl mx-auto p-4 grid grid-cols-1 md:grid-cols-2 gap-4" id="inventory-list">
-        <div class="col-span-full text-center py-12 text-slate-400">
-            <i class="fas fa-circle-notch fa-spin text-2xl mb-2"></i>
-            <p class="text-sm font-medium">Fetching real-time inventory...</p>
-        </div>
     </main>
 
-    <nav class="fixed bottom-0 w-full bg-white border-t border-gray-200 pb-safe z-40">
-        <div class="max-w-md mx-auto grid grid-cols-3 h-20">
-            <a href="portalA.html" class="flex flex-col items-center justify-center text-slate-400 hover:text-blue-600 transition">
-                <i class="fas fa-plus-circle text-xl mb-1"></i>
-                <span class="text-[10px] font-bold uppercase">Request</span>
-            </a>
-            <a href="lab.html" class="flex flex-col items-center justify-center text-blue-600">
-                <i class="fas fa-flask text-xl mb-1"></i>
-                <span class="text-[10px] font-bold uppercase">Lab</span>
-            </a>
-            <a href="portalB.html" class="flex flex-col items-center justify-center text-slate-400 hover:text-blue-600 transition">
-                <i class="fas fa-history text-xl mb-1"></i>
-                <span class="text-[10px] font-bold uppercase">History</span>
-            </a>
+    <div id="booking-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" onclick="document.getElementById('booking-modal').classList.add('hidden')"></div>
+        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white rounded-2xl shadow-2xl p-6 w-[90%] max-w-md">
+            <div class="flex justify-between items-start mb-6">
+                <h3 class="text-lg font-bold text-slate-900">Request Equipment</h3>
+                <button onclick="document.getElementById('booking-modal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <form id="booking-form">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Resource</label>
+                        <select id="resource-select" class="w-full border border-slate-200 rounded-lg p-2.5 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                            <option value="Computer Lab 1">Computer Lab 1 (High Performance)</option>
+                            <option value="Physics Kit">Physics Experiment Kit</option>
+                            <option value="Arduino Set">Arduino/IoT Starter Kit</option>
+                            <option value="3D Printer">3D Printer Access</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Date</label>
+                            <input type="date" id="book-date" required class="w-full border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Time Slot</label>
+                            <select id="book-time" class="w-full border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="09:00 - 11:00">09:00 - 11:00</option>
+                                <option value="11:00 - 13:00">11:00 - 13:00</option>
+                                <option value="14:00 - 16:00">14:00 - 16:00</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Purpose</label>
+                        <textarea id="book-reason" required rows="2" class="w-full border border-slate-200 rounded-lg p-2.5 text-sm resize-none focus:ring-2 focus:ring-blue-500" placeholder="Project name or experiment details..."></textarea>
+                    </div>
+                </div>
+                <button type="submit" id="submit-booking" class="w-full mt-6 bg-blue-600 text-white font-bold py-3 rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200">
+                    Confirm Booking
+                </button>
+            </form>
         </div>
-    </nav>
+    </div>
 
     <script type="module">
         import { db, auth } from '../../assets/js/firebase-init.js';
 
-        // --- Standardized Logout Logic ---
-        const handleLogout = async () => {
-            if(confirm("Are you sure you want to logout?")) {
-                sessionStorage.clear();
-                localStorage.clear();
-                await auth.signOut();
-                location.href = '../../public/login.html';
+        let userProfile = null;
+
+        auth.onAuthStateChanged(async user => {
+            if (!user) location.href = '../../public/login.html';
+            
+            // Fetch Profile to ensure Golden Schema compliance
+            const doc = await db.collection('users').doc(user.uid).get();
+            if(doc.exists) userProfile = doc.data();
+
+            loadMyBookings(user.uid);
+            renderResources(); 
+        });
+
+        // --- 1. LOAD USER BOOKINGS ---
+        function loadMyBookings(uid) {
+            // Note: If you see "Missing or insufficient permissions", ensure you have 
+            // Firestore rules allowing 'read' for 'lab_bookings' where request.auth.uid == resource.data.studentID
+            
+            db.collection('lab_bookings')
+                .where('studentID', '==', uid)
+                // .orderBy('timestamp', 'desc') // Requires composite index. Disabled to prevent errors until index exists.
+                .onSnapshot(snap => {
+                    const list = document.getElementById('my-bookings-list');
+                    list.innerHTML = '';
+
+                    if (snap.empty) {
+                        list.innerHTML = '<div class="p-8 text-center text-slate-400">No active bookings found.</div>';
+                        return;
+                    }
+
+                    // Sort client-side if index is missing
+                    const bookings = [];
+                    snap.forEach(doc => bookings.push(doc.data()));
+                    bookings.sort((a,b) => new Date(b.timestamp) - new Date(a.timestamp));
+
+                    bookings.forEach(d => {
+                        let statusColor = 'bg-yellow-100 text-yellow-700';
+                        if(d.status === 'APPROVED') statusColor = 'bg-green-100 text-green-700';
+                        if(d.status === 'REJECTED') statusColor = 'bg-red-100 text-red-700';
+
+                        list.innerHTML += `
+                            <div class="p-4 md:px-6 flex justify-between items-center hover:bg-slate-50 transition">
+                                <div>
+                                    <h4 class="font-bold text-slate-800 text-sm">${d.resource}</h4>
+                                    <div class="text-xs text-slate-500 mt-1 flex gap-3">
+                                        <span><i class="far fa-calendar mr-1"></i> ${d.date}</span>
+                                        <span><i class="far fa-clock mr-1"></i> ${d.time}</span>
+                                    </div>
+                                </div>
+                                <span class="px-2.5 py-1 rounded text-[10px] font-bold uppercase ${statusColor}">${d.status}</span>
+                            </div>
+                        `;
+                    });
+                }, err => {
+                    console.error("Booking Load Error:", err);
+                    const msg = err.code === 'permission-denied' ? "Access Denied: Check Database Rules." : err.message;
+                    document.getElementById('my-bookings-list').innerHTML = `
+                        <div class="p-4 text-center text-red-500 text-sm">
+                            <i class="fas fa-exclamation-triangle"></i> ${msg}
+                        </div>`;
+                });
+        }
+
+        // --- 2. SUBMIT BOOKING ---
+        document.getElementById('booking-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submit-booking');
+            btn.disabled = true; btn.innerText = "Processing...";
+
+            try {
+                // Ensure we send valid strings for RollNo to satisfy DB rules
+                const roll = userProfile && userProfile.rollNumber ? userProfile.rollNumber : "UNKNOWN";
+                
+                await db.collection('lab_bookings').add({
+                    studentID: auth.currentUser.uid,
+                    studentName: userProfile ? userProfile.displayName : "Student",
+                    rollNumber: roll,
+                    resource: document.getElementById('resource-select').value,
+                    date: document.getElementById('book-date').value,
+                    time: document.getElementById('book-time').value,
+                    reason: document.getElementById('book-reason').value,
+                    status: 'PENDING',
+                    timestamp: new Date().toISOString()
+                });
+
+                document.getElementById('booking-modal').classList.add('hidden');
+                e.target.reset();
+                alert("Booking request submitted successfully!");
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                btn.disabled = false; btn.innerText = "Confirm Booking";
             }
         };
-        document.getElementById('logout-btn').onclick = handleLogout;
-        document.getElementById('logout-btn-mobile').onclick = handleLogout;
 
-        const list = document.getElementById('inventory-list');
-        const searchInput = document.getElementById('search-input');
-        let allItems = [];
+        // --- 3. RENDER RESOURCES (STATIC DEMO) ---
+        function renderResources() {
+            const grid = document.getElementById('resources-grid');
+            const resources = [
+                { name: "High-Perf PC Lab", icon: "fa-desktop", color: "text-blue-500", bg: "bg-blue-50" },
+                { name: "Electronics Workbench", icon: "fa-microchip", color: "text-purple-500", bg: "bg-purple-50" },
+                { name: "3D Printing Station", icon: "fa-cube", color: "text-orange-500", bg: "bg-orange-50" },
+                { name: "Chemistry Lab A", icon: "fa-flask", color: "text-green-500", bg: "bg-green-50" },
+                { name: "VR/AR Headsets", icon: "fa-vr-cardboard", color: "text-pink-500", bg: "bg-pink-50" }
+            ];
 
-        // Load Real-time Data
-        db.collection('inventory').onSnapshot(snap => {
-            allItems = [];
-            snap.forEach(doc => allItems.push({ id: doc.id, ...doc.data() }));
-            renderItems(allItems);
-        });
-
-        // Search Filter
-        searchInput.addEventListener('input', (e) => {
-            const term = e.target.value.toLowerCase();
-            const filtered = allItems.filter(item => {
-                const name = (item.itemName || item.name || "").toLowerCase();
-                const cat = (item.category || "").toLowerCase();
-                return name.includes(term) || cat.includes(term);
-            });
-            renderItems(filtered);
-        });
-
-        function renderItems(items) {
-            list.innerHTML = '';
-            if(items.length === 0) {
-                list.innerHTML = `<div class="col-span-full text-center py-10 text-gray-400"><p>No items match your search.</p></div>`;
-                return;
-            }
-
-            items.forEach(item => {
-                const displayName = item.itemName || item.name || "Unnamed Item";
-                const isLow = item.quantity < 5 && item.quantity > 0;
-                const isOut = item.quantity <= 0;
-                
-                let badgeClass = 'bg-green-100 text-green-700';
-                let badgeText = 'Available';
-                if(isLow) { badgeClass = 'bg-orange-100 text-orange-700'; badgeText = 'Low Stock'; }
-                if(isOut) { badgeClass = 'bg-red-100 text-red-700'; badgeText = 'Out of Stock'; }
-
-                const card = document.createElement('div');
-                card.className = "bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex justify-between items-center hover:shadow-md transition-shadow";
-                card.innerHTML = `
-                    <div class="flex items-center gap-4">
-                        <div class="w-12 h-12 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 text-xl font-bold border border-slate-100">
-                            ${displayName.charAt(0)}
-                        </div>
-                        <div>
-                            <h3 class="font-bold text-slate-800 text-sm leading-tight">${displayName}</h3>
-                            <p class="text-[10px] text-slate-400 uppercase font-bold tracking-wider mt-0.5">${item.category || 'General'}</p>
-                        </div>
+            grid.innerHTML = resources.map(r => `
+                <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition group cursor-pointer" onclick="document.getElementById('booking-modal').classList.remove('hidden')">
+                    <div class="w-12 h-12 ${r.bg} ${r.color} rounded-lg flex items-center justify-center text-xl mb-4 group-hover:scale-110 transition-transform">
+                        <i class="fas ${r.icon}"></i>
                     </div>
-                    <div class="text-right">
-                        <span class="block px-2 py-1 rounded-md text-[10px] font-bold uppercase ${badgeClass} mb-1">${badgeText}</span>
-                        <p class="text-xs font-bold text-slate-600">${item.quantity} ${item.unit || 'units'}</p>
-                    </div>
-                `;
-                list.appendChild(card);
-            });
+                    <h4 class="font-bold text-slate-800">${r.name}</h4>
+                    <p class="text-xs text-slate-500 mt-1">Available for booking</p>
+                </div>
+            `).join('');
         }
+
+        document.getElementById('logout-btn').onclick = () => auth.signOut().then(() => location.href = '../../public/login.html');
     </script>
 </body>
 </html>
