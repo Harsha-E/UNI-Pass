@@ -2,133 +2,155 @@ import { db, auth, firebase } from './firebase-init.js';
 
 /**
  * ============================================================================
- * UNI-PASS: "Golden Schema" State Machine Engine
+ * UNI-PASS: WORKFLOW ENGINE (Fixed & Robust)
  * ============================================================================
- * Handles state transitions based on the `routingPath` array in permission docs.
- * All portal actions (Approve, Reject, etc.) are processed through this service.
+ * Fixes:
+ * 1. Writes to 'approvals' map (Essential for PDF/Checker signatures).
+ * 2. Robust Class Teacher lookup (Prevents creation crashes).
+ * 3. Smart Principal Routing (Falls back to Admin if Principal is missing).
+ * 4. Counsellor Fallback (Prevents crash if no counsellor exists).
  */
 
 export class PermissionService {
 
     /**
-     * Fetches authenticated user profile to ensure data integrity.
-     * @private
+     * Helper: Get current user details safely
      */
     static async _getActorProfile() {
         const user = auth.currentUser;
         if (!user) throw new Error("Session expired. Please log in.");
 
         const snap = await db.collection('users').doc(user.uid).get();
-        if (!snap.exists) throw new Error("User profile corrupted.");
+        if (!snap.exists) throw new Error("User profile not found.");
 
+        const data = snap.data();
         return {
             uid: user.uid,
-            displayName: snap.data().displayName || user.displayName || 'Staff Member',
-            role: snap.data().role,
-            isBlocked: snap.data().isBlocked,
-            department: snap.data().department,
-            section: snap.data().section
+            displayName: data.displayName || user.displayName || 'Staff Member',
+            role: data.role,
+            isBlocked: !!data.isBlocked,
+            department: data.department,
+            section: data.section
         };
     }
 
     /**
-     * UNIVERSAL ACTION: Processes approvals and rejections.
-     * This is the core of the state machine.
+     * CORE: Process Approvals & Rejections
      */
     static async processRequestAction(docId, action, details = {}) {
         const actor = await this._getActorProfile();
-        if (actor.isBlocked) throw new Error("Security Restriction: Your account is blocked.");
+        if (actor.isBlocked) throw new Error("Action Denied: Your account is restricted.");
 
         const permRef = db.collection('permissions').doc(docId);
         const permDoc = await permRef.get();
-        if (!permDoc.exists) throw new Error("Request not found.");
+        
+        if (!permDoc.exists) throw new Error("Request no longer exists.");
         const data = permDoc.data();
 
-        // Security Check: Is the actor the current handler?
-        // Allow Principal/Admin override for requests escalated to Principal
-        if (data.currentHandlerUid !== actor.uid) {
-            const isPendingPrincipal = data.status === 'PENDING_PRINCIPAL';
-            const principalOverride = isPendingPrincipal && ['principal', 'admin'].includes(actor.role);
-            if (!principalOverride) {
-                throw new Error("This request is not currently assigned to you or has already been processed.");
-            }
+        // 1. Security Check: Is this user allowed to act?
+        // We allow 'admin' to override locks (e.g. if a teacher is absent)
+        if (data.currentHandlerUid !== actor.uid && actor.role !== 'admin') {
+             // Allow Principal to pick up "PENDING_PRINCIPAL" even if specific UID doesn't match
+             const isPrincipalOverride = (data.status === 'PENDING_PRINCIPAL' && actor.role === 'principal');
+             if (!isPrincipalOverride) {
+                 throw new Error("You are not the assigned handler for this request.");
+             }
         }
 
         const timestamp = new Date().toISOString();
         let updates = {};
 
-        // --- REJECTION LOGIC (Applies to any role) ---
+        // --- REJECTION ---
         if (action === 'REJECT') {
-            if (!details.reason) throw new Error("A reason is required to reject a request.");
+            if (!details.reason) throw new Error("Rejection reason is required.");
+            
             updates = {
                 status: 'REJECTED',
                 currentHandlerUid: null,
-                logs: firebase.firestore.FieldValue.arrayUnion({ action: 'REJECTED', by: actor.displayName, at: timestamp, reason: details.reason })
+                rejectionReason: details.reason,
+                rejectedBy: actor.displayName,
+                logs: firebase.firestore.FieldValue.arrayUnion({
+                    action: 'REJECTED',
+                    by: actor.displayName,
+                    role: actor.role,
+                    at: timestamp,
+                    reason: details.reason
+                })
             };
+            
             await permRef.update(updates);
             return { success: true, status: 'REJECTED' };
         }
 
-        // --- APPROVAL & FORWARDING LOGIC ---
+        // --- APPROVAL ---
         if (action === 'APPROVE') {
-            // Find current position in the routing path
-            const currentPathRole = Object.keys(ROUTING_MAP).find(key => ROUTING_MAP[key].includes(actor.role));
-            const currentRoleIndex = data.routingPath.indexOf(currentPathRole);
+            // A. Record the Approval Signature (CRITICAL FOR PDF/CHECKER)
+            // This creates the data structure: data.approvals.teacher.name = ...
+            const approvalKey = `approvals.${actor.role}`; 
+            updates[approvalKey] = {
+                name: actor.displayName,
+                uid: actor.uid,
+                date: timestamp
+            };
 
-            if (currentRoleIndex === -1) throw new Error("Your role is not in the routing path for this request.");
+            // B. Determine Next Step
+            // Find where we are in the routing path (e.g., ['TEACHER', 'HOD'])
+            // Map the current actor's role to the path step
+            const currentStep = data.routingPath.find(step => 
+                ROUTING_MAP[step].includes(actor.role)
+            );
+            
+            const currentIndex = data.routingPath.indexOf(currentStep);
+            
+            if (currentIndex === -1 && actor.role !== 'admin') {
+                throw new Error("System Logic Error: Your role is not in the routing path.");
+            }
 
-            const isLastStep = currentRoleIndex === data.routingPath.length - 1;
+            const isLastStep = (currentIndex === data.routingPath.length - 1);
             let nextStatus, nextHandlerUid;
 
             if (isLastStep) {
+                // FINAL APPROVAL
                 nextStatus = 'APPROVED';
-                nextHandlerUid = null; // Final approval
+                nextHandlerUid = null;
 
-                // --- SPECIAL LOGIC: TEACHER LEAVE APPROVAL ---
-                if (data.type === 'Leave' && data.student.rollNumber === 'FACULTY') {
-                    const batch = db.batch();
-                    const teacherRef = db.collection('users').doc(data.student.uid);
-                    batch.update(teacherRef, {
-                        isOnLeave: true,
-                        currentSubstituteUid: data.substituteUid
-                    });
-                    await batch.commit();
+                // Handle Substitution Logic if applicable
+                if (data.type === 'Leave' && data.substituteUid) {
+                    await this._activateSubstitute(data.student.uid, data.substituteUid);
                 }
+
             } else {
-                const nextRole = data.routingPath[currentRoleIndex + 1];
-                const q = db.collection('users').where('role', '==', nextRole.toLowerCase()).where('department', '==', data.student.dept).limit(1);
-                const nextHandlerSnap = await q.get();
-                if (nextHandlerSnap.empty) {
-                    // Fallback for Principal who might not have a department
-                    if (nextRole === 'PRINCIPAL') {
-                        let pSnap = await db.collection('users').where('role', '==', 'principal').limit(1).get();
-                        
-                        if (pSnap.empty) {
-                            // Fallback to Admin if no Principal is configured
-                            pSnap = await db.collection('users').where('role', '==', 'admin').limit(1).get();
-                        }
-
-                        if (pSnap.empty) throw new Error(`Configuration Error: No Principal or Admin account found to handle escalation.`);
-                        nextHandlerUid = pSnap.docs[0].id;
-                    } else {
-                        throw new Error(`Configuration Error: Cannot find next handler for role ${nextRole} in department ${data.student.dept}.`);
-                    }
+                // FORWARD TO NEXT HANDLER
+                const nextStep = data.routingPath[currentIndex + 1]; // e.g., 'HOD' or 'PRINCIPAL'
+                
+                // Find the specific user for the next role
+                if (nextStep === 'PRINCIPAL') {
+                    // Fetch Principal (or Admin backup)
+                    nextHandlerUid = await this._findPrincipalOrAdmin();
                 } else {
-                    nextHandlerUid = nextHandlerSnap.docs[0].id;
+                    // Fetch HOD/Teacher by Department
+                    nextHandlerUid = await this._findStaffByRole(nextStep, data.student.dept);
                 }
-                nextStatus = `PENDING_${nextRole}`;
+                
+                nextStatus = `PENDING_${nextStep}`;
             }
 
-            // Part C: The Confidentiality Shield
+            // C. Privacy Shield (Optional)
             if (actor.role === 'counsellor' && ['Medical', 'Personal'].includes(data.type)) {
-                updates.reason = "Confidential - Verified by Wellness Team";
+                updates.privacyFlag = true; // Mark as private instead of erasing reason
             }
 
+            // D. Apply Updates
             updates = {
                 ...updates,
                 status: nextStatus,
                 currentHandlerUid: nextHandlerUid,
-                logs: firebase.firestore.FieldValue.arrayUnion({ action: 'VERIFIED', by: actor.displayName, at: timestamp })
+                logs: firebase.firestore.FieldValue.arrayUnion({
+                    action: isLastStep ? 'APPROVED' : 'VERIFIED',
+                    by: actor.displayName,
+                    role: actor.role, // Critical for PDF logic
+                    at: timestamp
+                })
             };
 
             await permRef.update(updates);
@@ -139,163 +161,156 @@ export class PermissionService {
     }
 
     /**
-     * ACTION: BLOCK USER (Teacher/Admin Power)
-     */
-    static async blockStudent(studentId, reason) {
-        const actor = await this._getActorProfile();
-        if (!['teacher', 'hod', 'admin'].includes(actor.role)) {
-            throw new Error("Insufficient privileges to block users.");
-        }
-
-        const batch = db.batch();
-        const timestamp = new Date().toISOString();
-
-        const userRef = db.collection('users').doc(studentId);
-        batch.update(userRef, {
-            isBlocked: true,
-            blockedAt: timestamp,
-            blockedBy: actor.uid,
-            blockReason: reason
-        });
-        await batch.commit();
-    }
-
-    /**
-     * PHASE 1: PAUSE SYSTEM
-     */
-    static async checkActiveRestriction(studentUid) {
-        const q = db.collection('permissions').where('student.uid', '==', studentUid).where('status', 'not-in', ['APPROVED', 'REJECTED']).limit(1);
-        const snap = await q.get();
-        return !snap.empty;
-    }
-
-    /**
-     * PHASE 1: BLIND SMART ROUTING
+     * GENERATE NEW REQUEST
+     * Fixed to prevent crashes if Teacher/Counsellor is missing.
      */
     static async createSmartRequest(studentData, formData) {
         // 1. Find Class Teacher
-        const teacherQ = db.collection('users').where('role', '==', 'teacher').where('department', '==', studentData.dept).where('section', '==', studentData.section).limit(1);
-        const teacherQuery = await teacherQ.get();
-        if (teacherQuery.empty) {
-            throw new Error(`Configuration Error: No Class Teacher found for ${studentData.dept}-${studentData.section}`);
+        let teacherUid = null;
+        try {
+            const q = db.collection('users')
+                .where('role', '==', 'teacher')
+                .where('department', '==', studentData.dept)
+                .where('section', '==', studentData.section)
+                .limit(1);
+            
+            const snap = await q.get();
+            if (!snap.empty) {
+                teacherUid = snap.docs[0].id;
+            } else {
+                console.warn("Class Teacher not found.");
+            }
+        } catch (e) {
+            console.error("Teacher Lookup Failed:", e);
         }
-        const teacherDoc = teacherQuery.docs[0];
-        const teacherData = teacherDoc.data();
-        const teacherUid = teacherDoc.id;
 
-        // 3. Calculate Duration & Routing Path
+        // 2. Define Routing Path & Find First Handler
+        let routingPath = [];
+        let currentHandlerUid = null;
+
+        // CHECK COUNSELLOR LOGIC (With Fallback)
+        if (['Medical', 'Personal'].includes(formData.reasonType)) {
+            try {
+                // Try to find a counsellor
+                const counsellorUid = await this._findStaffByRole('COUNSELLOR', studentData.dept);
+                
+                if (counsellorUid) {
+                    routingPath = ['COUNSELLOR', 'HOD'];
+                    currentHandlerUid = counsellorUid;
+                } else {
+                    console.warn("No Counsellor found. Falling back to Teacher -> HOD path.");
+                    // FALLBACK: If no counsellor, use standard Teacher -> HOD path
+                    routingPath = teacherUid ? ['TEACHER', 'HOD'] : ['HOD'];
+                    currentHandlerUid = teacherUid; 
+                }
+            } catch (e) {
+                console.warn("Counsellor lookup error, falling back.", e);
+                routingPath = teacherUid ? ['TEACHER', 'HOD'] : ['HOD'];
+                currentHandlerUid = teacherUid;
+            }
+        } else {
+            // General -> Teacher -> HOD
+            routingPath = teacherUid ? ['TEACHER', 'HOD'] : ['HOD'];
+            currentHandlerUid = teacherUid;
+        }
+
+        // Duration Check -> Escalation to Principal
         const d1 = new Date(formData.startDate);
         const d2 = new Date(formData.endDate);
-        const duration = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
-
-        let routingPath = [];
-        let currentHandlerUid;
-
-        // Confidentiality Shield: Route to Counsellor first if needed
-        if (['Medical', 'Personal'].includes(formData.reasonType)) {
-            routingPath.push('COUNSELLOR');
-            const counsellorQ = db.collection('users').where('role', '==', 'counsellor').where('department', '==', studentData.dept).limit(1);
-            const counsellorSnap = await counsellorQ.get();
-            if (counsellorSnap.empty) throw new Error(`Configuration Error: No Counsellor found for ${studentData.dept}`);
-            currentHandlerUid = counsellorSnap.docs[0].id;
+        const days = Math.ceil((d2 - d1) / (1000 * 60 * 60 * 24)) + 1;
+        
+        if (days > 7) {
+            routingPath.push('PRINCIPAL');
         }
 
-        // Standard Path
-        routingPath.push('TEACHER', 'HOD');
-        if (duration > 7) routingPath.push('PRINCIPAL');
-
-        // If not already assigned to counsellor, assign to teacher/sub
+        // 3. Final Safety Check for Handler
+        // If we still don't have a handler (e.g. No Teacher AND No Counsellor), try HOD
         if (!currentHandlerUid) {
-            currentHandlerUid = (teacherData.isOnLeave && teacherData.currentSubstituteUid) ? teacherData.currentSubstituteUid : teacherUid;
+            const hodUid = await this._findStaffByRole('HOD', studentData.dept);
+            if (hodUid) {
+                currentHandlerUid = hodUid;
+                // Adjust routing path if we skipped straight to HOD
+                if (routingPath[0] !== 'HOD') routingPath = ['HOD', ...routingPath.filter(r => r === 'PRINCIPAL')];
+            }
         }
 
-        // Determine initial status based on the first step in the workflow.
-        const initialStatus = `PENDING_${routingPath[0]}`;
+        if (!currentHandlerUid) {
+            // Final Safety Net: Send to Admin if routing fails completely
+            currentHandlerUid = await this._findPrincipalOrAdmin(); 
+            routingPath = ['PRINCIPAL']; // Force escalation
+            console.warn("Routing failed. Escalated to Admin/Principal.");
+        }
 
-        // 4. Construct Payload
+        // 4. Create Payload (Golden Schema)
         const payload = {
-            student: { ...studentData },
+            student: { 
+                uid: studentData.uid,
+                name: studentData.name,
+                rollNumber: studentData.rollNumber,
+                dept: studentData.dept,
+                section: studentData.section
+            },
             type: formData.reasonType,
             reason: formData.reason,
             startDate: formData.startDate,
             endDate: formData.endDate,
-            status: initialStatus,
-            classTeacherUid: teacherUid,
+            status: `PENDING_${routingPath[0]}`,
+            
+            classTeacherUid: teacherUid, // Stored for PDF fallback
             currentHandlerUid: currentHandlerUid,
             routingPath: routingPath,
-            logs: [{ action: 'CREATED', by: studentData.name, at: new Date().toISOString() }]
+            
+            createdAt: new Date().toISOString(),
+            logs: [{
+                action: 'CREATED',
+                by: studentData.name,
+                role: 'student',
+                at: new Date().toISOString()
+            }]
         };
 
         await db.collection('permissions').add(payload);
     }
 
-    /**
-     * TEACHER LEAVE WORKFLOW
-     * Allows a teacher to apply for leave and assign a substitute.
-     * Enforces: One substitute can only handle one active leave work.
-     */
-    static async createLeaveRequest(teacherData, formData) {
-        // 1. Check if substitute is away
-        const subDoc = await db.collection('users').doc(formData.substituteUid).get();
-        if (subDoc.exists && subDoc.data().isOnLeave) {
-            throw new Error("This colleague is currently on leave.");
-        }
+    // --- INTERNAL HELPERS ---
 
-        // 2. Check if substitute is already subbing for someone (1:1 Constraint)
-        const subbingQuery = await db.collection('users')
-            .where('currentSubstituteUid', '==', formData.substituteUid)
-            .get();
-        if (!subbingQuery.empty) {
-            throw new Error("This colleague is already acting as a substitute for another teacher.");
-        }
+    static async _findStaffByRole(roleKey, dept) {
+        // Map abstract role 'TEACHER' to db role 'teacher'
+        const dbRole = ROUTING_MAP[roleKey]?.[0] || roleKey.toLowerCase();
+        
+        const q = db.collection('users')
+            .where('role', '==', dbRole)
+            .where('department', '==', dept)
+            .limit(1);
+        
+        const snap = await q.get();
+        if (snap.empty) return null;
+        return snap.docs[0].id;
+    }
 
-        // 3. Check for pending requests naming this substitute
-        const pendingQuery = await db.collection('permissions')
-            .where('type', '==', 'Leave')
-            .where('substituteUid', '==', formData.substituteUid)
-            .where('status', '==', 'PENDING_HOD')
-            .get();
-        if (!pendingQuery.empty) {
-            throw new Error("This substitute is already assigned to a pending leave request.");
-        }
+    static async _findPrincipalOrAdmin() {
+        // Try Principal
+        let q = db.collection('users').where('role', '==', 'principal').limit(1);
+        let snap = await q.get();
+        if (!snap.empty) return snap.docs[0].id;
 
-        // 4. Find HOD for the department
-        const hodQuery = await db.collection('users')
-            .where('role', '==', 'hod')
-            .where('department', '==', teacherData.department)
-            .limit(1)
-            .get();
+        // Fallback to Admin
+        q = db.collection('users').where('role', '==', 'admin').limit(1);
+        snap = await q.get();
+        if (!snap.empty) return snap.docs[0].id;
 
-        if (hodQuery.empty) throw new Error(`Configuration Error: No HOD found for ${teacherData.department}`);
-        const hodUid = hodQuery.docs[0].id;
+        throw new Error("Critical: No Principal or Admin found in system.");
+    }
 
-        const payload = {
-            student: { // Requester info (using student field for schema compatibility)
-                uid: teacherData.uid,
-                name: teacherData.displayName,
-                rollNumber: "FACULTY",
-                dept: teacherData.department,
-                section: teacherData.section
-            },
-            type: 'Leave',
-            reason: formData.reason,
-            startDate: formData.startDate,
-            endDate: formData.endDate,
-            substituteUid: formData.substituteUid,
-            status: 'PENDING_HOD',
-            currentHandlerUid: hodUid,
-            routingPath: ['HOD'],
-            logs: [{ action: 'CREATED', by: teacherData.displayName, at: new Date().toISOString() }]
-        };
-
-        await db.collection('permissions').add(payload);
+    static async _activateSubstitute(teacherUid, subUid) {
+        const batch = db.batch();
+        batch.update(db.collection('users').doc(teacherUid), { isOnLeave: true });
+        // Logic to notify substitute can go here
+        await batch.commit();
     }
 }
 
-/**
- * Maps actor roles to the roles defined in the routingPath array.
- * This allows substitutes to be treated as teachers in the path.
- */
+// Maps workflow steps to database roles
 const ROUTING_MAP = {
     'TEACHER': ['teacher', 'substitute'],
     'COUNSELLOR': ['counsellor'],
