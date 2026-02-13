@@ -26,4 +26,4 @@ const auth = firebase.auth();
 
 console.log("🔥 UNI-PASS Module Connected");
 
-export { db, auth };
+export { db, auth, firebase };

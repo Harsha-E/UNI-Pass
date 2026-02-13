@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Restricted | UNI-PASS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../assets/css/styles.css">
+    <script type="module" src="../assets/js/firebase-init.js"></script>
+</head>
+<body class="bg-slate-50 flex items-center justify-center min-h-screen font-sans p-4">
+
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden text-center p-10">
+        
+        <div class="w-20 h-20 bg-orange-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <i class="fas fa-user-lock text-3xl text-orange-500"></i>
+        </div>
+
+        <h1 class="text-2xl font-black text-slate-900 mb-2">Access Pending</h1>
+        <p class="text-slate-500 text-sm mb-8 leading-relaxed">
+            Your account has been created successfully but requires administrator verification before you can access the dashboard.
+        </p>
+
+        <div class="bg-slate-50 rounded-xl p-4 mb-8 border border-slate-100 text-left">
+            <div class="flex items-start gap-3">
+                <i class="fas fa-info-circle text-blue-500 mt-1"></i>
+                <div>
+                    <h4 class="text-sm font-bold text-slate-800">What happens next?</h4>
+                    <p class="text-xs text-slate-500 mt-1">
+                        1. The Admin will review your role request.<br>
+                        2. Once approved, you can log in immediately.<br>
+                        3. If rejected, please contact the IT department.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="space-y-3">
+            <button onclick="checkStatus()" class="w-full py-3 bg-slate-900 text-white rounded-xl font-bold shadow-lg hover:bg-slate-800 transition">
+                Check Status Again
+            </button>
+            <button id="logout-btn" class="w-full py-3 bg-white text-slate-500 border border-slate-200 rounded-xl font-bold hover:bg-slate-50 transition">
+                Sign Out
+            </button>
+        </div>
+
+    </div>
+
+    <script type="module">
+        import { db, auth } from '../assets/js/firebase-init.js';
+
+        window.checkStatus = async () => {
+            const user = auth.currentUser;
+            if (!user) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const doc = await db.collection('users').doc(user.uid).get();
+                if (doc.exists) {
+                    const data = doc.data();
+                    if (!data.isBlocked && data.role !== 'pending') {
+                        // Redirect logic based on role
+                        if(data.role === 'student') window.location.href = '../portals/student/portalA.html';
+                        else if(data.role === 'teacher') window.location.href = '../portals/teacher/portalA.html';
+                        else if(data.role === 'hod') window.location.href = '../portals/hod/portalA.html';
+                        else if(data.role === 'lab_assistant') window.location.href = '../portals/lab-assistant/dashboard.html';
+                        else if(data.role === 'admin') window.location.href = '../admin/admin.html';
+                    } else {
+                        alert("Status: Still Pending or Blocked.");
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        };
+
+        document.getElementById('logout-btn').onclick = () => auth.signOut().then(() => window.location.href = 'login.html');
+    </script>
+</body>
+</html>

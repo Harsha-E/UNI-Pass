@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Class | UNI-PASS Teacher</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/styles.css">
+    <link rel="stylesheet" href="../../assets/css/table-view.css">
+    <script type="module" src="../../assets/js/route-guard.js"></script>
+</head>
+<body class="bg-slate-100 font-sans h-screen flex overflow-hidden">
+    <aside class="fixed inset-y-0 left-0 w-64 bg-slate-900 text-white z-50 flex flex-col shadow-xl">
+        <div class="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-chalkboard-teacher text-blue-500"></i>
+                <span class="font-bold text-lg tracking-wider">TEACHER</span>
+            </div>
+        </div>
+        <nav class="flex-1 px-4 space-y-2 mt-4">
+            <a href="portalA.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl font-bold transition-all">
+                <i class="fas fa-inbox w-4"></i> Inbox
+            </a>
+            <a href="history.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl font-bold transition-all">
+                <i class="fas fa-history w-4"></i> History
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl font-bold transition-all">
+                <i class="fas fa-users w-4"></i> My Class
+            </a>
+            <a href="substitutes.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl font-bold transition-all">
+                <i class="fas fa-user-friends w-4"></i> Substitutes
+            </a>
+        </nav>
+        <div class="p-4 border-t border-slate-800">
+            <button id="logout-btn" class="w-full py-2 flex items-center justify-center gap-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition text-sm font-bold">
+                <i class="fas fa-sign-out-alt"></i> Log Out
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full w-full ml-64 overflow-y-auto p-8 bg-slate-100">
+        <header class="mb-8">
+            <h1 class="text-2xl font-bold text-slate-800">My Class Roster</h1>
+            <p class="text-slate-500 text-sm">Overview of students in your assigned class section.</p>
+        </header>
+        <div class="mb-6 flex flex-col md:flex-row gap-4">
+            <div class="relative flex-1">
+                <i class="fas fa-search absolute left-3 top-3 text-slate-400"></i>
+                <input type="text" id="roster-search" placeholder="Search students by name or roll number..." class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+            </div>
+            <select id="attendance-filter" class="px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white text-sm font-bold text-slate-600">
+                <option value="all">All Students</option>
+                <option value="low">Low Attendance (< 75%)</option>
+                <option value="high">Good Attendance (≥ 75%)</option>
+            </select>
+        </div>
+        <div class="table-viewport">
+            <table class="w-full text-sm text-left text-slate-500">
+                <thead class="text-xs text-slate-700 uppercase">
+                    <tr>
+                        <th scope="col" class="px-6 py-4">Student Name</th>
+                        <th scope="col" class="px-6 py-4">Roll Number</th>
+                        <th scope="col" class="px-6 py-4">Attendance</th>
+                    </tr>
+                </thead>
+                <tbody id="class-table-body">
+                    <tr><td colspan="3" class="p-8 text-center text-slate-400">Loading roster...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script type="module">
+        import { db, auth } from '../../assets/js/firebase-init.js';
+
+        let classData = [];
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                db.collection('users').doc(user.uid).get().then(doc => {
+                    if (!doc.exists) return;
+                    const profile = doc.data();
+                    db.collection('users')
+                      .where('department', '==', profile.department)
+                      .where('section', '==', profile.section)
+                      .where('role', '==', 'student')
+                      .get().then(snap => {
+                          classData = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                          renderClassTable();
+                      });
+                });
+            } else { window.location.href = '../../public/login.html'; }
+        });
+
+        function renderClassTable() {
+            const tbody = document.getElementById('class-table-body');
+            const searchTerm = document.getElementById('roster-search').value.toLowerCase();
+            const attFilter = document.getElementById('attendance-filter').value;
+            
+            tbody.innerHTML = classData.filter(s => {
+                const matchesSearch = s.displayName.toLowerCase().includes(searchTerm) || s.rollNumber.toLowerCase().includes(searchTerm);
+                const att = s.attendance || 0;
+                let matchesFilter = true;
+                if (attFilter === 'low') matchesFilter = att < 75;
+                if (attFilter === 'high') matchesFilter = att >= 75;
+                return matchesSearch && matchesFilter;
+            }).map(student => `
+                <tr class="bg-white border-b hover:bg-slate-50 transition">
+                    <td class="px-6 py-4 font-bold text-slate-800">${student.displayName}</td>
+                    <td class="px-6 py-4 font-mono text-slate-600">${student.rollNumber}</td>
+                    <td class="px-6 py-4 font-bold ${student.attendance < 75 ? 'text-red-500' : 'text-green-600'}">${student.attendance || '0'}%</td>
+                </tr>`).join('') || '<tr><td colspan="3" class="p-8 text-center text-slate-400">No students found.</td></tr>';
+        }
+
+        document.getElementById('roster-search').addEventListener('input', renderClassTable);
+        document.getElementById('attendance-filter').addEventListener('change', renderClassTable);
+        document.getElementById('logout-btn').onclick = () => auth.signOut().then(() => location.href = '../../public/login.html');
+    </script>
+</body>
+</html>

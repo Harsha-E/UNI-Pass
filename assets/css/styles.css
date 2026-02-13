@@ -1,87 +1,182 @@
-/* assets/css/styles.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
-
-/* --- 1. SAFE CUSTOM CURSOR --- */
-/* Default: Cursor is VISIBLE */
+/* --- GLOBAL RESETS --- */
 body {
-    cursor: auto; 
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    background-color: #f1f5f9; /* slate-100 */
 }
 
-/* Only hide default cursor if we have added the class via JS */
-body.custom-cursor-active,
-body.custom-cursor-active a,
-body.custom-cursor-active button,
-body.custom-cursor-active input {
-    cursor: none !important;
+/* --- SCROLLBARS (For Dark Sidebars) --- */
+/* Firefox */
+.overflow-y-auto {
+    scrollbar-width: thin;
+    scrollbar-color: #334155 #0f172a;
 }
 
-/* The visual elements */
-.cursor-dot,
-.cursor-outline {
-    position: fixed;
-    top: 0;
-    left: 0;
-    transform: translate(-50%, -50%);
-    border-radius: 50%;
-    z-index: 9999;
-    pointer-events: none; /* Click through enabled */
-    display: none; /* Hidden until JS activates */
+/* Chrome/Safari */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 
-/* Show them when active */
-body.custom-cursor-active .cursor-dot,
-body.custom-cursor-active .cursor-outline {
-    display: block;
+/* Specific Sidebar Scrollbar */
+aside ::-webkit-scrollbar-track {
+    background: #0f172a;
+}
+aside ::-webkit-scrollbar-thumb {
+    background: #334155;
+}
+aside ::-webkit-scrollbar-thumb:hover {
+    background: #475569;
 }
 
-.cursor-dot {
+/* --- ANIMATIONS --- */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-in-up {
+    animation: fadeInUp 0.3s ease-out forwards;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+.spin-slow {
+    animation: spin 3s linear infinite;
+}
+
+/* --- FORM ELEMENTS --- */
+/* Custom Radio Cards */
+input[type="radio"]:checked + div {
+    background-color: #eff6ff;
+    border-color: #3b82f6;
+    border-width: 2px;
+    color: #1e3a8a;
+    box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Flatpickr Overrides (Date Picker) */
+.flatpickr-calendar {
+    font-family: 'Inter', sans-serif !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+    border-radius: 0.75rem !important;
+}
+.flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange {
+    background: #2563eb !important; /* brand-600 */
+    border-color: #2563eb !important;
+}
+.flatpickr-months .flatpickr-month {
+    background: #f8fafc !important;
+    border-radius: 0.75rem 0.75rem 0 0 !important;
+}
+
+/* --- UTILITIES --- */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.text-shadow {
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+/* css/styles.css */
+
+/* Custom Scrollbar Styling (Optional: Makes it look cleaner on Webkit browsers) */
+.table-container::-webkit-scrollbar {
     width: 8px;
     height: 8px;
-    background-color: #2563eb; /* Brand Blue */
+}
+.table-container::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1; /* Tailwind slate-300 */
+    border-radius: 4px;
+}
+.table-container::-webkit-scrollbar-track {
+    background-color: #f1f5f9; /* Tailwind slate-100 */
 }
 
-.cursor-outline {
-    width: 40px;
-    height: 40px;
-    border: 1px solid rgba(37, 99, 235, 0.5);
-    transition: width 0.2s, height 0.2s, background-color 0.2s;
+/* The Wrapper: Controls the scrollbars */
+.table-container {
+    max-height: 400px; /* Vertical Scroll Trigger */
+    width: 100%;       /* Horizontal Scroll Trigger */
+    overflow: auto;    /* Enable scrolling */
+    
+    border: 1px solid #e5e7eb; /* Tailwind gray-200 */
+    border-radius: 0.5rem;     /* Tailwind rounded-lg */
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
-/* Hover Effect */
-body.hovering .cursor-outline {
-    width: 60px;
-    height: 60px;
-    background-color: rgba(37, 99, 235, 0.1);
-    border-color: transparent;
+/* Essential for Horizontal Scroll */
+.table-container th, 
+.table-container td {
+    white-space: nowrap; 
+}
+/* assets/css/table-view.css */
+
+/* --- 1. TABLE WRAPPER (The Scroll Engine) --- */
+.table-viewport {
+    position: relative;
+    width: 100%;
+    /* HEIGHT LIMIT: Triggers vertical scroll if rows exceed this height */
+    max-height: 500px; 
+    /* WIDTH: Triggers horizontal scroll if columns are too wide */
+    overflow: auto; 
+    
+    background: white;
+    border: 1px solid #e2e8f0; /* slate-200 */
+    border-radius: 0.75rem;     /* rounded-xl */
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
-/* --- 2. RESPONSIVE TWEAKS --- */
-
-/* Smooth Sidebar Transition for Mobile */
-.sidebar-mobile {
-    transform: translateX(-100%);
-    transition: transform 0.3s ease-in-out;
+/* --- 2. STICKY HEADER --- */
+/* This keeps the column names visible while scrolling down */
+.table-viewport thead th {
+    position: sticky;
+    top: 0;
+    z-index: 20; /* Stays above rows */
+    background-color: #f8fafc; /* slate-50 */
+    box-shadow: 0 1px 0 0 #e2e8f0; /* border-b lookalike */
 }
 
-.sidebar-mobile.open {
-    transform: translateX(0);
+/* --- 3. SCROLLBAR STYLING (Webkit/Chrome/Safari) --- */
+.table-viewport::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+.table-viewport::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+.table-viewport::-webkit-scrollbar-thumb {
+    background-color: #cbd5e1;
+    border-radius: 4px;
+    border: 2px solid #f1f5f9;
+}
+.table-viewport::-webkit-scrollbar-thumb:hover {
+    background-color: #94a3b8;
 }
 
-/* Table Overflow Fix for Mobile Cards */
-table {
-    display: block;
-    overflow-x: auto;
-    white-space: nowrap;
+/* --- 4. ICON VISIBILITY FIX --- */
+/* Forces icons to be visible and prevents parent container clipping */
+.action-cell {
+    position: relative;
+    z-index: 10;
 }
 
-/* Hide Scrollbar for cleaner look */
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-.no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
+/* Ensure buttons don't shrink */
+.action-btn {
+    flex-shrink: 0; 
 }

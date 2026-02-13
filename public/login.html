@@ -6,145 +6,117 @@
     <title>Login | UNI-PASS System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="../../assets/css/style.css">
-    <script src="../../assets/js/ui.js" defer></script>
     <script type="module" src="../assets/js/firebase-init.js"></script>
 </head>
-<body class="bg-gray-100 flex items-center justify-center min-h-screen font-sans relative">
+<body class="bg-slate-50 flex items-center justify-center min-h-screen font-sans">
 
-    <a href="../index.html" class="absolute top-6 left-6 text-slate-500 hover:text-blue-600 font-bold text-sm flex items-center gap-2 transition-colors z-10">
-        <div class="w-8 h-8 rounded-full bg-white border border-slate-200 flex items-center justify-center shadow-sm hover:shadow-md transition">
-            <i class="fas fa-arrow-left"></i>
-        </div>
-        Back to Home
-    </a>
+    <div id="toast-container" class="fixed top-5 right-5 z-50 flex flex-col gap-2"></div>
 
-    <div class="max-w-md w-full bg-white rounded-xl shadow-lg overflow-hidden m-4">
-        <div class="p-8 pb-10">
-            <div class="text-center mb-8">
-                <div class="w-16 h-16 bg-blue-600 rounded-lg flex items-center justify-center mx-auto mb-4 shadow-lg text-white text-3xl">
-                    <i class="fas fa-university"></i>
-                </div>
-                <h2 class="text-2xl font-bold text-gray-800">Welcome Back</h2>
-                <p class="text-gray-500 text-sm">Sign in to access the campus permission portal.</p>
-            </div>
-
-            <form id="login-form" class="space-y-6">
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                            <i class="fas fa-envelope"></i>
-                        </span>
-                        <input type="email" id="email" required class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="2-331A----@mvgrce.edu.in">
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                    <div class="relative">
-                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-400">
-                            <i class="fas fa-lock"></i>
-                        </span>
-                        <input type="password" id="password" required class="w-full pl-10 pr-10 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition" placeholder="••••••••">
-                        
-                        <button type="button" id="toggle-password" class="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-blue-600 focus:outline-none cursor-pointer z-10">
-                            <i class="fas fa-eye-slash"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <button type="submit" id="login-btn" class="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition shadow-md hover:shadow-lg transform hover:-translate-y-0.5 flex justify-center items-center gap-2">
-                    <span>Sign In</span>
-                    <i class="fas fa-sign-in-alt"></i>
-                </button>
-            </form>
-
-            <div class="mt-6 text-center text-sm text-gray-500">
-                Don't have an account? <a href="signup.html" class="text-blue-600 font-bold hover:underline">Register Here</a>
+    <div class="max-w-md w-full bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden m-4">
+        
+        <div class="bg-slate-900 p-8 text-center relative overflow-hidden">
+            <div class="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
+            <div class="relative z-10">
+                <i class="fas fa-university text-4xl text-blue-500 mb-3"></i>
+                <h2 class="text-3xl font-bold text-white tracking-tight">UNI-PASS</h2>
+                <p class="text-slate-400 text-sm mt-1">Institutional Access Portal</p>
             </div>
         </div>
+
+        <form id="login-form" class="p-8 space-y-6">
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Email Address</label>
+                <div class="relative">
+                    <i class="fas fa-envelope absolute left-4 top-3.5 text-slate-400"></i>
+                    <input type="email" id="login-email" required class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition font-medium" placeholder="name@mvgrce.edu.in">
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Password</label>
+                <div class="relative">
+                    <i class="fas fa-lock absolute left-4 top-3.5 text-slate-400"></i>
+                    <input type="password" id="login-pass" required class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:bg-white outline-none transition font-medium" placeholder="••••••••">
+                </div>
+                <div class="text-right mt-1">
+                    <a href="#" class="text-xs text-blue-600 hover:underline font-bold">Forgot Password?</a>
+                </div>
+            </div>
+
+            <button type="submit" id="btn-login" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200 active:scale-95 flex justify-center items-center gap-2">
+                <span>Sign In</span> <i class="fas fa-arrow-right"></i>
+            </button>
+
+            <p class="text-center text-sm text-slate-500 mt-6">
+                New user? <a href="signup.html" class="text-blue-600 font-bold hover:text-blue-700">Create Account</a>
+            </p>
+        </form>
     </div>
 
     <script type="module">
         import { db, auth } from '../assets/js/firebase-init.js';
 
-        // --- 1. SESSION CLEANUP ---
-        sessionStorage.clear();
-        localStorage.removeItem('uni_pass_role');
-        localStorage.removeItem('uni_pass_uid');
-        auth.signOut().catch(() => {}); 
+        function showToast(msg, type = 'error') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            const color = type === 'error' ? 'bg-red-500' : 'bg-green-600';
+            toast.className = `${color} text-white px-6 py-3 rounded-lg shadow-lg mb-2 flex items-center gap-3 animate-bounce`;
+            toast.innerHTML = `<i class="fas ${type === 'error' ? 'fa-exclamation-circle' : 'fa-check-circle'}"></i> <span>${msg}</span>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.remove(), 4000);
+        }
 
-        // --- 2. PASSWORD TOGGLE (Fixed Logic) ---
-        document.getElementById('toggle-password').addEventListener('click', function() {
-            const input = document.getElementById('password');
-            const icon = this.querySelector('i');
-            
-            if (input.type === 'password') {
-                // Show Password
-                input.type = 'text';
-                icon.classList.remove('fa-eye-slash'); // Remove slash
-                icon.classList.add('fa-eye');          // Show open eye
-            } else {
-                // Hide Password
-                input.type = 'password';
-                icon.classList.remove('fa-eye');       // Remove open eye
-                icon.classList.add('fa-eye-slash');    // Show slash
-            }
-        });
-
-        // --- 3. LOGIN LOGIC ---
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value;
-            const loginBtn = document.getElementById('login-btn');
-            const originalBtnHTML = loginBtn.innerHTML;
+            const btn = document.getElementById('btn-login');
+            const originalContent = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Authenticating...';
 
-            loginBtn.innerHTML = '<i class="fas fa-circle-notch fa-spin"></i> Verifying...';
-            loginBtn.disabled = true;
-            loginBtn.classList.add('opacity-75', 'cursor-not-allowed');
+            const email = document.getElementById('login-email').value;
+            const pass = document.getElementById('login-pass').value;
 
             try {
-                const cred = await auth.signInWithEmailAndPassword(email, password);
-                const user = cred.user;
+                const userCredential = await auth.signInWithEmailAndPassword(email, pass);
+                const uid = userCredential.user.uid;
 
-                if (!user.emailVerified && !email.endsWith('@test.com')) {
+                // Verify Role & Status
+                const doc = await db.collection('users').doc(uid).get();
+                
+                if (!doc.exists) {
+                    throw new Error("User profile not found in database.");
+                }
+
+                const data = doc.data();
+
+                if (data.isBlocked) {
                     await auth.signOut();
-                    throw new Error("Email not verified. Please check your inbox.");
+                    throw new Error("Account suspended. Contact Admin.");
                 }
 
-                const doc = await db.collection('users').doc(user.uid).get();
+                // Redirect based on Role
+                showToast("Login Successful! Redirecting...", "success");
+                
+                setTimeout(() => {
+                    switch (data.role) {
+                        case 'student': window.location.href = '../portals/student/portalA.html'; break;
+                        case 'teacher': window.location.href = '../portals/teacher/portalA.html'; break;
+                        case 'hod': window.location.href = '../portals/hod/portalA.html'; break;
+                        case 'lab_assistant': window.location.href = '../portals/lab-assistant/dashboard.html'; break;
+                        case 'principal': window.location.href = '../portals/principal/portalA.html'; break;
+                        case 'admin': window.location.href = '../admin/admin.html'; break;
+                        default: 
+                            if (data.role === 'pending') throw new Error("Account pending approval.");
+                            window.location.href = '../public/unauthorized.html';
+                    }
+                }, 1000);
 
-                if (doc.exists) {
-                    const data = doc.data();
-                    if (data.isBlocked) throw new Error("Account is blocked or pending approval.");
-
-                    sessionStorage.setItem('uni_pass_role', data.role);
-                    sessionStorage.setItem('uni_pass_uid', user.uid);
-
-                    const routes = {
-                        'student': '../portals/student/portalA.html',
-                        'teacher': '../portals/teacher/portalA.html',
-                        'hod': '../portals/hod/portalA.html',
-                        'lab_assistant': '../portals/lab-assistant/dashboard.html',
-                        'admin': '../admin/admin.html'
-                    };
-
-                    if(routes[data.role]) window.location.href = routes[data.role];
-                    else throw new Error("Unknown Role: " + data.role);
-
-                } else {
-                    throw new Error("User profile missing in database.");
-                }
-
-            } catch (error) {
-                console.error(error);
-                alert("Login Failed: " + error.message);
-                loginBtn.innerHTML = originalBtnHTML;
-                loginBtn.disabled = false;
-                loginBtn.classList.remove('opacity-75', 'cursor-not-allowed');
-                await auth.signOut();
+            } catch (err) {
+                console.error(err);
+                showToast(err.message);
+                btn.disabled = false;
+                btn.innerHTML = originalContent;
             }
         });
     </script>

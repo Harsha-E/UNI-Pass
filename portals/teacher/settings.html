@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings | UNI-PASS Teacher</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/styles.css">
+    <script type="module" src="../../assets/js/route-guard.js"></script>
+    <style>
+        /* Toggle Switch Styles */
+        .toggle-checkbox:checked { background-color: #22c55e; }
+        .toggle-checkbox:checked + .toggle-label { background-color: #22c55e; }
+        .toggle-checkbox:checked + .toggle-label .toggle-ball { transform: translateX(100%); }
+    </style>
+</head>
+<body class="bg-slate-100 font-sans h-screen flex overflow-hidden">
+    <!-- Sidebar (copied from portalA.html for consistency) -->
+    <aside class="fixed inset-y-0 left-0 w-64 bg-slate-900 text-white z-50 flex flex-col shadow-xl">
+        <div class="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-chalkboard-teacher text-blue-500"></i>
+                <span class="font-bold text-lg tracking-wider">TEACHER</span>
+            </div>
+        </div>
+        <nav class="flex-1 px-4 space-y-2 mt-4">
+            <a href="portalA.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl font-bold">
+                <i class="fas fa-inbox w-4"></i> Inbox
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl font-bold">
+                <i class="fas fa-cog w-4"></i> Settings
+            </a>
+        </nav>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full w-full ml-64 overflow-y-auto p-8 bg-slate-100">
+        <header class="mb-8">
+            <h1 class="text-2xl font-bold text-slate-800">Leave & Substitute Settings</h1>
+            <p class="text-slate-500 text-sm">Manage your availability for new permission requests.</p>
+        </header>
+
+        <div class="max-w-2xl bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+            <div class="space-y-6">
+                <!-- Leave Switch -->
+                <div class="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200">
+                    <div>
+                        <h3 class="font-bold text-slate-800">I am on Leave</h3>
+                        <p class="text-xs text-slate-500">New requests will be routed to your substitute.</p>
+                    </div>
+                    <div class="relative inline-block w-10 mr-2 align-middle select-none transition duration-200 ease-in">
+                        <input type="checkbox" name="toggle" id="leave-toggle" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-4 appearance-none cursor-pointer"/>
+                        <label for="leave-toggle" class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer"></label>
+                    </div>
+                </div>
+
+                <!-- Substitute Selection -->
+                <div id="substitute-section" class="hidden">
+                    <label for="substitute-select" class="block text-xs font-bold text-slate-500 uppercase mb-2">Select Substitute</label>
+                    <select id="substitute-select" class="w-full p-3 bg-white border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none">
+                        <option value="">Loading colleagues...</option>
+                    </select>
+                    <p class="text-xs text-slate-400 mt-2">Only faculty from your department are shown.</p>
+                </div>
+
+                <!-- Save Button -->
+                <div class="pt-6 border-t border-slate-100">
+                    <button id="save-settings-btn" class="w-full md:w-auto px-8 py-3 bg-blue-600 text-white font-bold rounded-lg hover:bg-blue-700 shadow-lg shadow-blue-200 transition transform active:scale-95 flex items-center justify-center gap-2">
+                        <i class="fas fa-save"></i> Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { db, auth } from '../../assets/js/firebase-init.js';
+
+        let currentUser = null;
+        let userProfile = {};
+
+        const toggle = document.getElementById('leave-toggle');
+        const subSection = document.getElementById('substitute-section');
+        const subSelect = document.getElementById('substitute-select');
+        const saveBtn = document.getElementById('save-settings-btn');
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                loadTeacherProfile(user.uid);
+            } else {
+                window.location.href = '../../public/login.html';
+            }
+        });
+
+        async function loadTeacherProfile(uid) {
+            const docRef = db.collection('users').doc(uid);
+            const doc = await docRef.get();
+            if (!doc.exists) return;
+
+            userProfile = doc.data();
+            
+            // Set initial state
+            toggle.checked = userProfile.isOnLeave || false;
+            subSection.classList.toggle('hidden', !toggle.checked);
+
+            // Load substitutes
+            loadSubstitutes(userProfile.department, uid);
+        }
+
+        async function loadSubstitutes(department, selfUid) {
+            const q = db.collection('users')
+                        .where('role', '==', 'teacher')
+                        .where('department', '==', department);
+            
+            const snap = await q.get();
+            subSelect.innerHTML = '<option value="">-- Select a Colleague --</option>';
+            
+            snap.forEach(doc => {
+                if (doc.id === selfUid) return; // Can't be your own substitute
+                const teacher = doc.data();
+                const option = document.createElement('option');
+                option.value = doc.id;
+                option.textContent = teacher.displayName;
+                if (userProfile.currentSubstituteUid === doc.id) {
+                    option.selected = true;
+                }
+                subSelect.appendChild(option);
+            });
+        }
+
+        toggle.addEventListener('change', () => {
+            subSection.classList.toggle('hidden', !toggle.checked);
+        });
+
+        saveBtn.addEventListener('click', async () => {
+            saveBtn.disabled = true;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+            const isOnLeave = toggle.checked;
+            let substituteUid = null;
+
+            if (isOnLeave) {
+                substituteUid = subSelect.value;
+                if (!substituteUid) {
+                    alert("Please select a substitute when going on leave.");
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+                    return;
+                }
+            }
+
+            try {
+                await db.collection('users').doc(currentUser.uid).update({
+                    isOnLeave: isOnLeave,
+                    currentSubstituteUid: substituteUid
+                });
+                alert("Settings saved successfully!");
+            } catch (err) {
+                alert("Error saving settings: " + err.message);
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+            }
+        });
+    </script>
+</body>
+</html>

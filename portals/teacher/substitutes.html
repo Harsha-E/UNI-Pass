@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Substitutes | UNI-PASS Teacher</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="../../assets/css/styles.css">
+    <script type="module" src="../../assets/js/route-guard.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+</head>
+<body class="bg-slate-100 font-sans h-screen flex overflow-hidden">
+    <!-- Sidebar (copied from portalA.html for consistency) -->
+    <aside class="fixed inset-y-0 left-0 w-64 bg-slate-900 text-white z-50 flex flex-col shadow-xl">
+        <div class="h-16 flex items-center px-6 border-b border-slate-800 bg-slate-950">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-chalkboard-teacher text-blue-500"></i>
+                <span class="font-bold text-lg tracking-wider">TEACHER</span>
+            </div>
+        </div>
+        <nav class="flex-1 px-4 space-y-2 mt-4">
+            <a href="portalA.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl font-bold transition-all">
+                <i class="fas fa-inbox w-4"></i> Inbox
+            </a>
+            <a href="history.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl font-bold transition-all">
+                <i class="fas fa-history w-4"></i> History
+            </a>
+            <a href="myclass.html" class="flex items-center gap-3 px-4 py-3 text-slate-400 hover:bg-slate-800 hover:text-white rounded-xl font-bold transition-all">
+                <i class="fas fa-users w-4"></i> My Class
+            </a>
+            <a href="#" class="flex items-center gap-3 px-4 py-3 bg-blue-600 text-white rounded-xl font-bold transition-all">
+                <i class="fas fa-user-friends w-4"></i> Substitutes
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-slate-800">
+            <button id="logout-btn" class="w-full py-2 flex items-center justify-center gap-2 text-slate-400 hover:text-red-400 hover:bg-slate-800 rounded-lg transition text-sm font-bold">
+                <i class="fas fa-sign-out-alt"></i> Log Out
+            </button>
+        </div>
+    </aside>
+
+    <main class="flex-1 flex flex-col h-full w-full ml-64 overflow-y-auto p-8 bg-slate-100">
+        <h1 class="text-2xl font-bold text-slate-800 mb-6">Leave & Substitute Management</h1>
+
+        <!-- My Current Leave Status -->
+        <div id="my-leave-status" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6 hidden">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center">
+                        <i class="fas fa-plane-departure"></i>
+                    </div>
+                    <div>
+                        <p class="text-sm font-bold text-orange-800">You are currently on Leave</p>
+                        <p class="text-xs text-orange-600" id="current-sub-info">Substitute: Loading...</p>
+                    </div>
+                </div>
+                <button onclick="endLeave()" class="px-4 py-2 bg-orange-600 text-white text-xs font-bold rounded-lg hover:bg-orange-700 transition shadow-md shadow-orange-200">
+                    End Leave & Resume Duties
+                </button>
+            </div>
+        </div>
+
+        <!-- My Substitute Assignments -->
+        <div id="my-sub-assignments" class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 mb-6 hidden">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center">
+                    <i class="fas fa-user-shield"></i>
+                </div>
+                <div>
+                    <p class="text-sm font-bold text-blue-800">Substitute Assignment Alert</p>
+                    <p class="text-xs text-blue-600" id="sub-alert-text">You are currently handling requests for another faculty member.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Apply for Leave Form -->
+        <div class="max-w-2xl bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+            <h2 class="text-lg font-bold text-slate-800 mb-4">Apply for New Leave</h2>
+            <form id="leave-form" class="space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Start Date</label>
+                        <input type="text" id="leave-start" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1">End Date</label>
+                        <input type="text" id="leave-end" required class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Select Available Substitute</label>
+                    <div class="mb-2">
+                        <div class="relative">
+                            <i class="fas fa-search absolute left-3 top-3 text-slate-400"></i>
+                            <input type="text" id="sub-search" placeholder="Search available faculty..." class="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm transition-all">
+                        </div>
+                    </div>
+                    <select id="leave-substitute" required class="w-full p-3 bg-white border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Loading available colleagues...</option>
+                    </select>
+                    <p class="text-[10px] text-slate-400 mt-1 italic">* Only showing faculty who are not currently on leave or subbing.</p>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1">Reason for Leave</label>
+                    <textarea id="leave-reason" required rows="3" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 resize-none" placeholder="Explain the reason for your absence..."></textarea>
+                </div>
+
+                <button type="submit" id="leave-submit-btn" class="w-full py-4 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 transition shadow-lg shadow-blue-200 flex justify-center items-center gap-2">
+                    <span>Submit to HOD</span> <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <script type="module">
+        import { db, auth } from '../../assets/js/firebase-init.js';
+        import { PermissionService } from '../../assets/js/permission-flow.js';
+
+        let currentUser = null;
+        let userProfile = {};
+        let allSubstitutes = [];
+        let busyUids = new Set();
+
+        const leaveStartPicker = flatpickr("#leave-start", { minDate: "today", dateFormat: "Y-m-d" });
+        const leaveEndPicker = flatpickr("#leave-end", { minDate: "today", dateFormat: "Y-m-d" });
+
+        const leaveSubstituteSelect = document.getElementById('leave-substitute');
+        const leaveSubmitBtn = document.getElementById('leave-submit-btn');
+        const myLeaveStatusDiv = document.getElementById('my-leave-status');
+        const mySubAssignmentsDiv = document.getElementById('my-sub-assignments');
+
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                loadTeacherProfile(user.uid);
+                loadSubstituteAssignments(user.uid);
+            } else {
+                window.location.href = '../../public/login.html';
+            }
+        });
+
+        async function loadTeacherProfile(uid) {
+            const docRef = db.collection('users').doc(uid);
+            docRef.onSnapshot(async (doc) => {
+                if (!doc.exists) return;
+                userProfile = { uid: doc.id, ...doc.data() };
+                
+                if (userProfile.isOnLeave) {
+                    myLeaveStatusDiv.classList.remove('hidden');
+                    const subDoc = await db.collection('users').doc(userProfile.currentSubstituteUid).get();
+                    document.getElementById('current-sub-info').innerText = `Substitute: ${subDoc.data()?.displayName || 'Unknown'}`;
+                } else {
+                    myLeaveStatusDiv.classList.add('hidden');
+                }
+
+                loadSubstitutes(userProfile.department, uid);
+            });
+        }
+
+        async function loadSubstitutes(department, selfUid) {
+            // 1. Find all teachers in dept
+            const q = db.collection('users')
+                        .where('role', '==', 'teacher')
+                        .where('department', '==', department);
+            
+            const snap = await q.get();
+            
+            // 2. Identify "Busy" teachers (those who are already subbing for someone)
+            busyUids.clear();
+            snap.forEach(doc => {
+                const data = doc.data();
+                if (data.currentSubstituteUid) busyUids.add(data.currentSubstituteUid);
+            });
+
+            allSubstitutes = [];
+            snap.forEach(doc => {
+                if (doc.id === selfUid) return;
+                const data = doc.data();
+                // Filter: Not on leave AND not already subbing for someone else
+                if (!data.isOnLeave && !busyUids.has(doc.id)) {
+                    allSubstitutes.push({ id: doc.id, ...data });
+                }
+            });
+            renderSubstitutes();
+        }
+
+        function renderSubstitutes() {
+            const searchTerm = document.getElementById('sub-search').value.toLowerCase();
+            leaveSubstituteSelect.innerHTML = '<option value="">-- Select Available Colleague --</option>';
+            
+            allSubstitutes.filter(s => s.displayName.toLowerCase().includes(searchTerm))
+            .forEach(teacher => {
+                const option = document.createElement('option');
+                option.value = teacher.id;
+                option.textContent = teacher.displayName;
+                leaveSubstituteSelect.appendChild(option);
+            });
+        }
+
+        document.getElementById('sub-search').addEventListener('input', renderSubstitutes);
+
+        document.getElementById('leave-form').onsubmit = async (e) => {
+            e.preventDefault();
+            leaveSubmitBtn.disabled = true;
+            leaveSubmitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
+            const formData = {
+                startDate: document.getElementById('leave-start').value,
+                endDate: document.getElementById('leave-end').value,
+                substituteUid: leaveSubstituteSelect.value,
+                reason: document.getElementById('leave-reason').value
+            };
+
+            if (new Date(formData.endDate) < new Date(formData.startDate)) {
+                alert("End date cannot be before start date.");
+                leaveSubmitBtn.disabled = false;
+                leaveSubmitBtn.innerHTML = '<span>Submit to HOD</span> <i class="fas fa-paper-plane"></i>';
+                return;
+            }
+            
+            try {
+                await PermissionService.createLeaveRequest(userProfile, formData);
+                alert("Leave request submitted to HOD.");
+                e.target.reset();
+                leaveStartPicker.clear();
+                leaveEndPicker.clear();
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                leaveSubmitBtn.disabled = false;
+                leaveSubmitBtn.innerHTML = '<span>Submit to HOD</span> <i class="fas fa-paper-plane"></i>';
+            }
+        };
+
+        async function loadSubstituteAssignments(uid) {
+            db.collection('users')
+              .where('currentSubstituteUid', '==', uid)
+              .where('isOnLeave', '==', true)
+              .onSnapshot(snap => {
+                  if (!snap.empty) {
+                      mySubAssignmentsDiv.classList.remove('hidden');
+                      const subbingFor = snap.docs.map(d => d.data().displayName).join(', ');
+                      document.getElementById('sub-alert-text').innerText = `You are currently handling requests for: ${subbingFor}`;
+                  } else {
+                      mySubAssignmentsDiv.classList.add('hidden');
+                  }
+              });
+        }
+
+        window.endLeave = async () => {
+            if (!confirm("Are you sure you want to end your leave and resume duties?")) return;
+            try {
+                await db.collection('users').doc(currentUser.uid).update({
+                    isOnLeave: false,
+                    currentSubstituteUid: null
+                });
+                alert("Leave ended. You are now active.");
+            } catch (err) {
+                alert("Error: " + err.message);
+            }
+        };
+
+        document.getElementById('logout-btn').onclick = () => auth.signOut().then(() => location.href = '../../public/login.html');
+    </script>
+</body>
+</html>
